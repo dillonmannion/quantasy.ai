@@ -1,8 +1,17 @@
+# fly.toml app configuration file generated for quantasy-alpha on 2026-01-23T09:25:36-08:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = 'quantasy-alpha'
 primary_region = 'sjc'
 
 [build]
   dockerfile = 'Dockerfile'
+
+[build.args]
+  NEXT_PUBLIC_SUPABASE_URL = "https://pmsjxdiiknpkfrcwpqyf.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2p4ZGlpa25wa2ZyY3dwcXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjEwNDMsImV4cCI6MjA4NDczNzA0M30.crx6jYVu3_jlE3rLoe99YsfgauNVdtUlmmZyaYg-jzI"
 
 [env]
   PORT = '3000'
