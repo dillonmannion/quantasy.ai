@@ -1,28 +1,36 @@
-# Quantasy MonoRepo
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-> [!WARNING]
-> SITE CURRENTLY IN PRE-ALPHA, EXPECTED ALPHA REALEASE _Feb 1, 2026_
-## What is Quantasy?
+## Getting Started
 
-Quantasy will be the premier way to manange fantasy sports teams circa. 2026.
+First, run the development server:
 
-Any tool you can think of lives here, and if you come from another dimension and have thought of a new one, you thought wrong.
-- Utilize QuanAI, our in-house tool-creator possibly-described-as-a-god-when-the-AI-overlords-takeover Fantasy Chat LLM. 
-	- It can take your description and walk you through the steps to host the tool on for a league you manage or for all residents of Quantasy to use.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-**TBC**...
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Why Quantasy?
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-We are a foundations first platform that prides itself on alogorithmic transparency and mathmatically rigorous presentment of proof.
-All tools and statistics found for use in fantasy leagues on the site will allow any user to analyze how anything is suggested to you.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-**TBC**...
+## Learn More
 
-## License 
+To learn more about Next.js, take a look at the following resources:
 
-[!NOTE] **TODO:** Strongest Open Source Non-commerical
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Note from Author
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-[!NOTE] **TODO:** Explain who 4Clovr is.
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
