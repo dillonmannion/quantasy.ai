@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from 'motion/react'
 import { type ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 const variants: Variants = {
   hidden: { opacity: 0, y: 10 },
@@ -27,7 +28,7 @@ export function FadeIn({
       animate="visible"
       variants={variants}
       transition={{ delay, duration, ease: 'easeOut' }}
-      className={className}
+      className={cn(className)}
     >
       {children}
     </motion.div>

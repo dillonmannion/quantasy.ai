@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from 'motion/react'
 import { type ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -38,7 +39,7 @@ export function StaggerList({ children, className }: StaggerListProps) {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className={className}
+      className={cn(className)}
     >
       {children}
     </motion.div>
@@ -52,7 +53,7 @@ interface StaggerItemProps {
 
 export function StaggerItem({ children, className }: StaggerItemProps) {
   return (
-    <motion.div variants={itemVariants} className={className}>
+    <motion.div variants={itemVariants} className={cn(className)}>
       {children}
     </motion.div>
   )

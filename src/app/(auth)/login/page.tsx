@@ -39,53 +39,54 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <FadeIn className="w-full max-w-md">
-        <Card className="p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Welcome to Quantasy
-            </h1>
-            <p className="text-muted-foreground">
-              Sign in to access your fantasy football tools
-            </p>
-          </div>
+    <div className="min-h-screen p-4 flex items-center justify-center">
+      <FadeIn className="w-[32rem] max-w-full">
+        <Card className="p-6 md:p-10 gap-6 md:gap-8 border-white/10 shadow-2xl">
+            <div className="text-center space-y-3">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent pb-1">
+                Welcome to Quantasy
+              </h1>
+              <p className="text-muted-foreground text-base md:text-lg">
+                Sign in to access your fantasy football tools
+              </p>
+            </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-base">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="h-12 text-lg bg-background/50 border-white/10 focus:border-primary/50"
+                />
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-lg font-semibold shadow-lg hover:shadow-primary/25 transition-all"
                 disabled={loading}
-              />
-            </div>
+              >
+                {loading ? 'Sending magic link...' : 'Send Magic Link'}
+              </Button>
+            </form>
 
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? 'Sending magic link...' : 'Send Magic Link'}
-            </Button>
-          </form>
-
-          {message && (
-            <div className={`
-              p-4 rounded-lg text-sm
-              ${message.type === 'success' 
-                ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
-                : 'bg-red-500/10 text-red-400 border border-red-500/20'
-              }
-            `}>
-              {message.text}
-            </div>
-          )}
-        </Card>
+            {message && (
+              <div className={`
+                p-4 rounded-lg text-sm
+                ${message.type === 'success' 
+                  ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                }
+              `}>
+                {message.text}
+              </div>
+            )}
+          </Card>
       </FadeIn>
     </div>
   )
