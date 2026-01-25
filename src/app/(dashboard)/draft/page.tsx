@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
 import { DraftShell } from '@/components/draft/draft-shell'
+import { RankingsList } from '@/components/draft/rankings-list'
 import { getCachedLeague } from '@/lib/sleeper/cache'
 import { getActiveDraft } from '@/lib/sleeper/draft'
 
@@ -31,6 +32,16 @@ export default async function DraftPage() {
   
   const keepers: string[] = []
   
+  const vbdResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/algorithms/vbd`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ leagueId, limit: 500 }),
+    cache: 'no-store'
+  })
+  
+  const vbdData = vbdResponse.ok ? await vbdResponse.json() : { rankings: [] }
+  const players = vbdData.rankings || []
+  
   return (
     <PageContainer>
       <DraftShell
@@ -48,11 +59,15 @@ export default async function DraftPage() {
             </div>
           </div>
           
-          <div className="card-balatro p-8 text-center">
-            <p className="text-muted-foreground">
-              Rankings component coming in Task 15
-            </p>
-          </div>
+          {players.length > 0 ? (
+            <RankingsList players={players} />
+          ) : (
+            <div className="card-balatro p-8 text-center">
+              <p className="text-muted-foreground">
+                No rankings available. Upload projections to get started.
+              </p>
+            </div>
+          )}
         </div>
       </DraftShell>
     </PageContainer>
