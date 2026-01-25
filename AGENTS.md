@@ -16,23 +16,29 @@ qai/
 │   ├── app/                    # Next.js 16 App Router
 │   │   ├── (auth)/             # Public auth routes (login, callback)
 │   │   ├── (dashboard)/        # Protected routes (dashboard, draft, roster, trade, waivers, connect)
-│   │   └── api/                # API routes (/players/sync)
+│   │   └── api/                # API routes (/players/sync, /algorithms/vbd, /ai/explain)
 │   ├── components/
 │   │   ├── animation/          # Balatro-inspired animation primitives
 │   │   ├── ui/                 # shadcn/ui (New York style)
 │   │   ├── layout/             # Responsive nav (mobile-first)
 │   │   ├── players/            # Player cards/lists
+│   │   ├── draft/              # Draft Assistant UI (rankings, filters, controls)
 │   │   └── providers/          # AuthProvider context
 │   ├── lib/
 │   │   ├── sleeper/            # Sleeper API client (see ./src/lib/sleeper/AGENTS.md)
 │   │   ├── supabase/           # Auth + DB (client.ts, server.ts, middleware.ts)
-│   │   ├── algorithms/         # VBD, lineup, trade, waivers (planned)
+│   │   ├── algorithms/         # VBD (complete), lineup, trade, waivers (planned)
+│   │   ├── draft/              # Draft state management (Context + reducer)
+│   │   ├── projections/        # Projection data layer (CSV upload, storage)
+│   │   └── ai/                 # Groq AI integration (explanations)
 │   │   └── utils/              # cn(), formatters (planned)
-│   ├── hooks/                  # use-celebration.ts
+│   ├── hooks/                  # use-celebration.ts, use-draft-sync.ts, use-connection-status.ts
 │   └── tests/                  # Vitest setup + unit tests
 ├── tests/e2e/                  # Playwright E2E tests
 ├── supabase/migrations/        # SQL migrations
-└── docs/plan/                  # Phase planning docs (00-overview.md is index)
+├── docs/
+│   ├── plan/                   # Phase planning docs (00-overview.md is index)
+│   └── algorithms/             # Algorithm documentation (vbd.md)
 ```
 
 ## WHERE TO LOOK
@@ -47,6 +53,13 @@ qai/
 | Auth check | `src/app/(dashboard)/layout.tsx` | Layout handles redirect to /login |
 | Add test | `src/tests/unit/*.test.tsx` or `tests/e2e/*.spec.ts` | Vitest vs Playwright |
 | Planning docs | `docs/plan/00-overview.md` | Start here for project context |
+| **Draft Assistant** | | |
+| Add VBD calculation | `src/lib/algorithms/vbd.ts` | Core algorithm, see docs/algorithms/vbd.md |
+| Add draft UI | `src/components/draft/` | Client components (rankings, filters, etc.) |
+| Add draft API | `src/app/api/algorithms/vbd/route.ts` | VBD endpoint |
+| Add draft tests | `tests/e2e/draft-assistant.spec.ts` | E2E tests |
+| Draft state | `src/lib/draft/state.tsx` | React Context for draft state |
+| Draft sync | `src/hooks/use-draft-sync.ts` | Live Sleeper draft polling |
 
 ## CONVENTIONS
 
