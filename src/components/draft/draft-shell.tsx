@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { DraftStateProvider, useDraftState } from '@/lib/draft'
 import { useCelebration } from '@/hooks/use-celebration'
 import { Kaching } from '@/components/animation/kaching'
+import { OfflineIndicator } from './offline-indicator'
 import type { ReactNode } from 'react'
 
 interface DraftShellProps {
@@ -35,6 +36,7 @@ function DraftShellContent({ children }: { children: ReactNode }) {
         variant="green"
         onComplete={hide}
       />
+      <OfflineIndicator />
     </>
   )
 }
