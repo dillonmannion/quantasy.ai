@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
 import { DraftShell } from '@/components/draft/draft-shell'
 import { DraftRankings } from '@/components/draft/draft-rankings'
+import { MockDraftControls } from '@/components/draft/mock-draft-controls'
+import { MyTeamSidebar } from '@/components/draft/my-team-sidebar'
 import { getCachedLeague } from '@/lib/sleeper/cache'
 import { getActiveDraft } from '@/lib/sleeper/draft'
 
@@ -49,25 +51,29 @@ export default async function DraftPage() {
         draftId={draft?.draft_id}
         status={draft?.status || 'mock'}
       >
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Draft Assistant</h1>
-              <p className="text-muted-foreground">
-                {league.name} - {draft?.status === 'drafting' ? 'Live Draft' : 'Mock Draft'}
-              </p>
-            </div>
-          </div>
+         <div className="space-y-6">
+           <div className="flex items-center justify-between">
+             <div>
+               <h1 className="text-3xl font-bold">Draft Assistant</h1>
+               <p className="text-muted-foreground">
+                 {league.name} - {draft?.status === 'drafting' ? 'Live Draft' : 'Mock Draft'}
+               </p>
+             </div>
+             <MockDraftControls />
+           </div>
           
-          {players.length > 0 ? (
-            <DraftRankings players={players} />
-          ) : (
-            <div className="card-balatro p-8 text-center">
-              <p className="text-muted-foreground">
-                No rankings available. Upload projections to get started.
-              </p>
-            </div>
-          )}
+           {players.length > 0 ? (
+             <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+               <DraftRankings players={players} />
+               <MyTeamSidebar />
+             </div>
+           ) : (
+             <div className="card-balatro p-8 text-center">
+               <p className="text-muted-foreground">
+                 No rankings available. Upload projections to get started.
+               </p>
+             </div>
+           )}
         </div>
       </DraftShell>
     </PageContainer>
