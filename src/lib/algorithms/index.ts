@@ -9,3 +9,8 @@ export type {
   VBDOutput,
   VBDExplanation,
 } from './types'
+
+export type { BaselineInput } from './baselines'
+export { calculateBaseline } from './baselines'
+
+export { detectScoringFormat, getScoringExplanation } from './scoring'
