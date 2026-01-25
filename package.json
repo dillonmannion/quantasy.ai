@@ -22,6 +22,7 @@
     "@tanstack/react-virtual": "^3.13.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "groq-sdk": "^0.37.0",
     "lucide-react": "^0.563.0",
     "motion": "12.27.5",
     "next": "16.1.4",
