@@ -26,6 +26,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       leagues: {
         Row: {
@@ -61,6 +62,7 @@ export type Database = {
           total_rosters?: number | null
           cached_at?: string
         }
+        Relationships: []
       }
       user_leagues: {
         Row: {
@@ -81,6 +83,7 @@ export type Database = {
           roster_id?: number | null
           is_owner?: boolean
         }
+        Relationships: []
       }
       rosters: {
         Row: {
@@ -116,6 +119,7 @@ export type Database = {
           settings?: Record<string, unknown> | null
           cached_at?: string
         }
+        Relationships: []
       }
       players: {
         Row: {
@@ -169,6 +173,7 @@ export type Database = {
           sleeper_data?: Record<string, unknown> | null
           updated_at?: string
         }
+        Relationships: []
       }
       matchups: {
         Row: {
@@ -210,6 +215,7 @@ export type Database = {
           players_points?: Record<string, unknown> | null
           cached_at?: string
         }
+        Relationships: []
       }
       algorithm_outputs: {
         Row: {
@@ -242,7 +248,12 @@ export type Database = {
           explanation?: Record<string, unknown>
           created_at?: string
         }
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }

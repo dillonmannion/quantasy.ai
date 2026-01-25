@@ -6,7 +6,11 @@ import { getAllPlayers } from '@/lib/sleeper'
 import type { VBDInput, ScoringFormat } from '@/lib/algorithms/types'
 import type { Database } from '@/lib/supabase/types'
 
-type PlayerRow = Database['public']['Tables']['players']['Row']
+type PlayerProjection = {
+  id: string
+  projected_points: number | null
+  sleeper_data: Record<string, unknown> | null
+}
 
 interface VBDRequest {
   leagueId: string
@@ -112,7 +116,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<VBDRespon
 
     // 6. Build projections map from database
     const projectionsMap: Record<string, number> = {}
-    dbPlayers.forEach((player: PlayerRow) => {
+    dbPlayers.forEach((player: PlayerProjection) => {
       if (player.projected_points !== null) {
         projectionsMap[player.id] = player.projected_points
       }
