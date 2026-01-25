@@ -21,17 +21,24 @@ function DraftShellContent({ children, isAuction }: { children: ReactNode; isAuc
   const { state } = useDraftState()
   const { isShowing, celebrate, hide } = useCelebration(3000)
 
+  const TOTAL_PICKS = 15
+  const isDraftComplete = state.status === 'mock' && state.picks.length >= TOTAL_PICKS
+
   useEffect(() => {
-    const TOTAL_PICKS = 15
-    if (state.status === 'mock' && state.picks.length === TOTAL_PICKS) {
+    if (isDraftComplete) {
       celebrate('🎉', 'Draft Complete!')
     }
-  }, [state.picks.length, state.status, celebrate])
+  }, [isDraftComplete, celebrate])
 
   return (
     <>
       {isAuction && <AuctionBanner />}
       {children}
+      {isDraftComplete && (
+        <div data-testid="draft-complete" className="sr-only">
+          Draft Complete
+        </div>
+      )}
       <Kaching 
         show={isShowing} 
         value="🎉" 

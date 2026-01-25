@@ -22,7 +22,7 @@ export function MockDraftControls() {
 
   if (state.status !== 'mock') {
     return (
-      <Button onClick={handleStart} size="lg">
+      <Button onClick={handleStart} size="lg" data-testid="start-mock-draft">
         Start Mock Draft
       </Button>
     )

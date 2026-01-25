@@ -70,6 +70,7 @@ export function RankingsList({ players }: RankingsListProps) {
       <div
         ref={parentRef}
         className="h-[600px] overflow-auto border rounded-lg"
+        data-testid="rankings-list"
       >
         <div
           style={{
@@ -115,6 +116,7 @@ export function RankingsList({ players }: RankingsListProps) {
                   isDrafted && 'opacity-50 bg-muted'
                 )}
                 onClick={!isMobile ? handleDraft : undefined}
+                data-testid="player-card"
               >
                 <div className="w-12 text-center font-mono text-sm text-muted-foreground">
                   {player.rank}

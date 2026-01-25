@@ -104,7 +104,7 @@ export function ExplanationPanel({
   }
 
   return (
-    <Card className="p-4">
+    <Card className="p-4" data-testid="explanation-panel">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>

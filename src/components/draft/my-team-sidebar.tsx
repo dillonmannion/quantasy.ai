@@ -22,7 +22,7 @@ export function MyTeamSidebar() {
   )
 
   return (
-    <Card className="p-4 sticky top-4">
+    <Card className="p-4 sticky top-4" data-testid="my-team-sidebar">
       <div className="mb-4">
         <h3 className="font-semibold text-lg">My Team</h3>
         <p className="text-sm text-muted-foreground">

@@ -50,6 +50,7 @@ export function RankingsControls({
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="pl-9"
+            data-testid="search-input"
           />
         </div>
 
@@ -67,6 +68,7 @@ export function RankingsControls({
               variant={sortBy === 'vbd' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => onSortChange('vbd')}
+              data-testid="sort-VBD"
             >
               VBD
             </Button>
@@ -74,6 +76,7 @@ export function RankingsControls({
               variant={sortBy === 'projected' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => onSortChange('projected')}
+              data-testid="sort-Proj"
             >
               Proj
             </Button>
@@ -81,6 +84,7 @@ export function RankingsControls({
               variant={sortBy === 'adp' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => onSortChange('adp')}
+              data-testid="sort-ADP"
             >
               ADP
             </Button>
@@ -95,6 +99,7 @@ export function RankingsControls({
             variant={selectedPosition === position ? 'default' : 'outline'}
             size="sm"
             onClick={() => onPositionChange(position)}
+            data-testid={`filter-${position}`}
           >
             {position}
           </Button>
