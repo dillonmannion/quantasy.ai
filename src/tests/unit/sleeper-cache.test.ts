@@ -110,6 +110,7 @@ function createMockSleeperRoster(overrides: Partial<SleeperRoster> = {}): Sleepe
     starters: ['player-1'],
     reserve: null,
     taxi: null,
+    keepers: null,
     co_owners: null,
     settings: { wins: 5, losses: 3, ties: 0, fpts: 1200 },
     metadata: null,

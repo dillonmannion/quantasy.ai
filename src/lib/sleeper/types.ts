@@ -35,6 +35,7 @@ export interface SleeperRoster {
   starters: string[] | null
   reserve: string[] | null
   taxi: string[] | null
+  keepers: string[] | null
   co_owners: string[] | null
   settings: SleeperRosterSettings
   metadata: Record<string, unknown> | null

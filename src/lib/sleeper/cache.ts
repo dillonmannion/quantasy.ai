@@ -56,6 +56,7 @@ function rosterRowToSleeper(row: RosterRow): SleeperRoster {
     starters: row.starters,
     reserve: row.reserve,
     taxi: null,
+    keepers: null,
     co_owners: null,
     settings: {
       wins: settings.wins ?? 0,

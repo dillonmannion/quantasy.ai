@@ -60,6 +60,7 @@ function createMockRoster(overrides: Partial<SleeperRoster> = {}): SleeperRoster
     starters: ['4046', '6794'],
     reserve: null,
     taxi: null,
+    keepers: null,
     co_owners: null,
     settings: { wins: 7, losses: 3, ties: 0, fpts: 1250 },
     metadata: null,
