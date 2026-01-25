@@ -28,6 +28,8 @@ export type Position =
   | 'DB'
   | 'FLEX'
   | 'SUPERFLEX'
+  | 'REC_FLEX'
+  | 'WRRB_FLEX'
   | 'IDP_FLEX'
 
 /**
