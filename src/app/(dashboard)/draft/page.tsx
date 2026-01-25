@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
 import { DraftShell } from '@/components/draft/draft-shell'
-import { RankingsList } from '@/components/draft/rankings-list'
+import { DraftRankings } from '@/components/draft/draft-rankings'
 import { getCachedLeague } from '@/lib/sleeper/cache'
 import { getActiveDraft } from '@/lib/sleeper/draft'
 
@@ -60,7 +60,7 @@ export default async function DraftPage() {
           </div>
           
           {players.length > 0 ? (
-            <RankingsList players={players} />
+            <DraftRankings players={players} />
           ) : (
             <div className="card-balatro p-8 text-center">
               <p className="text-muted-foreground">
