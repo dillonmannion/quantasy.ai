@@ -93,6 +93,43 @@ export interface SleeperNFLState {
   previous_season: string
 }
 
+export interface SleeperDraft {
+  draft_id: string
+  league_id: string
+  type: 'snake' | 'auction' | 'linear'
+  status: 'pre_draft' | 'drafting' | 'complete'
+  start_time: number | null
+  settings: {
+    teams: number
+    rounds: number
+    player_type?: number
+  }
+  draft_order: Record<string, number> | null
+  slot_to_roster_id: Record<string, number> | null
+}
+
+export interface SleeperDraftPick {
+  pick_no: number
+  player_id: string
+  picked_by: string
+  roster_id: number
+  round: number
+  draft_slot: number
+  pick_id: string
+  metadata: {
+    team: string
+    status: string
+    sport: string
+    position: string
+    player_id: string
+    number: string
+    news_updated: string | null
+    last_name: string
+    injury_status: string | null
+    first_name: string
+  }
+}
+
 export interface SleeperAPIError {
   error: string
   message: string

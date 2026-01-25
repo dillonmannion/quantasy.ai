@@ -7,6 +7,8 @@ export type {
   SleeperMatchup,
   SleeperPlayer,
   SleeperNFLState,
+  SleeperDraft,
+  SleeperDraftPick,
   SleeperAPIError,
 } from './types'
 
@@ -23,6 +25,8 @@ export {
   getMatchups,
   getAllPlayers,
   getCurrentSeason,
+  sleeperFetch,
+  sleeperFetchNoCache,
 } from './client'
 
 export {
@@ -44,3 +48,10 @@ export {
   NFL_TEAMS,
   FANTASY_POSITIONS,
 } from './player-search'
+
+export {
+  getDraft,
+  getDraftPicks,
+  getLeagueDrafts,
+  getActiveDraft,
+} from './draft'

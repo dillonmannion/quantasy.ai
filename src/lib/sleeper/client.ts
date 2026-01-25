@@ -46,7 +46,7 @@ class RateLimiter {
 
 const rateLimiter = new RateLimiter()
 
-async function sleeperFetch<T>(
+export async function sleeperFetch<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
@@ -67,6 +67,69 @@ async function sleeperFetch<T>(
         ...options?.headers,
       },
       next: { revalidate: 60 },
+    })
+
+    const duration = Date.now() - startTime
+
+    if (!response.ok) {
+      const error: SleeperAPIError = {
+        error: 'SleeperAPIError',
+        message: `HTTP ${response.status}: ${response.statusText}`,
+        statusCode: response.status,
+      }
+
+      if (DEBUG) {
+        console.error(
+          `[Sleeper] Error ${response.status} for ${endpoint} (${duration}ms)`
+        )
+      }
+
+      throw error
+    }
+
+    const data = await response.json()
+
+    if (DEBUG) {
+      console.log(`[Sleeper] OK ${endpoint} (${duration}ms)`)
+    }
+
+    return data as T
+  } catch (error) {
+    if ((error as SleeperAPIError).statusCode) {
+      throw error
+    }
+
+    console.error(`[Sleeper] Network error for ${endpoint}:`, error)
+    throw {
+      error: 'NetworkError',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      statusCode: 0,
+    } as SleeperAPIError
+  }
+}
+
+export async function sleeperFetchNoCache<T>(
+  endpoint: string,
+  options?: RequestInit
+): Promise<T> {
+  await rateLimiter.throttle()
+
+  const url = `${BASE_URL}${endpoint}`
+  const startTime = Date.now()
+
+  try {
+    if (DEBUG) {
+      console.log(`[Sleeper] GET ${endpoint} (no-cache)`)
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        Accept: 'application/json',
+        ...options?.headers,
+      },
+      cache: 'no-store',
+      next: { revalidate: 0 },
     })
 
     const duration = Date.now() - startTime
