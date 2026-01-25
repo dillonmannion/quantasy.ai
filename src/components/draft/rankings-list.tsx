@@ -1,10 +1,14 @@
 'use client'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useMemo } from 'react'
+import { motion } from 'motion/react'
 import { useDraftState } from '@/lib/draft'
 import { cn } from '@/lib/utils'
 import { SwipeablePlayerRow } from './swipeable-player-row'
+import { useCelebration } from '@/hooks/use-celebration'
+import { Kaching } from '@/components/animation'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
 
 interface Player {
   playerId: string
@@ -21,16 +25,9 @@ interface RankingsListProps {
   players: Player[]
 }
 
-function getVBDColor(vbd: number, allVBDs: number[]): string {
-  const sorted = [...allVBDs].sort((a, b) => b - a)
-  const top25Index = Math.floor(sorted.length * 0.25)
-  const top75Index = Math.floor(sorted.length * 0.75)
-  
-  const top25Threshold = sorted[top25Index]
-  const top75Threshold = sorted[top75Index]
-  
-  if (vbd >= top25Threshold) return 'text-green-500'
-  if (vbd >= top75Threshold) return 'text-yellow-500'
+function getVBDColor(vbd: number, top25: number, top75: number): string {
+  if (vbd >= top25) return 'text-green-500'
+  if (vbd >= top75) return 'text-yellow-500'
   return 'text-red-500'
 }
 
@@ -38,6 +35,9 @@ export function RankingsList({ players }: RankingsListProps) {
   const { state, dispatch } = useDraftState()
   const parentRef = useRef<HTMLDivElement>(null)
   const [isMobile, setIsMobile] = useState(false)
+  
+  const { celebration, celebrate } = useCelebration()
+  const prefersReducedMotion = useReducedMotion()
   
   useEffect(() => {
     const checkMobile = () => {
@@ -48,7 +48,15 @@ export function RankingsList({ players }: RankingsListProps) {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
   
-  const allVBDs = players.map(p => p.vbd)
+  // Calculate VBD thresholds for colors and celebration
+  const { top25, top10, top75 } = useMemo(() => {
+    const sorted = players.map(p => p.vbd).sort((a, b) => b - a)
+    return {
+      top10: sorted[Math.floor(sorted.length * 0.10)] || 0,
+      top25: sorted[Math.floor(sorted.length * 0.25)] || 0,
+      top75: sorted[Math.floor(sorted.length * 0.75)] || 0
+    }
+  }, [players])
   
   const rowVirtualizer = useVirtualizer({
     count: players.length,
@@ -58,115 +66,140 @@ export function RankingsList({ players }: RankingsListProps) {
   })
   
   return (
-    <div
-      ref={parentRef}
-      className="h-[600px] overflow-auto border rounded-lg"
-    >
+    <>
       <div
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
+        ref={parentRef}
+        className="h-[600px] overflow-auto border rounded-lg"
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-          const player = players[virtualRow.index]
-          const isDrafted = state.draftedPlayerIds.has(player.playerId)
-          const vbdColor = getVBDColor(player.vbd, allVBDs)
-          const isDraftable = state.status === 'mock' && !isDrafted
-          
-          const handleDraft = () => {
-            if (isDraftable) {
-              dispatch({
-                type: 'MARK_DRAFTED',
-                playerId: player.playerId,
-                playerName: player.name,
-                position: player.position,
-                rosterId: state.userRosterId || 0
-              })
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const player = players[virtualRow.index]
+            const isDrafted = state.draftedPlayerIds.has(player.playerId)
+            const vbdColor = getVBDColor(player.vbd, top25, top75)
+            const isDraftable = state.status === 'mock' && !isDrafted
+            
+            const visibleIndex = virtualRow.index - (rowVirtualizer.range?.startIndex ?? 0)
+            
+            const handleDraft = () => {
+              if (isDraftable) {
+                dispatch({
+                  type: 'MARK_DRAFTED',
+                  playerId: player.playerId,
+                  playerName: player.name,
+                  position: player.position,
+                  rosterId: state.userRosterId || 0
+                })
+
+                if (player.vbd >= top25) {
+                  const variant = player.vbd >= top10 ? 'green' : 'gold'
+                  celebrate(
+                    player.vbd.toFixed(1), 
+                    `Great Value! (${player.name})`,
+                    variant
+                  )
+                }
+              }
             }
-          }
-          
-          const rowContent = (
-            <div
-              className={cn(
-                'flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-colors',
-                isDraftable && !isMobile && 'cursor-pointer',
-                isDrafted && 'opacity-50 bg-muted'
-              )}
-              onClick={!isMobile ? handleDraft : undefined}
-            >
-              <div className="w-12 text-center font-mono text-sm text-muted-foreground">
-                {player.rank}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className={cn(
-                  'font-medium truncate',
-                  isDrafted && 'line-through'
-                )}>
-                  {player.name}
+            
+            const rowContent = (
+              <div
+                className={cn(
+                  'flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-all duration-200',
+                  isDraftable && !isMobile && 'cursor-pointer hover:scale-[1.01] hover:shadow-md origin-center',
+                  isDrafted && 'opacity-50 bg-muted'
+                )}
+                onClick={!isMobile ? handleDraft : undefined}
+              >
+                <div className="w-12 text-center font-mono text-sm text-muted-foreground">
+                  {player.rank}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {player.team || 'FA'} • {player.position}
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-6 text-sm">
-                <div className="text-center">
-                  <div className="text-xs text-muted-foreground">VBD</div>
-                  <div className={cn('font-mono font-bold', vbdColor)}>
-                    {player.vbd.toFixed(1)}
+                
+                <div className="flex-1 min-w-0">
+                  <div className={cn(
+                    'font-medium truncate',
+                    isDrafted && 'line-through'
+                  )}>
+                    {player.name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {player.team || 'FA'} • {player.position}
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <div className="text-xs text-muted-foreground">Proj</div>
-                  <div className="font-mono">
-                    {player.projectedPoints.toFixed(1)}
-                  </div>
-                </div>
-                
-                {player.adp !== null && (
+                <div className="flex items-center gap-6 text-sm">
                   <div className="text-center">
-                    <div className="text-xs text-muted-foreground">ADP</div>
-                    <div className="font-mono">
-                      {player.adp.toFixed(0)}
+                    <div className="text-xs text-muted-foreground">VBD</div>
+                    <div className={cn('font-mono font-bold', vbdColor)}>
+                      {player.vbd.toFixed(1)}
                     </div>
                   </div>
-                )}
-               </div>
-            </div>
-          )
-          
-          return (
-            <div
-              key={virtualRow.key}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              {isMobile ? (
-                <SwipeablePlayerRow
-                  playerId={player.playerId}
-                  onDraft={handleDraft}
-                  isDraftable={isDraftable}
-                  enableDrag={isMobile}
+                  
+                  <div className="text-center">
+                    <div className="text-xs text-muted-foreground">Proj</div>
+                    <div className="font-mono">
+                      {player.projectedPoints.toFixed(1)}
+                    </div>
+                  </div>
+                  
+                  {player.adp !== null && (
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground">ADP</div>
+                      <div className="font-mono">
+                        {player.adp.toFixed(0)}
+                      </div>
+                    </div>
+                  )}
+                 </div>
+              </div>
+            )
+            
+            return (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                <motion.div
+                  initial={!prefersReducedMotion ? { opacity: 0, y: 10 } : false}
+                  animate={!prefersReducedMotion ? { opacity: 1, y: 0 } : false}
+                  transition={{ 
+                    delay: Math.min(visibleIndex * 0.05, 0.5),
+                    duration: 0.2 
+                  }}
+                  className="w-full h-full"
                 >
-                  {rowContent}
-                </SwipeablePlayerRow>
-              ) : (
-                rowContent
-              )}
-            </div>
-          )
-        })}
+                  {isMobile ? (
+                    <SwipeablePlayerRow
+                      playerId={player.playerId}
+                      onDraft={handleDraft}
+                      isDraftable={isDraftable}
+                      enableDrag={isMobile}
+                    >
+                      {rowContent}
+                    </SwipeablePlayerRow>
+                  ) : (
+                    rowContent
+                  )}
+                </motion.div>
+              </div>
+            )
+          })}
+        </div>
       </div>
-    </div>
+      
+      {!prefersReducedMotion && celebration && <Kaching {...celebration} />}
+    </>
   )
 }
