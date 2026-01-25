@@ -1,9 +1,10 @@
 'use client'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useDraftState } from '@/lib/draft'
 import { cn } from '@/lib/utils'
+import { SwipeablePlayerRow } from './swipeable-player-row'
 
 interface Player {
   playerId: string
@@ -36,6 +37,16 @@ function getVBDColor(vbd: number, allVBDs: number[]): string {
 export function RankingsList({ players }: RankingsListProps) {
   const { state, dispatch } = useDraftState()
   const parentRef = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia('(max-width: 768px)').matches)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
   
   const allVBDs = players.map(p => p.vbd)
   
@@ -62,35 +73,29 @@ export function RankingsList({ players }: RankingsListProps) {
           const player = players[virtualRow.index]
           const isDrafted = state.draftedPlayerIds.has(player.playerId)
           const vbdColor = getVBDColor(player.vbd, allVBDs)
+          const isDraftable = state.status === 'mock' && !isDrafted
           
-           return (
-             <div
-               key={virtualRow.key}
-               style={{
-                 position: 'absolute',
-                 top: 0,
-                 left: 0,
-                 width: '100%',
-                 height: `${virtualRow.size}px`,
-                 transform: `translateY(${virtualRow.start}px)`,
-               }}
-               onClick={() => {
-                 if (state.status === 'mock' && !state.draftedPlayerIds.has(player.playerId)) {
-                   dispatch({
-                     type: 'MARK_DRAFTED',
-                     playerId: player.playerId,
-                     playerName: player.name,
-                     position: player.position,
-                     rosterId: state.userRosterId || 0
-                   })
-                 }
-               }}
-               className={cn(
-                 'flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-colors',
-                 state.status === 'mock' && !isDrafted && 'cursor-pointer',
-                 isDrafted && 'opacity-50 bg-muted'
-               )}
-             >
+          const handleDraft = () => {
+            if (isDraftable) {
+              dispatch({
+                type: 'MARK_DRAFTED',
+                playerId: player.playerId,
+                playerName: player.name,
+                position: player.position,
+                rosterId: state.userRosterId || 0
+              })
+            }
+          }
+          
+          const rowContent = (
+            <div
+              className={cn(
+                'flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-colors',
+                isDraftable && !isMobile && 'cursor-pointer',
+                isDrafted && 'opacity-50 bg-muted'
+              )}
+              onClick={!isMobile ? handleDraft : undefined}
+            >
               <div className="w-12 text-center font-mono text-sm text-muted-foreground">
                 {player.rank}
               </div>
@@ -130,7 +135,34 @@ export function RankingsList({ players }: RankingsListProps) {
                     </div>
                   </div>
                 )}
-              </div>
+               </div>
+            </div>
+          )
+          
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              {isMobile ? (
+                <SwipeablePlayerRow
+                  playerId={player.playerId}
+                  onDraft={handleDraft}
+                  isDraftable={isDraftable}
+                  enableDrag={isMobile}
+                >
+                  {rowContent}
+                </SwipeablePlayerRow>
+              ) : (
+                rowContent
+              )}
             </div>
           )
         })}
