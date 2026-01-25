@@ -6,6 +6,7 @@ import { DraftRankings } from '@/components/draft/draft-rankings'
 import { MockDraftControls } from '@/components/draft/mock-draft-controls'
 import { MyTeamSidebar } from '@/components/draft/my-team-sidebar'
 import { KeeperSection } from '@/components/draft/keeper-section'
+import { AuctionBanner } from '@/components/draft/auction-banner'
 import { getCachedLeague } from '@/lib/sleeper/cache'
 import { getActiveDraft } from '@/lib/sleeper/draft'
 import { getLeagueRosters, getAllPlayers } from '@/lib/sleeper'
@@ -35,6 +36,7 @@ export default async function DraftPage() {
   const draft = await getActiveDraft(leagueId)
   
   const leagueType = (league.settings as { type?: number }).type ?? 0
+  const isAuction = draft?.type === 'auction'
   
   let keepers: string[] = []
   let keeperInfo: Array<{
@@ -83,6 +85,7 @@ export default async function DraftPage() {
         keepers={keepers}
         draftId={draft?.draft_id}
         status={draft?.status || 'mock'}
+        isAuction={isAuction}
       >
          <div className="space-y-6">
            <div className="flex items-center justify-between">

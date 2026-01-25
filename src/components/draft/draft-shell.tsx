@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { DraftStateProvider, useDraftState } from '@/lib/draft'
 import { useCelebration } from '@/hooks/use-celebration'
 import { Kaching } from '@/components/animation/kaching'
+import { AuctionBanner } from './auction-banner'
 import { OfflineIndicator } from './offline-indicator'
 import type { ReactNode } from 'react'
 
@@ -13,9 +14,10 @@ interface DraftShellProps {
   draftId?: string
   status?: 'pre_draft' | 'drafting' | 'complete' | 'mock'
   userRosterId?: number
+  isAuction?: boolean
 }
 
-function DraftShellContent({ children }: { children: ReactNode }) {
+function DraftShellContent({ children, isAuction }: { children: ReactNode; isAuction?: boolean }) {
   const { state } = useDraftState()
   const { isShowing, celebrate, hide } = useCelebration(3000)
 
@@ -28,6 +30,7 @@ function DraftShellContent({ children }: { children: ReactNode }) {
 
   return (
     <>
+      {isAuction && <AuctionBanner />}
       {children}
       <Kaching 
         show={isShowing} 
@@ -46,7 +49,8 @@ export function DraftShell({
   keepers = [],
   draftId,
   status = 'mock',
-  userRosterId
+  userRosterId,
+  isAuction = false
 }: DraftShellProps) {
   return (
     <DraftStateProvider
@@ -55,7 +59,7 @@ export function DraftShell({
       status={status}
       userRosterId={userRosterId}
     >
-      <DraftShellContent>{children}</DraftShellContent>
+      <DraftShellContent isAuction={isAuction}>{children}</DraftShellContent>
     </DraftStateProvider>
   )
 }
