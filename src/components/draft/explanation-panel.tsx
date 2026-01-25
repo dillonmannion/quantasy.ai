@@ -27,6 +27,10 @@ interface ExplanationPanelProps {
   baseline: Baseline | null
   scoringFormat: string
   leagueSize: number
+  leagueId?: string
+  scoringSettings?: Record<string, number>
+  projectionSource?: string
+  projectionUpdatedAt?: string
 }
 
 export function ExplanationPanel({
@@ -34,8 +38,60 @@ export function ExplanationPanel({
   baseline,
   scoringFormat,
   leagueSize,
+  leagueId,
+  scoringSettings,
+  projectionSource,
+  projectionUpdatedAt,
 }: ExplanationPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null)
+  const [isLoadingAI, setIsLoadingAI] = useState(false)
+
+  const canGenerateAI = leagueId && scoringSettings && projectionSource && projectionUpdatedAt && baseline
+
+  const handleGenerateAI = async () => {
+    if (!canGenerateAI) return
+
+    setIsLoadingAI(true)
+    try {
+      const res = await fetch('/api/ai/explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerId: player.playerId,
+          leagueId,
+          playerName: player.name,
+          position: player.position,
+          vbd: player.vbd,
+          projectedPoints: player.projectedPoints,
+          baselinePlayerName: baseline.playerName,
+          baselinePoints: baseline.projectedPoints,
+          scoringFormat,
+          scoringSettings,
+          projectionSource,
+          projectionUpdatedAt,
+        }),
+      })
+
+      if (res.status === 429) {
+        const data = await res.json()
+        setAiExplanation(`Rate limited. Try again in ${Math.ceil(data.retryAfterMs / 1000)}s`)
+        return
+      }
+
+      if (!res.ok) {
+        setAiExplanation('AI explanation unavailable')
+        return
+      }
+
+      const data = await res.json()
+      setAiExplanation(data.explanation)
+    } catch {
+      setAiExplanation('AI explanation unavailable')
+    } finally {
+      setIsLoadingAI(false)
+    }
+  }
 
   if (!baseline) {
     return (
@@ -148,6 +204,24 @@ export function ExplanationPanel({
                 better than the baseline, making them more valuable in your draft.
               </p>
             </div>
+
+            {canGenerateAI && (
+              <div className="space-y-2">
+                <h4 className="font-medium">AI Insight</h4>
+                {aiExplanation ? (
+                  <p className="text-sm text-muted-foreground">{aiExplanation}</p>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateAI}
+                    disabled={isLoadingAI}
+                  >
+                    {isLoadingAI ? 'Generating...' : 'Generate AI Explanation'}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
