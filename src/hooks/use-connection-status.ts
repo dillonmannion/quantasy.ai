@@ -13,11 +13,17 @@ interface UseConnectionStatusReturn {
 const MAX_RETRIES = 3
 
 export function useConnectionStatus(): UseConnectionStatusReturn {
-  const [isOnline, setIsOnline] = useState(true)
+  const [isOnline, setIsOnline] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return navigator.onLine
+    }
+    return true
+  })
   const [isReconnecting, setIsReconnecting] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
 
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+   const attemptReconnectRef = useRef<(() => void) | undefined>(undefined)
 
   // Calculate exponential backoff delay: 1s, 2s, 4s, 8s, 16s
   const getBackoffDelay = useCallback((attempt: number): number => {
@@ -40,19 +46,27 @@ export function useConnectionStatus(): UseConnectionStatusReturn {
     }
 
     // Still offline, schedule next retry if under limit
-    if (retryCount < MAX_RETRIES) {
-      const nextRetryCount = retryCount + 1
-      setRetryCount(nextRetryCount)
-      const delay = getBackoffDelay(nextRetryCount - 1)
+    setRetryCount(current => {
+      if (current < MAX_RETRIES) {
+        const nextRetryCount = current + 1
+        const delay = getBackoffDelay(nextRetryCount - 1)
 
-      retryTimeoutRef.current = setTimeout(() => {
-        attemptReconnect()
-      }, delay)
-    } else {
-      // Max retries reached, stop auto-retry
-      setIsReconnecting(false)
-    }
-  }, [retryCount, getBackoffDelay])
+        retryTimeoutRef.current = setTimeout(() => {
+          attemptReconnectRef.current?.()
+        }, delay)
+        return nextRetryCount
+      } else {
+        // Max retries reached, stop auto-retry
+        setIsReconnecting(false)
+        return current
+      }
+    })
+  }, [getBackoffDelay])
+
+  // Store attemptReconnect in ref for recursive calls
+  useEffect(() => {
+    attemptReconnectRef.current = attemptReconnect
+  }, [attemptReconnect])
 
   // Handle offline event
   const handleOffline = useCallback(() => {
@@ -63,9 +77,9 @@ export function useConnectionStatus(): UseConnectionStatusReturn {
     // Start first retry immediately
     const delay = getBackoffDelay(0)
     retryTimeoutRef.current = setTimeout(() => {
-      attemptReconnect()
+      attemptReconnectRef.current?.()
     }, delay)
-  }, [getBackoffDelay, attemptReconnect])
+  }, [getBackoffDelay])
 
   // Handle online event
   const handleOnline = useCallback(() => {
@@ -90,15 +104,12 @@ export function useConnectionStatus(): UseConnectionStatusReturn {
 
     const delay = getBackoffDelay(0)
     retryTimeoutRef.current = setTimeout(() => {
-      attemptReconnect()
+      attemptReconnectRef.current?.()
     }, delay)
-  }, [getBackoffDelay, attemptReconnect])
+  }, [getBackoffDelay])
 
   // Setup event listeners
   useEffect(() => {
-    // Set initial state
-    setIsOnline(navigator.onLine)
-
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
 
