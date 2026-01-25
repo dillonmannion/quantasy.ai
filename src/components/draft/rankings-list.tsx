@@ -34,7 +34,7 @@ function getVBDColor(vbd: number, allVBDs: number[]): string {
 }
 
 export function RankingsList({ players }: RankingsListProps) {
-  const { state } = useDraftState()
+  const { state, dispatch } = useDraftState()
   const parentRef = useRef<HTMLDivElement>(null)
   
   const allVBDs = players.map(p => p.vbd)
@@ -63,22 +63,34 @@ export function RankingsList({ players }: RankingsListProps) {
           const isDrafted = state.draftedPlayerIds.has(player.playerId)
           const vbdColor = getVBDColor(player.vbd, allVBDs)
           
-          return (
-            <div
-              key={virtualRow.key}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-              className={cn(
-                'flex items-center gap-4 px-4 py-3 border-b hover:bg-accent/50 transition-colors',
-                isDrafted && 'opacity-50 bg-muted'
-              )}
-            >
+           return (
+             <div
+               key={virtualRow.key}
+               style={{
+                 position: 'absolute',
+                 top: 0,
+                 left: 0,
+                 width: '100%',
+                 height: `${virtualRow.size}px`,
+                 transform: `translateY(${virtualRow.start}px)`,
+               }}
+               onClick={() => {
+                 if (state.status === 'mock' && !state.draftedPlayerIds.has(player.playerId)) {
+                   dispatch({
+                     type: 'MARK_DRAFTED',
+                     playerId: player.playerId,
+                     playerName: player.name,
+                     position: player.position,
+                     rosterId: state.userRosterId || 0
+                   })
+                 }
+               }}
+               className={cn(
+                 'flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-colors',
+                 state.status === 'mock' && !isDrafted && 'cursor-pointer',
+                 isDrafted && 'opacity-50 bg-muted'
+               )}
+             >
               <div className="w-12 text-center font-mono text-sm text-muted-foreground">
                 {player.rank}
               </div>
