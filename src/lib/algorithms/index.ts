@@ -18,3 +18,5 @@ export { detectScoringFormat, getScoringExplanation } from './scoring'
 export { calculateIDPScarcityMultiplier, getIDPGroup } from './idp'
 
 export { getFlexBaseline } from './flex'
+
+export { calculateVBD } from './vbd'
