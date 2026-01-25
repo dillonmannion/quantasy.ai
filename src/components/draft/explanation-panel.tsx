@@ -177,8 +177,8 @@ export function ExplanationPanel({
               <h4 className="font-medium mb-2">Baseline Explanation</h4>
               <p className="text-sm text-muted-foreground">
                 The baseline is the last starter at this position in a {leagueSize}-team league.
-                For {player.position}, that's {baseline.playerName} at rank #{baseline.baselineRank}.
-                Players above this baseline provide "value" to your team.
+                For {player.position}, that&apos;s {baseline.playerName} at rank #{baseline.baselineRank}.
+                Players above this baseline provide &quot;value&quot; to your team.
               </p>
             </div>
 
