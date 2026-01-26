@@ -58,26 +58,26 @@ test.describe('RLS Policy Verification', () => {
     await cleanupRlsTestData()
   })
 
-  test('connect flow fails with RLS error for new league (cache write blocked)', async ({
-    page,
-  }) => {
-    await page.goto('/connect')
+   test('connect flow succeeds for new league (cache write with service client)', async ({
+     page,
+   }) => {
+     await page.goto('/connect')
 
-    const input = page.locator('input#username')
-    await input.click()
-    await input.fill('testuser')
-    await input.press('Tab')
-    await page.click('button[type="submit"]')
+     const input = page.locator('input#username')
+     await input.click()
+     await input.fill('testuser')
+     await input.press('Tab')
+     await page.click('button[type="submit"]')
 
-    await expect(page.locator('text=Test Fantasy League')).toBeVisible({ timeout: 15000 })
-    await expect(page.locator('text=RLS Test League')).toBeVisible()
+     await expect(page.locator('text=Test Fantasy League')).toBeVisible({ timeout: 15000 })
+     await expect(page.locator('text=RLS Test League')).toBeVisible()
 
-    await page.click('text=RLS Test League')
+     await page.click('text=RLS Test League')
 
-    await expect(page.locator('text=Failed to save league connection')).toBeVisible({
-      timeout: 15000,
-    })
-  })
+     await expect(page.locator('text=League Connected!')).toBeVisible({
+       timeout: 15000,
+     })
+   })
 
   test('authenticated client cannot write to leagues table (RLS policy blocks)', async () => {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
