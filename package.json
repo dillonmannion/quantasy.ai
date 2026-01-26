@@ -2,6 +2,13 @@
   "name": "qai",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.28.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "corepack": {
+    "pnpm": "10.28.1"
+  },
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",
