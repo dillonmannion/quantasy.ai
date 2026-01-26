@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/types';
 import type { PlayerProjection, ProjectionSource } from './types';
 
@@ -12,7 +13,7 @@ export interface SaveProjectionsResult {
 export async function saveProjections(
   projections: PlayerProjection[]
 ): Promise<SaveProjectionsResult> {
-  const supabase = await createClient();
+  const writeClient = createServiceClient();
   const errors: Array<{ playerId: string; error: string }> = [];
   let successCount = 0;
 
@@ -27,7 +28,7 @@ export async function saveProjections(
         projection_updated_at: projection.updatedAt,
       };
 
-      const { error } = await supabase
+      const { error } = await writeClient
         .from('players')
         .upsert(insertData as never, { onConflict: 'id' });
 
