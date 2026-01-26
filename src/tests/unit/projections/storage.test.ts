@@ -2,21 +2,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { PlayerProjection } from '@/lib/projections/types';
 import { saveProjections, getProjections } from '@/lib/projections/storage';
 
+const mockSupabase = {
+  from: vi.fn(),
+};
+
 vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(),
+  createClient: vi.fn(() => Promise.resolve(mockSupabase)),
+}));
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createServiceClient: vi.fn(() => mockSupabase),
 }));
 
 import { createClient } from '@/lib/supabase/server';
 
 describe('Projections Storage', () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSupabase = {
-      from: vi.fn(),
-    };
-    (createClient as any).mockResolvedValue(mockSupabase);
   });
 
   describe('saveProjections', () => {
