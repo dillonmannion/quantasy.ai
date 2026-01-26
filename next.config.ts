@@ -34,9 +34,52 @@ const withPWA = withPWAInit({
   }
 })
 
+// Security headers for defense-in-depth
+const securityHeaders = [
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Required for Next.js
+      "style-src 'self' 'unsafe-inline'", // Required for Tailwind
+      "img-src 'self' data: blob: https:",
+      "font-src 'self'",
+      "connect-src 'self' https://*.supabase.co https://api.sleeper.app https://api.groq.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'"
+    ].join('; ')
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY'
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff'
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin'
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=()'
+  }
+]
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   turbopack: {},
+  async headers() {
+    return [
+      {
+        // Apply security headers to all routes
+        source: '/:path*',
+        headers: securityHeaders,
+      },
+    ]
+  },
 }
 
 export default withPWA(nextConfig)
