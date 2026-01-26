@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/admin'
 import type { Database } from '@/lib/supabase/types'
 import * as SleeperAPI from './client'
 import type { SleeperLeague, SleeperRoster, SleeperMatchup } from './types'
@@ -85,205 +86,207 @@ function matchupRowToSleeper(row: MatchupRow): SleeperMatchup {
 }
 
 export async function getCachedLeague(leagueId: string): Promise<SleeperLeague> {
-  const supabase = await createClient()
+   const supabase = await createClient()
 
-  const { data: cached, error: cacheError } = await supabase
-    .from('leagues')
-    .select('*')
-    .eq('id', leagueId)
-    .single()
+   const { data: cached, error: cacheError } = await supabase
+     .from('leagues')
+     .select('*')
+     .eq('id', leagueId)
+     .single()
 
-  if (cacheError && cacheError.code !== 'PGRST116') {
-    console.error('[Cache] Error reading league cache:', cacheError)
-  }
+   if (cacheError && cacheError.code !== 'PGRST116') {
+     console.error('[Cache] Error reading league cache:', cacheError)
+   }
 
-  const typedCached = cached as LeagueRow | null
-  const status = getCacheStatus(typedCached?.cached_at ?? null, TTL.LEAGUE)
+   const typedCached = cached as LeagueRow | null
+   const status = getCacheStatus(typedCached?.cached_at ?? null, TTL.LEAGUE)
 
-  if (status === 'fresh' && typedCached) {
-    return leagueRowToSleeper(typedCached)
-  }
+   if (status === 'fresh' && typedCached) {
+     return leagueRowToSleeper(typedCached)
+   }
 
-  const fresh = await SleeperAPI.getLeague(leagueId)
+   const fresh = await SleeperAPI.getLeague(leagueId)
 
-  const leagueInsert: LeagueInsert = {
-    id: fresh.league_id,
-    name: fresh.name,
-    season: fresh.season,
-    status: fresh.status,
-    settings: fresh.settings as Record<string, unknown>,
-    scoring_settings: fresh.scoring_settings,
-    roster_positions: fresh.roster_positions as unknown as Record<string, unknown>,
-    total_rosters: fresh.total_rosters,
-    cached_at: new Date().toISOString(),
-  }
+   const leagueInsert: LeagueInsert = {
+     id: fresh.league_id,
+     name: fresh.name,
+     season: fresh.season,
+     status: fresh.status,
+     settings: fresh.settings as Record<string, unknown>,
+     scoring_settings: fresh.scoring_settings,
+     roster_positions: fresh.roster_positions as unknown as Record<string, unknown>,
+     total_rosters: fresh.total_rosters,
+     cached_at: new Date().toISOString(),
+   }
 
-  const { error: upsertError } = await supabase
-    .from('leagues')
-    .upsert(leagueInsert as never)
+   const writeClient = createServiceClient()
+   const { error: upsertError } = await writeClient
+     .from('leagues')
+     .upsert(leagueInsert as never)
 
-  if (upsertError) {
-    console.error('[Cache] Error updating league cache:', upsertError)
-  }
+   if (upsertError) {
+     console.error('[Cache] Error updating league cache:', upsertError)
+   }
 
-  return fresh
-}
+   return fresh
+ }
 
 export async function getCachedRosters(
-  leagueId: string
-): Promise<SleeperRoster[]> {
-  const supabase = await createClient()
+   leagueId: string
+ ): Promise<SleeperRoster[]> {
+   const supabase = await createClient()
 
-  const { data: cached, error: cacheError } = await supabase
-    .from('rosters')
-    .select('*')
-    .eq('league_id', leagueId)
-    .order('roster_id')
+   const { data: cached, error: cacheError } = await supabase
+     .from('rosters')
+     .select('*')
+     .eq('league_id', leagueId)
+     .order('roster_id')
 
-  if (cacheError) {
-    console.error('[Cache] Error reading rosters cache:', cacheError)
-  }
+   if (cacheError) {
+     console.error('[Cache] Error reading rosters cache:', cacheError)
+   }
 
-  const typedCached = cached as RosterRow[] | null
-  const status = getCacheStatus(typedCached?.[0]?.cached_at ?? null, TTL.ROSTERS)
+   const typedCached = cached as RosterRow[] | null
+   const status = getCacheStatus(typedCached?.[0]?.cached_at ?? null, TTL.ROSTERS)
 
-  if (status === 'fresh' && typedCached && typedCached.length > 0) {
-    return typedCached.map(rosterRowToSleeper)
-  }
+   if (status === 'fresh' && typedCached && typedCached.length > 0) {
+     return typedCached.map(rosterRowToSleeper)
+   }
 
-  const fresh = await SleeperAPI.getLeagueRosters(leagueId)
+   const fresh = await SleeperAPI.getLeagueRosters(leagueId)
 
-  const { error: deleteError } = await supabase
-    .from('rosters')
-    .delete()
-    .eq('league_id', leagueId)
+   const writeClient = createServiceClient()
+   const { error: deleteError } = await writeClient
+     .from('rosters')
+     .delete()
+     .eq('league_id', leagueId)
 
-  if (deleteError) {
-    console.error('[Cache] Error deleting old rosters:', deleteError)
-  }
+   if (deleteError) {
+     console.error('[Cache] Error deleting old rosters:', deleteError)
+   }
 
-  if (fresh.length > 0) {
-    const rostersInsert: RosterInsert[] = fresh.map((r) => ({
-      league_id: leagueId,
-      roster_id: r.roster_id,
-      owner_id: r.owner_id,
-      players: r.players,
-      starters: r.starters,
-      reserve: r.reserve,
-      settings: r.settings as Record<string, unknown>,
-      cached_at: new Date().toISOString(),
-    }))
+   if (fresh.length > 0) {
+     const rostersInsert: RosterInsert[] = fresh.map((r) => ({
+       league_id: leagueId,
+       roster_id: r.roster_id,
+       owner_id: r.owner_id,
+       players: r.players,
+       starters: r.starters,
+       reserve: r.reserve,
+       settings: r.settings as Record<string, unknown>,
+       cached_at: new Date().toISOString(),
+     }))
 
-    const { error: insertError } = await supabase
-      .from('rosters')
-      .insert(rostersInsert as never)
+     const { error: insertError } = await writeClient
+       .from('rosters')
+       .insert(rostersInsert as never)
 
-    if (insertError) {
-      console.error('[Cache] Error inserting rosters:', insertError)
-    }
-  }
+     if (insertError) {
+       console.error('[Cache] Error inserting rosters:', insertError)
+     }
+   }
 
-  return fresh
-}
+   return fresh
+ }
 
 export async function getCachedMatchups(
-  leagueId: string,
-  week: number
-): Promise<SleeperMatchup[]> {
-  const supabase = await createClient()
+   leagueId: string,
+   week: number
+ ): Promise<SleeperMatchup[]> {
+   const supabase = await createClient()
 
-  const { data: cached, error: cacheError } = await supabase
-    .from('matchups')
-    .select('*')
-    .eq('league_id', leagueId)
-    .eq('week', week)
-    .order('matchup_id')
+   const { data: cached, error: cacheError } = await supabase
+     .from('matchups')
+     .select('*')
+     .eq('league_id', leagueId)
+     .eq('week', week)
+     .order('matchup_id')
 
-  if (cacheError) {
-    console.error('[Cache] Error reading matchups cache:', cacheError)
-  }
+   if (cacheError) {
+     console.error('[Cache] Error reading matchups cache:', cacheError)
+   }
 
-  const typedCached = cached as MatchupRow[] | null
-  const status = getCacheStatus(typedCached?.[0]?.cached_at ?? null, TTL.MATCHUPS)
+   const typedCached = cached as MatchupRow[] | null
+   const status = getCacheStatus(typedCached?.[0]?.cached_at ?? null, TTL.MATCHUPS)
 
-  if (status === 'fresh' && typedCached && typedCached.length > 0) {
-    return typedCached.map(matchupRowToSleeper)
-  }
+   if (status === 'fresh' && typedCached && typedCached.length > 0) {
+     return typedCached.map(matchupRowToSleeper)
+   }
 
-  const fresh = await SleeperAPI.getMatchups(leagueId, week)
+   const fresh = await SleeperAPI.getMatchups(leagueId, week)
 
-  const { error: deleteError } = await supabase
-    .from('matchups')
-    .delete()
-    .eq('league_id', leagueId)
-    .eq('week', week)
+   const writeClient = createServiceClient()
+   const { error: deleteError } = await writeClient
+     .from('matchups')
+     .delete()
+     .eq('league_id', leagueId)
+     .eq('week', week)
 
-  if (deleteError) {
-    console.error('[Cache] Error deleting old matchups:', deleteError)
-  }
+   if (deleteError) {
+     console.error('[Cache] Error deleting old matchups:', deleteError)
+   }
 
-  if (fresh.length > 0) {
-    const matchupsInsert: MatchupInsert[] = fresh.map((m) => ({
-      league_id: leagueId,
-      week,
-      matchup_id: m.matchup_id,
-      roster_id: m.roster_id,
-      points: m.points,
-      starters: m.starters,
-      starters_points: m.starters_points,
-      players: m.players,
-      players_points: m.players_points,
-      cached_at: new Date().toISOString(),
-    }))
+   if (fresh.length > 0) {
+     const matchupsInsert: MatchupInsert[] = fresh.map((m) => ({
+       league_id: leagueId,
+       week,
+       matchup_id: m.matchup_id,
+       roster_id: m.roster_id,
+       points: m.points,
+       starters: m.starters,
+       starters_points: m.starters_points,
+       players: m.players,
+       players_points: m.players_points,
+       cached_at: new Date().toISOString(),
+     }))
 
-    const { error: insertError } = await supabase
-      .from('matchups')
-      .insert(matchupsInsert as never)
+     const { error: insertError } = await writeClient
+       .from('matchups')
+       .insert(matchupsInsert as never)
 
-    if (insertError) {
-      console.error('[Cache] Error inserting matchups:', insertError)
-    }
-  }
+     if (insertError) {
+       console.error('[Cache] Error inserting matchups:', insertError)
+     }
+   }
 
-  return fresh
-}
+   return fresh
+ }
 
 export async function syncAllPlayers(): Promise<number> {
-  const supabase = await createClient()
+   const playersObj = await SleeperAPI.getAllPlayers()
+   const players = Object.values(playersObj)
 
-  const playersObj = await SleeperAPI.getAllPlayers()
-  const players = Object.values(playersObj)
+   const relevantPlayers = players.filter(
+     (p) => p.team || p.status === 'Active' || (p.years_exp !== null && p.years_exp < 15)
+   )
 
-  const relevantPlayers = players.filter(
-    (p) => p.team || p.status === 'Active' || (p.years_exp !== null && p.years_exp < 15)
-  )
+   const playersInsert: PlayerInsert[] = relevantPlayers.map((p) => ({
+     id: p.player_id,
+     full_name: p.full_name || `${p.first_name} ${p.last_name}`,
+     first_name: p.first_name,
+     last_name: p.last_name,
+     team: p.team,
+     position: p.position,
+     age: p.age,
+     years_exp: p.years_exp,
+     status: p.status,
+     injury_status: p.injury_status,
+     sleeper_data: p as unknown as Record<string, unknown>,
+     updated_at: new Date().toISOString(),
+   }))
 
-  const playersInsert: PlayerInsert[] = relevantPlayers.map((p) => ({
-    id: p.player_id,
-    full_name: p.full_name || `${p.first_name} ${p.last_name}`,
-    first_name: p.first_name,
-    last_name: p.last_name,
-    team: p.team,
-    position: p.position,
-    age: p.age,
-    years_exp: p.years_exp,
-    status: p.status,
-    injury_status: p.injury_status,
-    sleeper_data: p as unknown as Record<string, unknown>,
-    updated_at: new Date().toISOString(),
-  }))
+   const writeClient = createServiceClient()
+   const { error } = await writeClient
+     .from('players')
+     .upsert(playersInsert as never, { onConflict: 'id' })
 
-  const { error } = await supabase
-    .from('players')
-    .upsert(playersInsert as never, { onConflict: 'id' })
+   if (error) {
+     console.error('[Cache] Error syncing players:', error)
+     throw error
+   }
 
-  if (error) {
-    console.error('[Cache] Error syncing players:', error)
-    throw error
-  }
-
-  return relevantPlayers.length
-}
+   return relevantPlayers.length
+ }
 
 export async function shouldSyncPlayers(): Promise<boolean> {
   const supabase = await createClient()
@@ -305,24 +308,24 @@ export async function shouldSyncPlayers(): Promise<boolean> {
 }
 
 export async function invalidateLeagueCache(leagueId: string): Promise<void> {
-  const supabase = await createClient()
-  const staleTime = new Date(0).toISOString()
+   const writeClient = createServiceClient()
+   const staleTime = new Date(0).toISOString()
 
-  await supabase
-    .from('leagues')
-    .update({ cached_at: staleTime } as never)
-    .eq('id', leagueId)
+   await writeClient
+     .from('leagues')
+     .update({ cached_at: staleTime } as never)
+     .eq('id', leagueId)
 
-  await supabase
-    .from('rosters')
-    .update({ cached_at: staleTime } as never)
-    .eq('league_id', leagueId)
+   await writeClient
+     .from('rosters')
+     .update({ cached_at: staleTime } as never)
+     .eq('league_id', leagueId)
 
-  await supabase
-    .from('matchups')
-    .update({ cached_at: staleTime } as never)
-    .eq('league_id', leagueId)
-}
+   await writeClient
+     .from('matchups')
+     .update({ cached_at: staleTime } as never)
+     .eq('league_id', leagueId)
+ }
 
 export async function purgeLeagueCache(leagueId: string): Promise<void> {
   const supabase = await createClient()
