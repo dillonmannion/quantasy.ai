@@ -1,0 +1,184 @@
+import { createClient } from '@/lib/supabase/server'
+import { getCachedLeague } from '@/lib/sleeper/cache'
+import { getAllPlayers } from '@/lib/sleeper'
+import { calculateVBD } from './vbd'
+import { detectScoringFormat } from './scoring'
+import type { VBDInput, ScoringFormat, Position } from './types'
+
+type PlayerProjection = {
+  id: string
+  projected_points: number | null
+}
+
+export interface VBDForLeagueResult {
+  rankings: Array<{
+    playerId: string
+    name: string
+    position: string
+    team: string | null
+    vbd: number
+    projectedPoints: number
+    adp: number | null
+    rank: number
+  }>
+  baselines: Record<
+    string,
+    {
+      position: string
+      baselineRank: number
+      playerName: string
+      projectedPoints: number
+    }
+  >
+  metadata: {
+    leagueId: string
+    leagueName: string
+    scoringFormat: ScoringFormat
+    totalPlayers: number
+    limit: number
+    offset: number
+  }
+  generatedAt: string
+}
+
+export interface VBDForLeagueOptions {
+  leagueId: string
+  limit?: number
+  offset?: number
+  positions?: string[]
+}
+
+export async function calculateVBDForLeague(
+  options: VBDForLeagueOptions
+): Promise<{ data: VBDForLeagueResult | null; error: string | null }> {
+  const { leagueId, limit = 300, offset = 0, positions } = options
+  const validLimit = Math.min(Math.max(1, limit), 500)
+  const validOffset = Math.max(0, offset)
+
+  try {
+    const supabase = await createClient()
+
+    let league
+    try {
+      league = await getCachedLeague(leagueId)
+    } catch {
+      return { data: null, error: 'League not found' }
+    }
+
+    if (!league) {
+      return { data: null, error: 'League not found' }
+    }
+
+    const allPlayersObj = await getAllPlayers()
+    const allPlayersArray = Object.values(allPlayersObj)
+
+    const { data: dbPlayers, error: dbError } = await supabase
+      .from('players')
+      .select('id, projected_points')
+      .not('projected_points', 'is', null)
+
+    if (dbError) {
+      console.error('[VBD] Error fetching projections:', dbError)
+      return { data: null, error: 'Failed to fetch projections' }
+    }
+
+    if (!dbPlayers || dbPlayers.length === 0) {
+      return { data: null, error: 'No projections available' }
+    }
+
+    const projectionsMap: Record<string, number> = {}
+    dbPlayers.forEach((player: PlayerProjection) => {
+      if (player.projected_points !== null) {
+        projectionsMap[player.id] = player.projected_points
+      }
+    })
+
+    const playersWithProjections = allPlayersArray.filter(
+      (p) => projectionsMap[p.player_id] !== undefined
+    )
+
+    if (playersWithProjections.length === 0) {
+      return { data: null, error: 'No projections available' }
+    }
+
+    const scoringFormat = detectScoringFormat(
+      league.scoring_settings as Record<string, number>
+    )
+    const rosterPositions = (league.roster_positions ?? []) as Position[]
+
+    const vbdInput: VBDInput = {
+      players: playersWithProjections,
+      projections: projectionsMap,
+      leagueSettings: {
+        teams: league.total_rosters || 12,
+        rosterPositions,
+        scoringSettings: (league.scoring_settings as Record<string, number>) || {},
+      },
+      scoringFormat,
+      projectionSource: 'database',
+    }
+
+    const vbdOutput = calculateVBD(vbdInput)
+
+    let filteredRankings = vbdOutput.rankings
+    if (positions && positions.length > 0) {
+      filteredRankings = filteredRankings.filter((r) =>
+        positions.includes(r.position)
+      )
+    }
+
+    const totalPlayers = filteredRankings.length
+    const paginatedRankings = filteredRankings.slice(
+      validOffset,
+      validOffset + validLimit
+    )
+
+    const baselines: Record<
+      string,
+      {
+        position: string
+        baselineRank: number
+        playerName: string
+        projectedPoints: number
+      }
+    > = {}
+
+    Object.entries(vbdOutput.baselines).forEach(([position, baseline]) => {
+      baselines[position] = {
+        position: baseline.position,
+        baselineRank: baseline.baselineRank,
+        playerName: baseline.playerName,
+        projectedPoints: baseline.projectedPoints,
+      }
+    })
+
+    const result: VBDForLeagueResult = {
+      rankings: paginatedRankings.map((ranking) => ({
+        playerId: ranking.playerId,
+        name: ranking.fullName,
+        position: ranking.position,
+        team: ranking.team,
+        vbd: ranking.vbdScore,
+        projectedPoints: ranking.projectedPoints,
+        adp: ranking.overallRank,
+        rank: ranking.overallRank,
+      })),
+      baselines,
+      metadata: {
+        leagueId,
+        leagueName: league.name,
+        scoringFormat,
+        totalPlayers,
+        limit: validLimit,
+        offset: validOffset,
+      },
+      generatedAt: new Date().toISOString(),
+    }
+
+    return { data: result, error: null }
+  } catch (error) {
+    console.error('[VBD] Unexpected error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    return { data: null, error: `VBD calculation failed: ${errorMessage}` }
+  }
+}

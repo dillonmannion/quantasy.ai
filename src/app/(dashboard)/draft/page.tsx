@@ -10,6 +10,7 @@ import { AuctionBanner } from '@/components/draft/auction-banner'
 import { getCachedLeague } from '@/lib/sleeper/cache'
 import { getActiveDraft } from '@/lib/sleeper/draft'
 import { getLeagueRosters, getAllPlayers } from '@/lib/sleeper'
+import { calculateVBDForLeague } from '@/lib/algorithms'
 
 export default async function DraftPage() {
   const supabase = await createClient()
@@ -69,15 +70,8 @@ export default async function DraftPage() {
     )
   }
   
-  const vbdResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/algorithms/vbd`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ leagueId, limit: 500 }),
-    cache: 'no-store'
-  })
-  
-  const vbdData = vbdResponse.ok ? await vbdResponse.json() : { rankings: [] }
-  const players = vbdData.rankings || []
+  const { data: vbdData } = await calculateVBDForLeague({ leagueId, limit: 500 })
+  const players = vbdData?.rankings || []
   
   return (
     <PageContainer>

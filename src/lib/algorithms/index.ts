@@ -20,3 +20,6 @@ export { calculateIDPScarcityMultiplier, getIDPGroup } from './idp'
 export { getFlexBaseline } from './flex'
 
 export { calculateVBD } from './vbd'
+
+export type { VBDForLeagueResult, VBDForLeagueOptions } from './calculate-vbd-for-league'
+export { calculateVBDForLeague } from './calculate-vbd-for-league'
