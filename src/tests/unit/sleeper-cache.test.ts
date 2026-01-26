@@ -6,15 +6,19 @@ const mockSupabaseClient = {
 }
 
 vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(() => Promise.resolve(mockSupabaseClient)),
-}))
+   createClient: vi.fn(() => Promise.resolve(mockSupabaseClient)),
+ }))
 
-vi.mock('@/lib/sleeper/client', () => ({
-  getLeague: vi.fn(),
-  getLeagueRosters: vi.fn(),
-  getMatchups: vi.fn(),
-  getAllPlayers: vi.fn(),
-}))
+ vi.mock('@/lib/supabase/admin', () => ({
+   createServiceClient: vi.fn(() => mockSupabaseClient),
+ }))
+
+ vi.mock('@/lib/sleeper/client', () => ({
+   getLeague: vi.fn(),
+   getLeagueRosters: vi.fn(),
+   getMatchups: vi.fn(),
+   getAllPlayers: vi.fn(),
+ }))
 
 import {
   getCachedLeague,
