@@ -11,6 +11,13 @@ import {
 
 const SLEEPER_BASE = 'https://api.sleeper.app/v1'
 
+// RLS test league - defined inline for isolation (NOT in data.ts)
+const RLS_TEST_LEAGUE = {
+  ...TEST_LEAGUE,
+  league_id: 'rls-test-league',
+  name: 'RLS Test League',
+}
+
 export const vbdHandler = http.post('*/api/algorithms/vbd', () => {
   const rankings = generateMockVBDRankings()
   return HttpResponse.json({
@@ -50,10 +57,14 @@ export const sleeperHandlers = [
   }),
 
   http.get(`${SLEEPER_BASE}/user/:userId/leagues/nfl/:season`, () => {
-    return HttpResponse.json([TEST_LEAGUE])
+    return HttpResponse.json([TEST_LEAGUE, RLS_TEST_LEAGUE])
   }),
 
-  http.get(`${SLEEPER_BASE}/league/:leagueId`, () => {
+  http.get(`${SLEEPER_BASE}/league/:leagueId`, ({ params }) => {
+    const { leagueId } = params
+    if (leagueId === 'rls-test-league') {
+      return HttpResponse.json(RLS_TEST_LEAGUE)
+    }
     return HttpResponse.json(TEST_LEAGUE)
   }),
 
