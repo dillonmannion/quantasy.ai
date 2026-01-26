@@ -8,10 +8,11 @@ Typed client for Sleeper fantasy football API. Rate-limited, with caching suppor
 
 | File | Purpose |
 |------|---------|
-| `client.ts` | API functions with rate limiting |
+| `client.ts` | API functions with rate limiting (RateLimiter class) |
 | `types.ts` | TypeScript interfaces for all Sleeper entities |
-| `cache.ts` | Caching utilities (player data) |
-| `player-search.ts` | Player search functionality |
+| `cache.ts` | Supabase caching (TTL-based: 24h/1h/15m/5m) |
+| `player-search.ts` | Fuzzy player search |
+| `draft.ts` | Draft-specific functions |
 | `index.ts` | Barrel export |
 
 ## USAGE
@@ -41,15 +42,28 @@ const leagues = await getUserLeagues(user.user_id, season)
 | `getLeagueUsers(leagueId)` | `SleeperUser[]` | All users in league |
 | `getMatchups(leagueId, week)` | `SleeperMatchup[]` | Weekly matchups |
 | `getAllPlayers()` | `Record<string, SleeperPlayer>` | ~10k players, cache this |
+| `getDraftPicks(draftId)` | `SleeperDraftPick[]` | No cache (real-time) |
 
 ## RATE LIMITING
 
 Built-in `RateLimiter` class:
 - 16 requests per second (Sleeper's limit)
-- Auto-throttles with backoff
+- Sliding window with auto-throttle
 - Debug logging in development
 
 **DO NOT** bypass the rate limiter or call the API directly.
+
+## CACHING (TTL-based)
+
+| Data | TTL | Function |
+|------|-----|----------|
+| Players | 24h | `syncAllPlayers()` |
+| League | 1h | `getCachedLeague()` |
+| Rosters | 15m | `getCachedRosters()` |
+| Matchups | 5m | `getCachedMatchups()` |
+| Draft Picks | 0 | No cache (real-time) |
+
+Invalidation: `invalidateLeagueCache(leagueId)` or `purgeLeagueCache(leagueId)`
 
 ## TYPES
 
@@ -61,12 +75,7 @@ Key interfaces in `types.ts`:
 - `SleeperPlayer` - Player metadata
 - `SleeperNFLState` - Current season/week state
 - `SleeperAPIError` - Error response (use `isSleeperAPIError()` guard)
-
-## CACHING
-
-`getAllPlayers()` returns ~10k players. **Always cache this.**
-
-Use `cache.ts` utilities or cache at API route level with `next: { revalidate: 60 }`.
+- `SleeperDraftPick` - Draft pick with metadata
 
 ## ERROR HANDLING
 

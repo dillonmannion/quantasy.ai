@@ -1,7 +1,7 @@
 # QUANTASY - PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-25
-**Commit:** caf9ffd
+**Generated:** 2026-01-26
+**Commit:** 175cf19
 **Branch:** dev
 
 ## OVERVIEW
@@ -16,25 +16,25 @@ qai/
 │   ├── app/                    # Next.js 16 App Router
 │   │   ├── (auth)/             # Public routes (login, callback)
 │   │   ├── (dashboard)/        # Protected routes (dashboard, draft, roster, trade, waivers, connect)
-│   │   └── api/                # API routes
+│   │   └── api/                # API routes (algorithms, ai, players, projections, draft)
 │   ├── components/
 │   │   ├── animation/          # Balatro-inspired primitives (see ./animation/AGENTS.md)
 │   │   ├── ui/                 # shadcn/ui (New York style) - DO NOT MODIFY
 │   │   ├── draft/              # Draft Assistant UI (see ./draft/AGENTS.md)
 │   │   ├── layout/             # Responsive nav (mobile-first)
-│   │   ├── players/            # Player cards/lists
+│   │   ├── players/            # Player cards/lists (has index.ts barrel)
 │   │   └── providers/          # AuthProvider context
 │   ├── lib/
 │   │   ├── algorithms/         # VBD + planned algorithms (see ./algorithms/AGENTS.md)
 │   │   ├── sleeper/            # Sleeper API client (see ./sleeper/AGENTS.md)
-│   │   ├── supabase/           # Auth + DB (client.ts, server.ts, middleware.ts)
+│   │   ├── supabase/           # Auth + DB (client.ts, server.ts, middleware.ts, types.ts)
 │   │   ├── draft/              # Draft state (Context + reducer)
 │   │   ├── projections/        # Projection data layer (CSV upload)
-│   │   └── ai/                 # Groq AI integration
+│   │   └── ai/                 # Groq AI integration (llama-3.3-70b-versatile)
 │   ├── hooks/                  # use-celebration, use-draft-sync, use-connection-status, use-reduced-motion
 │   └── tests/                  # Vitest setup + unit tests
 ├── tests/e2e/                  # Playwright E2E tests
-├── supabase/migrations/        # SQL migrations
+├── supabase/migrations/        # SQL migrations (4 files)
 └── docs/plan/                  # Phase planning (00-overview.md is index)
 ```
 
@@ -45,14 +45,28 @@ qai/
 | Add new page | `src/app/(dashboard)/[feature]/page.tsx` | Copy existing structure |
 | Add UI component | `src/components/ui/` | Use `npx shadcn@latest add [component]` |
 | Add animation | `src/components/animation/` | Export from index.ts, see AGENTS.md |
-| Sleeper API call | `src/lib/sleeper/client.ts` | Rate-limited, see sleeper/AGENTS.md |
+| Sleeper API call | `src/lib/sleeper/client.ts` | Rate-limited (16 req/sec), see AGENTS.md |
 | DB query | `src/lib/supabase/server.ts` | Use `createClient()` in server |
 | Auth check | `src/app/(dashboard)/layout.tsx` | Layout redirects to /login |
-| VBD algorithm | `src/lib/algorithms/vbd.ts` | See algorithms/AGENTS.md |
+| VBD algorithm | `src/lib/algorithms/vbd.ts` | Pure function, see AGENTS.md |
 | Draft state | `src/lib/draft/state.tsx` | React Context + reducer |
 | Add unit test | `src/tests/unit/*.test.tsx` | Vitest + Testing Library |
 | Add E2E test | `tests/e2e/*.spec.ts` | Playwright |
 | Planning docs | `docs/plan/00-overview.md` | Start here for project context |
+| Server action | `src/app/(dashboard)/*/actions.ts` | `'use server'` files |
+| API route | `src/app/api/*/route.ts` | Returns `NextResponse.json()` |
+
+## DATA FLOW
+
+```
+CLIENT → API ROUTES → [Sleeper API | Supabase | Groq AI]
+
+Caching:
+  Sleeper Players: 24h (in Supabase)
+  League: 1h | Rosters: 15m | Matchups: 5m
+  Draft Picks: No cache (real-time)
+  AI Explanations: Infinite (SHA256 key)
+```
 
 ## CONVENTIONS
 
@@ -64,23 +78,29 @@ qai/
 ### File Naming
 - kebab-case: `player-card.tsx`, `use-celebration.ts`
 - PascalCase exports: `PlayerCard`, `FadeIn`
-- Barrel exports via `index.ts` in feature directories
+- Barrel exports via `index.ts` in lib modules
 
 ### Components
 - Server Components by default
 - `'use client'` only when needed (hooks, events, browser APIs)
 - shadcn/ui in `components/ui/` - do not modify directly
-- Motion library (not framer-motion)
+- `motion/react` library (not framer-motion)
 
 ### App Router
 - Route groups: `(auth)` = public, `(dashboard)` = protected
-- Server Actions in `actions.ts` files
+- Server Actions in `actions.ts` files (`'use server'`)
 - API routes return `NextResponse.json()`
 
 ### Styling
-- Tailwind CSS v4 with CSS variables
+- Tailwind CSS v4 with `@theme` in globals.css (no tailwind.config.ts)
+- OKLch colors (Balatro-inspired dark theme)
 - `cn()` from `@/lib/utils` for conditional classes
 - Mobile-first: base = mobile, `md:` = desktop
+
+### Testing
+- VBD algorithm: 100% coverage required (functions/lines/statements)
+- Mock factories: `createMock*()` functions for test data
+- MSW for E2E API mocking (via `ENABLE_MSW=true`)
 
 ## ANTI-PATTERNS
 
@@ -91,39 +111,37 @@ qai/
 - **DO NOT** hardcode NFL season - use `getCurrentSeason()`
 - **DO NOT** bypass rate limiter for Sleeper API (16 req/sec)
 - **DO NOT** fetch all players on every request - cache 24h minimum
+- **DO NOT** use `framer-motion` - use `motion/react`
 
 ## SECURITY
-
-### Dependency Updates
-- Security patches: Apply immediately via `pnpm audit fix` or manual upgrade
-- Run `npx fix-react2shell-next --dry-run` after any React/Next.js updates
-- Framework versions (next, react) are pinned to exact versions
-- Dependabot configured in `.github/dependabot.yml` for weekly updates
-
-### CSP Policy
-- Configured in `next.config.ts` headers
-- Allows: Supabase (`*.supabase.co`), Sleeper API (`api.sleeper.app`), Groq (`api.groq.com`)
-- Blocks framing (`X-Frame-Options: DENY`) and restricts form submissions
-
-### Environment Variables
-- Server-only secrets: No `NEXT_PUBLIC_` prefix (e.g., `GROQ_API_KEY`)
-- Client-safe values: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Anon key is designed for client use with Row Level Security (RLS)
 
 ### Rate Limiting
 - Sleeper API: 16 req/sec (enforced in `src/lib/sleeper/client.ts`)
 - AI API: 30 req/min (enforced in `src/lib/ai/rate-limiter.ts`)
 
+### CSP Policy
+- Configured in `next.config.ts` headers
+- Allows: Supabase (`*.supabase.co`), Sleeper API (`api.sleeper.app`), Groq (`api.groq.com`)
+- Blocks framing (`X-Frame-Options: DENY`)
+
+### Environment Variables
+- Server-only secrets: No `NEXT_PUBLIC_` prefix (e.g., `GROQ_API_KEY`)
+- Client-safe values: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+### Dependency Updates
+- Security patches: Apply immediately via `pnpm audit fix`
+- Dependabot configured in `.github/dependabot.yml` for weekly updates
+
 ## DATABASE
 
 Tables (Supabase Postgres):
 - `profiles` - User profile + Sleeper connection
-- `leagues` - Cached league data
+- `leagues` - Cached league data (1h TTL)
 - `user_leagues` - User-league associations
-- `rosters` - Cached roster data
-- `players` - Player data with projections
-- `matchups` - Weekly matchup data
-- `algorithm_outputs` - Saved algorithm results
+- `rosters` - Cached roster data (15m TTL)
+- `players` - Player data with projections (24h TTL)
+- `matchups` - Weekly matchup data (5m TTL)
+- `algorithm_outputs` - Saved algorithm results + AI explanations
 
 Migrations in `supabase/migrations/`. Types in `src/lib/supabase/types.ts`.
 
@@ -134,8 +152,11 @@ pnpm dev              # Dev server (Turbopack)
 pnpm build            # Production build
 pnpm lint             # ESLint
 pnpm type-check       # TypeScript check
-pnpm test             # Vitest unit tests
+pnpm test             # Vitest unit tests (watch)
+pnpm test:run         # Vitest single run
+pnpm test:coverage    # Coverage report
 pnpm test:e2e         # Playwright E2E
+pnpm validate         # type-check + lint + test:run
 ```
 
 ## TESTING
@@ -145,9 +166,10 @@ pnpm test:e2e         # Playwright E2E
 | Unit | Vitest + Testing Library | `src/tests/unit/` | `*.test.tsx` |
 | E2E | Playwright | `tests/e2e/` | `*.spec.ts` |
 
-- VBD algorithm: 100% coverage required (functions/lines/statements)
+- VBD algorithm: 100% coverage required (97% branches, 100% functions/lines/statements)
 - E2E: Chromium + Mobile Safari (iPhone 13)
-- MSW for API mocking in E2E
+- MSW for API mocking in E2E (handlers in `tests/mocks/`)
+- Global setup creates test user + seeds data
 
 ## DEPLOYMENT
 
@@ -155,6 +177,7 @@ pnpm test:e2e         # Playwright E2E
 - **Output:** Standalone Next.js
 - **CI:** GitHub Actions - type-check → lint → test → build
 - **Deploy:** Push to `main` triggers `fly deploy`
+- **Region:** San Jose (sjc), shared-cpu-1x, 256MB
 
 ## NOTES
 
@@ -163,3 +186,5 @@ pnpm test:e2e         # Playwright E2E
 - Turbopack in dev
 - Player sync: 60s timeout
 - Sleeper: 16 req/sec rate limit
+- AI: llama-3.3-70b-versatile via Groq
+- PWA enabled (offline support via Workbox)

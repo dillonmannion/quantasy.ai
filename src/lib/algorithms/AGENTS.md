@@ -13,6 +13,7 @@ Value-Based Drafting (VBD) and future algorithms. Pure functions, composable, ty
 | `flex.ts` | FLEX/SUPERFLEX position handling |
 | `idp.ts` | IDP scarcity multiplier |
 | `scoring.ts` | Scoring format detection (PPR/half/standard) |
+| `calculate-vbd-for-league.ts` | Fetches data + calls calculateVBD |
 | `types.ts` | All TypeScript interfaces |
 | `index.ts` | Barrel export |
 
@@ -54,6 +55,7 @@ const output: VBDOutput = calculateVBD({
 - Endpoint: `POST /api/algorithms/vbd`
 - Request: `{ leagueId, limit?, offset?, positions? }`
 - Response: `{ rankings, baselines, metadata, generatedAt }`
+- Cache: League (1h), Players (24h), Projections (DB)
 
 ## ADDING NEW ALGORITHMS
 
@@ -78,3 +80,4 @@ const output: VBDOutput = calculateVBD({
 - Types in `types.ts`, never inline
 - Use barrel export from `index.ts`
 - 100% test coverage on VBD (97% branches, 100% functions/lines/statements)
+- Tests use `createMock*()` factory functions
