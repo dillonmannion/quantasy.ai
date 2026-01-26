@@ -39,7 +39,7 @@ const isDev = process.env.NODE_ENV === 'development'
 
 // In development, allow local Supabase; in production, only remote
 const connectSrc = isDev
-  ? "connect-src 'self' http://127.0.0.1:54321 https://*.supabase.co https://api.sleeper.app https://api.groq.com"
+  ? "connect-src 'self' http://localhost:54321 http://127.0.0.1:54321 https://*.supabase.co https://api.sleeper.app https://api.groq.com"
   : "connect-src 'self' https://*.supabase.co https://api.sleeper.app https://api.groq.com"
 
 const securityHeaders = [
