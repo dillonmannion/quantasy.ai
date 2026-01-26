@@ -1,7 +1,7 @@
 # QUANTASY - PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-24
-**Commit:** 20efb93
+**Generated:** 2026-01-25
+**Commit:** caf9ffd
 **Branch:** dev
 
 ## OVERVIEW
@@ -14,137 +14,152 @@ Fantasy football tools with algorithmic transparency ("Show Your Work"). Integra
 qai/
 ├── src/
 │   ├── app/                    # Next.js 16 App Router
-│   │   ├── (auth)/             # Public auth routes (login, callback)
+│   │   ├── (auth)/             # Public routes (login, callback)
 │   │   ├── (dashboard)/        # Protected routes (dashboard, draft, roster, trade, waivers, connect)
-│   │   └── api/                # API routes (/players/sync, /algorithms/vbd, /ai/explain)
+│   │   └── api/                # API routes
 │   ├── components/
-│   │   ├── animation/          # Balatro-inspired animation primitives
-│   │   ├── ui/                 # shadcn/ui (New York style)
+│   │   ├── animation/          # Balatro-inspired primitives (see ./animation/AGENTS.md)
+│   │   ├── ui/                 # shadcn/ui (New York style) - DO NOT MODIFY
+│   │   ├── draft/              # Draft Assistant UI (see ./draft/AGENTS.md)
 │   │   ├── layout/             # Responsive nav (mobile-first)
 │   │   ├── players/            # Player cards/lists
-│   │   ├── draft/              # Draft Assistant UI (rankings, filters, controls)
 │   │   └── providers/          # AuthProvider context
 │   ├── lib/
-│   │   ├── sleeper/            # Sleeper API client (see ./src/lib/sleeper/AGENTS.md)
+│   │   ├── algorithms/         # VBD + planned algorithms (see ./algorithms/AGENTS.md)
+│   │   ├── sleeper/            # Sleeper API client (see ./sleeper/AGENTS.md)
 │   │   ├── supabase/           # Auth + DB (client.ts, server.ts, middleware.ts)
-│   │   ├── algorithms/         # VBD (complete), lineup, trade, waivers (planned)
-│   │   ├── draft/              # Draft state management (Context + reducer)
-│   │   ├── projections/        # Projection data layer (CSV upload, storage)
-│   │   └── ai/                 # Groq AI integration (explanations)
-│   │   └── utils/              # cn(), formatters (planned)
-│   ├── hooks/                  # use-celebration.ts, use-draft-sync.ts, use-connection-status.ts
+│   │   ├── draft/              # Draft state (Context + reducer)
+│   │   ├── projections/        # Projection data layer (CSV upload)
+│   │   └── ai/                 # Groq AI integration
+│   ├── hooks/                  # use-celebration, use-draft-sync, use-connection-status, use-reduced-motion
 │   └── tests/                  # Vitest setup + unit tests
 ├── tests/e2e/                  # Playwright E2E tests
 ├── supabase/migrations/        # SQL migrations
-├── docs/
-│   ├── plan/                   # Phase planning docs (00-overview.md is index)
-│   └── algorithms/             # Algorithm documentation (vbd.md)
+└── docs/plan/                  # Phase planning (00-overview.md is index)
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add new page | `src/app/(dashboard)/[feature]/page.tsx` | Copy existing page structure |
+| Add new page | `src/app/(dashboard)/[feature]/page.tsx` | Copy existing structure |
 | Add UI component | `src/components/ui/` | Use `npx shadcn@latest add [component]` |
-| Add animation | `src/components/animation/` | Export from index.ts |
+| Add animation | `src/components/animation/` | Export from index.ts, see AGENTS.md |
 | Sleeper API call | `src/lib/sleeper/client.ts` | Rate-limited, see sleeper/AGENTS.md |
-| DB query | `src/lib/supabase/server.ts` | Use `createClient()` in server components |
-| Auth check | `src/app/(dashboard)/layout.tsx` | Layout handles redirect to /login |
-| Add test | `src/tests/unit/*.test.tsx` or `tests/e2e/*.spec.ts` | Vitest vs Playwright |
+| DB query | `src/lib/supabase/server.ts` | Use `createClient()` in server |
+| Auth check | `src/app/(dashboard)/layout.tsx` | Layout redirects to /login |
+| VBD algorithm | `src/lib/algorithms/vbd.ts` | See algorithms/AGENTS.md |
+| Draft state | `src/lib/draft/state.tsx` | React Context + reducer |
+| Add unit test | `src/tests/unit/*.test.tsx` | Vitest + Testing Library |
+| Add E2E test | `tests/e2e/*.spec.ts` | Playwright |
 | Planning docs | `docs/plan/00-overview.md` | Start here for project context |
-| **Draft Assistant** | | |
-| Add VBD calculation | `src/lib/algorithms/vbd.ts` | Core algorithm, see docs/algorithms/vbd.md |
-| Add draft UI | `src/components/draft/` | Client components (rankings, filters, etc.) |
-| Add draft API | `src/app/api/algorithms/vbd/route.ts` | VBD endpoint |
-| Add draft tests | `tests/e2e/draft-assistant.spec.ts` | E2E tests |
-| Draft state | `src/lib/draft/state.tsx` | React Context for draft state |
-| Draft sync | `src/hooks/use-draft-sync.ts` | Live Sleeper draft polling |
 
 ## CONVENTIONS
 
 ### TypeScript
 - Strict mode enabled
-- Path aliases: `@/*` → `./src/*`, `@/components/*`, `@/lib/*`, `@/hooks/*`
+- Path aliases: `@/*` → `./src/*`
 - No `as any`, `@ts-ignore`, `@ts-expect-error`
 
 ### File Naming
-- kebab-case for files: `player-card.tsx`, `use-celebration.ts`
-- PascalCase for components: `PlayerCard`, `FadeIn`
+- kebab-case: `player-card.tsx`, `use-celebration.ts`
+- PascalCase exports: `PlayerCard`, `FadeIn`
 - Barrel exports via `index.ts` in feature directories
 
 ### Components
-- Server Components by default (App Router)
+- Server Components by default
 - `'use client'` only when needed (hooks, events, browser APIs)
-- shadcn/ui primitives in `components/ui/` - do not modify directly
-- Motion library for animations (not framer-motion directly)
+- shadcn/ui in `components/ui/` - do not modify directly
+- Motion library (not framer-motion)
 
-### App Router Patterns
+### App Router
 - Route groups: `(auth)` = public, `(dashboard)` = protected
-- Server Actions in `actions.ts` files (e.g., `dashboard/actions.ts`)
+- Server Actions in `actions.ts` files
 - API routes return `NextResponse.json()`
 
 ### Styling
 - Tailwind CSS v4 with CSS variables
-- `cn()` utility from `@/lib/utils` for conditional classes
-- Mobile-first: base styles are mobile, `md:` for desktop
+- `cn()` from `@/lib/utils` for conditional classes
+- Mobile-first: base = mobile, `md:` = desktop
 
 ## ANTI-PATTERNS
 
-- **DO NOT** call Sleeper API directly from components - use `src/lib/sleeper/client.ts`
+- **DO NOT** call Sleeper API from components - use `src/lib/sleeper/client.ts`
 - **DO NOT** create Supabase clients manually - use `createClient()` helpers
-- **DO NOT** skip auth check in dashboard routes - layout handles it
-- **DO NOT** add animations without checking `src/components/animation/index.ts` first
-- **DO NOT** hardcode NFL season - use `getCurrentSeason()` from sleeper client
+- **DO NOT** skip auth in dashboard routes - layout handles it
+- **DO NOT** add animations without checking `src/components/animation/index.ts`
+- **DO NOT** hardcode NFL season - use `getCurrentSeason()`
+- **DO NOT** bypass rate limiter for Sleeper API (16 req/sec)
+- **DO NOT** fetch all players on every request - cache 24h minimum
+
+## SECURITY
+
+### Dependency Updates
+- Security patches: Apply immediately via `pnpm audit fix` or manual upgrade
+- Run `npx fix-react2shell-next --dry-run` after any React/Next.js updates
+- Framework versions (next, react) are pinned to exact versions
+- Dependabot configured in `.github/dependabot.yml` for weekly updates
+
+### CSP Policy
+- Configured in `next.config.ts` headers
+- Allows: Supabase (`*.supabase.co`), Sleeper API (`api.sleeper.app`), Groq (`api.groq.com`)
+- Blocks framing (`X-Frame-Options: DENY`) and restricts form submissions
+
+### Environment Variables
+- Server-only secrets: No `NEXT_PUBLIC_` prefix (e.g., `GROQ_API_KEY`)
+- Client-safe values: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Anon key is designed for client use with Row Level Security (RLS)
+
+### Rate Limiting
+- Sleeper API: 16 req/sec (enforced in `src/lib/sleeper/client.ts`)
+- AI API: 30 req/min (enforced in `src/lib/ai/rate-limiter.ts`)
 
 ## DATABASE
 
 Tables (Supabase Postgres):
 - `profiles` - User profile + Sleeper connection
 - `leagues` - Cached league data
-- `user_leagues` - User-league associations  
+- `user_leagues` - User-league associations
 - `rosters` - Cached roster data
 - `players` - Player data with projections
 - `matchups` - Weekly matchup data
-- `algorithm_outputs` - Saved algorithm results with explanations
+- `algorithm_outputs` - Saved algorithm results
 
-Migrations in `supabase/migrations/`. Types generated in `src/lib/supabase/types.ts`.
+Migrations in `supabase/migrations/`. Types in `src/lib/supabase/types.ts`.
 
 ## COMMANDS
 
 ```bash
-pnpm dev              # Dev server with Turbopack
+pnpm dev              # Dev server (Turbopack)
 pnpm build            # Production build
 pnpm lint             # ESLint
-pnpm type-check       # TypeScript check (separate from build)
+pnpm type-check       # TypeScript check
 pnpm test             # Vitest unit tests
-pnpm test:ui          # Vitest with UI
 pnpm test:e2e         # Playwright E2E
-pnpm test:e2e:ui      # Playwright with UI
 ```
 
 ## TESTING
 
-| Type | Framework | Location | Pattern | Run |
-|------|-----------|----------|---------|-----|
-| Unit | Vitest + Testing Library | `src/tests/unit/` | `*.test.tsx` | `pnpm test` |
-| E2E | Playwright | `tests/e2e/` | `*.spec.ts` | `pnpm test:e2e` |
+| Type | Framework | Location | Pattern |
+|------|-----------|----------|---------|
+| Unit | Vitest + Testing Library | `src/tests/unit/` | `*.test.tsx` |
+| E2E | Playwright | `tests/e2e/` | `*.spec.ts` |
 
-Setup file: `src/tests/setup.ts` - auto-cleanup after each test.
-Playwright tests: Chromium + Mobile Safari (iPhone 13).
+- VBD algorithm: 100% coverage required (functions/lines/statements)
+- E2E: Chromium + Mobile Safari (iPhone 13)
+- MSW for API mocking in E2E
 
 ## DEPLOYMENT
 
 - **Platform:** Fly.io (not Vercel)
-- **Output:** Standalone Next.js (`output: 'standalone'` in next.config.ts)
+- **Output:** Standalone Next.js
 - **CI:** GitHub Actions - type-check → lint → test → build
 - **Deploy:** Push to `main` triggers `fly deploy`
-- **Secrets:** `FLY_API_TOKEN`, Supabase env vars in Fly
 
 ## NOTES
 
-- React 19 + Next.js 16 (latest)
-- pnpm required (v10.28.1 pinned in CI/Docker)
-- Turbopack enabled in dev (experimental but fast)
-- Player sync has 60s timeout (`maxDuration` in route)
-- Sleeper API: 16 req/sec rate limit (handled by client)
+- React 19 + Next.js 16
+- pnpm required (v10.28.1)
+- Turbopack in dev
+- Player sync: 60s timeout
+- Sleeper: 16 req/sec rate limit
