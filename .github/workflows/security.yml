@@ -1,0 +1,35 @@
+name: Security Check
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      
+      - name: Start Supabase
+        run: supabase start --exclude studio,inbucket,imgproxy
+      
+      - name: Run Security Advisors
+        run: |
+          supabase db lint --level warn
+          
+      - name: Check for Critical Issues
+        run: |
+          ERRORS=$(supabase db lint --level error --format json 2>/dev/null | jq 'length' || echo "0")
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "::error::Found $ERRORS security errors"
+            supabase db lint --level error
+            exit 1
+          fi
+          echo "No critical security issues found"

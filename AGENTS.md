@@ -1,7 +1,7 @@
 # QUANTASY - PROJECT KNOWLEDGE BASE
 
 **Generated:** 2026-01-26
-**Commit:** 175cf19
+**Commit:** 4b37e6d
 **Branch:** dev
 
 ## OVERVIEW
@@ -33,8 +33,8 @@ qai/
 │   │   └── ai/                 # Groq AI integration (llama-3.3-70b-versatile)
 │   ├── hooks/                  # use-celebration, use-draft-sync, use-connection-status, use-reduced-motion
 │   └── tests/                  # Vitest setup + unit tests
-├── tests/e2e/                  # Playwright E2E tests
-├── supabase/migrations/        # SQL migrations (4 files)
+├── tests/e2e/                  # Playwright E2E tests (see ./tests/e2e/AGENTS.md)
+├── supabase/migrations/        # SQL migrations
 └── docs/plan/                  # Phase planning (00-overview.md is index)
 ```
 
@@ -51,7 +51,7 @@ qai/
 | VBD algorithm | `src/lib/algorithms/vbd.ts` | Pure function, see AGENTS.md |
 | Draft state | `src/lib/draft/state.tsx` | React Context + reducer |
 | Add unit test | `src/tests/unit/*.test.tsx` | Vitest + Testing Library |
-| Add E2E test | `tests/e2e/*.spec.ts` | Playwright |
+| Add E2E test | `tests/e2e/*.spec.ts` | Playwright, see AGENTS.md |
 | Planning docs | `docs/plan/00-overview.md` | Start here for project context |
 | Server action | `src/app/(dashboard)/*/actions.ts` | `'use server'` files |
 | API route | `src/app/api/*/route.ts` | Returns `NextResponse.json()` |
@@ -73,7 +73,7 @@ Caching:
 ### TypeScript
 - Strict mode enabled
 - Path aliases: `@/*` → `./src/*`
-- No `as any`, `@ts-ignore`, `@ts-expect-error`
+- No `as any`, `@ts-ignore`, `@ts-expect-error` in production code
 
 ### File Naming
 - kebab-case: `player-card.tsx`, `use-celebration.ts`
@@ -90,6 +90,7 @@ Caching:
 - Route groups: `(auth)` = public, `(dashboard)` = protected
 - Server Actions in `actions.ts` files (`'use server'`)
 - API routes return `NextResponse.json()`
+- Dynamic route params: use `await params` (Next.js 15+ pattern)
 
 ### Styling
 - Tailwind CSS v4 with `@theme` in globals.css (no tailwind.config.ts)
@@ -98,7 +99,7 @@ Caching:
 - Mobile-first: base = mobile, `md:` = desktop
 
 ### Testing
-- VBD algorithm: 100% coverage required (functions/lines/statements)
+- VBD algorithm: 100% coverage required (97% branches, 100% functions/lines/statements)
 - Mock factories: `createMock*()` functions for test data
 - MSW for E2E API mocking (via `ENABLE_MSW=true`)
 
@@ -121,7 +122,9 @@ Caching:
 
 ### CSP Policy
 - Configured in `next.config.ts` headers
-- Allows: Supabase (`*.supabase.co`), Sleeper API (`api.sleeper.app`), Groq (`api.groq.com`)
+- Dev: allows local Supabase (`http://127.0.0.1:54321`)
+- Prod: only remote (`https://*.supabase.co`)
+- Allows: Sleeper API (`api.sleeper.app`), Groq (`api.groq.com`)
 - Blocks framing (`X-Frame-Options: DENY`)
 
 ### Environment Variables
@@ -130,7 +133,7 @@ Caching:
 
 ### Dependency Updates
 - Security patches: Apply immediately via `pnpm audit fix`
-- Dependabot configured in `.github/dependabot.yml` for weekly updates
+- Dependabot: weekly updates with production/dev grouping
 
 ## DATABASE
 
@@ -156,6 +159,7 @@ pnpm test             # Vitest unit tests (watch)
 pnpm test:run         # Vitest single run
 pnpm test:coverage    # Coverage report
 pnpm test:e2e         # Playwright E2E
+pnpm test:e2e:ui      # Playwright UI mode
 pnpm validate         # type-check + lint + test:run
 ```
 
@@ -167,7 +171,7 @@ pnpm validate         # type-check + lint + test:run
 | E2E | Playwright | `tests/e2e/` | `*.spec.ts` |
 
 - VBD algorithm: 100% coverage required (97% branches, 100% functions/lines/statements)
-- E2E: Chromium + Mobile Safari (iPhone 13)
+- E2E browsers: Chromium + Mobile Safari (iPhone 13)
 - MSW for API mocking in E2E (handlers in `tests/mocks/`)
 - Global setup creates test user + seeds data
 
@@ -175,9 +179,10 @@ pnpm validate         # type-check + lint + test:run
 
 - **Platform:** Fly.io (not Vercel)
 - **Output:** Standalone Next.js
-- **CI:** GitHub Actions - type-check → lint → test → build
+- **CI:** GitHub Actions - type-check → lint → test → build → E2E
 - **Deploy:** Push to `main` triggers `fly deploy`
 - **Region:** San Jose (sjc), shared-cpu-1x, 256MB
+- **PWA:** Enabled with Workbox runtime caching
 
 ## NOTES
 
@@ -187,4 +192,4 @@ pnpm validate         # type-check + lint + test:run
 - Player sync: 60s timeout
 - Sleeper: 16 req/sec rate limit
 - AI: llama-3.3-70b-versatile via Groq
-- PWA enabled (offline support via Workbox)
+- PWA: offline support with route-specific caching strategies

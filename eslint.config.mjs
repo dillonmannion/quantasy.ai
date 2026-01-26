@@ -17,6 +17,14 @@ const eslintConfig = defineConfig([
     "public/workbox-*.js",
     "coverage/**",
   ]),
+  // Relaxed rules for test files - allow `any` for mocking and edge case testing
+  {
+    files: ["**/*.test.ts", "**/*.test.tsx", "**/tests/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+    },
+  },
 ]);
 
 export default eslintConfig;

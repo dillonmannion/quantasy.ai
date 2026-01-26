@@ -79,5 +79,5 @@ const output: VBDOutput = calculateVBD({
 - All functions are pure (no side effects)
 - Types in `types.ts`, never inline
 - Use barrel export from `index.ts`
-- 100% test coverage on VBD (97% branches, 100% functions/lines/statements)
+- 100% test coverage required (97% branches, 100% functions/lines/statements)
 - Tests use `createMock*()` factory functions
