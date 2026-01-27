@@ -187,6 +187,41 @@ VBD works the same, but keepers are pre-marked as drafted. The algorithm exclude
 - League settings from Sleeper (roster positions, scoring)
 - Projection source tracked for cache invalidation
 
+## Integration with Other Algorithms
+
+VBD is the foundation for multiple algorithms in Quantasy:
+
+### Draft Assistant
+- Uses VBD rankings for player recommendations
+- Adjusts for already-drafted players
+- Considers team needs and roster construction
+
+### Trade Evaluator
+- Calculates VBD for each player in trade
+- Compares total value given vs received
+- See `docs/algorithms/trade.md` for details
+
+### Waiver Recommendations
+- Computes VBD improvement for free agents
+- Prioritizes pickups based on VBD gain
+- Factors in roster need multipliers
+- See `docs/algorithms/waivers.md` for details
+
+### Lineup Optimizer
+- Uses projected points (input to VBD)
+- Optimizes weekly lineup for maximum points
+- See `docs/algorithms/lineup.md` for details
+
+## "Show Your Work" Transparency
+
+All algorithms using VBD include detailed explanations:
+- Baseline calculation for each position
+- VBD formula breakdown per player
+- Why specific players are ranked higher
+- Caveats and limitations
+
+This transparency helps users understand and trust the recommendations.
+
 ## Limitations & Future Enhancements
 
 ### Current Limitations
