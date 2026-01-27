@@ -13,6 +13,12 @@ export type {
   LineupInput,
   LineupOutput,
   LineupExplanation,
+  TradeVerdict,
+  TradePlayerBreakdown,
+  TradeLineupImpact,
+  TradeExplanation,
+  TradeInput,
+  TradeOutput,
 } from './types'
 
 export type { BaselineInput } from './baselines'
@@ -27,6 +33,8 @@ export { getFlexBaseline } from './flex'
 export { calculateVBD } from './vbd'
 
 export { optimizeLineup } from './lineup'
+
+export { evaluateTrade } from './trade'
 
 export type { VBDForLeagueResult, VBDForLeagueOptions } from './calculate-vbd-for-league'
 export { calculateVBDForLeague } from './calculate-vbd-for-league'
