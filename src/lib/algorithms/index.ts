@@ -8,6 +8,11 @@ export type {
   VBDInput,
   VBDOutput,
   VBDExplanation,
+  AlgorithmPlayer,
+  RosterSlot,
+  LineupInput,
+  LineupOutput,
+  LineupExplanation,
 } from './types'
 
 export type { BaselineInput } from './baselines'
@@ -20,6 +25,8 @@ export { calculateIDPScarcityMultiplier, getIDPGroup } from './idp'
 export { getFlexBaseline } from './flex'
 
 export { calculateVBD } from './vbd'
+
+export { optimizeLineup } from './lineup'
 
 export type { VBDForLeagueResult, VBDForLeagueOptions } from './calculate-vbd-for-league'
 export { calculateVBDForLeague } from './calculate-vbd-for-league'
