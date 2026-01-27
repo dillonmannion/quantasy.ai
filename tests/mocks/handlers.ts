@@ -40,6 +40,53 @@ export const vbdHandler = http.post('*/api/algorithms/vbd', () => {
   })
 })
 
+export const lineupHandler = http.post('*/api/algorithms/lineup', () => {
+  return HttpResponse.json({
+    currentLineup: {
+      starters: [
+        { playerId: '4046', name: 'Patrick Mahomes', position: 'QB', projectedPoints: 25.5 },
+        { playerId: '6794', name: 'Justin Herbert', position: 'QB', projectedPoints: 22.3 },
+      ],
+      bench: [
+        { playerId: '4034', name: 'Travis Kelce', position: 'TE', projectedPoints: 18.2 },
+      ],
+      totalProjectedPoints: 66.0,
+    },
+    optimizedLineup: {
+      starters: [
+        { playerId: '4046', name: 'Patrick Mahomes', position: 'QB', projectedPoints: 25.5 },
+        { playerId: '4034', name: 'Travis Kelce', position: 'TE', projectedPoints: 18.2 },
+      ],
+      bench: [
+        { playerId: '6794', name: 'Justin Herbert', position: 'QB', projectedPoints: 22.3 },
+      ],
+      totalProjectedPoints: 66.0,
+    },
+    explanation: {
+      methodology: 'Optimized lineup based on projected points and position requirements.',
+      changes: ['Moved Travis Kelce to starters for better projection'],
+      caveats: ['Projections are estimates and may change'],
+    },
+  })
+})
+
+export const tradeHandler = http.post('*/api/algorithms/trade', () => {
+  return HttpResponse.json({
+    verdict: 'fair',
+    fairnessScore: 2.5,
+    givingValue: 45.2,
+    receivingValue: 47.7,
+    explanation: {
+      methodology: 'Trade evaluated using VBD-based fairness scoring.',
+      playerBreakdown: [
+        { playerId: '4046', name: 'Patrick Mahomes', position: 'QB', vbdValue: 25.5, isGiving: true },
+        { playerId: '4034', name: 'Travis Kelce', position: 'TE', vbdValue: 22.2, isGiving: false },
+      ],
+      caveats: ['Projections subject to change', 'Bye weeks not considered'],
+    },
+  })
+})
+
 export const sleeperHandlers = [
   http.get(`${SLEEPER_BASE}/state/nfl`, () => {
     return HttpResponse.json(TEST_NFL_STATE)
@@ -97,4 +144,4 @@ export const sleeperHandlers = [
   }),
 ]
 
-export const handlers = [vbdHandler, ...sleeperHandlers]
+export const handlers = [vbdHandler, lineupHandler, tradeHandler, ...sleeperHandlers]
