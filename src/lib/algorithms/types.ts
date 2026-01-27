@@ -398,3 +398,106 @@ export interface TradeOutput {
   verdict: TradeVerdict
   explanation: TradeExplanation
 }
+
+/**
+ * Input parameters for waiver priority recommendations.
+ */
+export interface WaiverInput {
+  /** Available players on waivers */
+  availablePlayers: AlgorithmPlayer[]
+
+  /** Current roster of the user */
+  currentRoster: AlgorithmPlayer[]
+
+  /** League configuration */
+  leagueSettings: {
+    /** Position baselines for VBD calculation */
+    baselines: Partial<Record<Position, PositionBaseline>>
+
+    /** Roster slot configuration */
+    rosterSlots?: RosterSlot[]
+  }
+
+  /** Current week number */
+  week: number
+
+  /** FAAB budget information (if league uses FAAB) */
+  faabBudget?: {
+    /** Total FAAB budget for the season */
+    total: number
+
+    /** Remaining FAAB budget */
+    remaining: number
+  }
+}
+
+/**
+ * FAAB bid range recommendation.
+ */
+export interface FABBidRange {
+  /** Minimum recommended bid */
+  min: number
+
+  /** Maximum recommended bid */
+  max: number
+
+  /** Minimum as percentage of total budget */
+  budgetPercentageMin: number
+
+  /** Maximum as percentage of total budget */
+  budgetPercentageMax: number
+}
+
+/**
+ * Individual waiver recommendation.
+ */
+export interface WaiverRecommendation {
+  /** Player being recommended */
+  player: AlgorithmPlayer
+
+  /** Priority score (higher = more urgent) */
+  priorityScore: number
+
+  /** Suggested FAAB bid range (null if league doesn't use FAAB) */
+  suggestedFaabBid: FABBidRange | null
+
+  /** VBD improvement if added to roster */
+  vbdImprovement: number
+
+  /** Reasons for recommendation */
+  reasons: string[]
+}
+
+/**
+ * Explanation payload for waiver recommendations.
+ */
+export interface WaiverExplanation {
+  /** Algorithm version identifier */
+  algorithm: 'waiver_v1'
+
+  /** ISO timestamp of calculation */
+  timestamp: string
+
+  /** Markdown-formatted explanation of methodology */
+  methodology: string
+
+  /** Known limitations and caveats */
+  caveats: string[]
+
+  /** Factors considered in priority calculation */
+  priorityFactors: string[]
+}
+
+/**
+ * Output of waiver priority recommendations.
+ */
+export interface WaiverOutput {
+  /** Ranked waiver recommendations */
+  recommendations: WaiverRecommendation[]
+
+  /** Players eligible to be dropped from current roster */
+  droppable: AlgorithmPlayer[]
+
+  /** Detailed explanation for transparency */
+  explanation: WaiverExplanation
+}

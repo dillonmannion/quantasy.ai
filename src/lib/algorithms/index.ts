@@ -19,6 +19,11 @@ export type {
   TradeExplanation,
   TradeInput,
   TradeOutput,
+  WaiverInput,
+  WaiverOutput,
+  WaiverRecommendation,
+  WaiverExplanation,
+  FABBidRange,
 } from './types'
 
 export type { BaselineInput } from './baselines'
