@@ -1,18 +1,39 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
-import { Card } from '@/components/ui/card'
-import { FadeIn } from '@/components/animation/fade-in'
+import { getNFLState } from '@/lib/sleeper'
+import { WaiversClient } from './waivers-client'
 
-export default function WaiversPage() {
+export default async function WaiversPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+  
+  const { data: userLeagues } = await supabase
+    .from('user_leagues')
+    .select('league_id, roster_id')
+    .eq('user_id', user.id)
+    .limit(1)
+  
+  if (!userLeagues || userLeagues.length === 0) {
+    redirect('/connect')
+  }
+  
+  const { league_id: leagueId, roster_id: rosterId } = userLeagues[0]
+  
+  const nflState = await getNFLState()
+  const currentWeek = nflState.week || 1
+  
   return (
     <PageContainer>
-      <FadeIn>
-        <Card className="card-balatro p-12 text-center">
-          <h1 className="text-4xl font-bold mb-4">Waiver Wire Tool</h1>
-          <p className="text-muted-foreground">
-            Coming in Phase 4 - FAAB optimization and waiver priority recommendations
-          </p>
-        </Card>
-      </FadeIn>
+      <WaiversClient 
+        leagueId={leagueId}
+        rosterId={rosterId || 0}
+        defaultWeek={currentWeek}
+      />
     </PageContainer>
   )
 }
