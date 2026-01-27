@@ -41,3 +41,6 @@ export { calculateVBDForLeague } from './calculate-vbd-for-league'
 
 export type { LineupForWeekOptions } from './calculate-lineup-for-week'
 export { calculateLineupForWeek } from './calculate-lineup-for-week'
+
+export type { CalculateTradeForLeagueOptions } from './calculate-trade-for-league'
+export { calculateTradeForLeague } from './calculate-trade-for-league'
