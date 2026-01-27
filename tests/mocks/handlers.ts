@@ -87,6 +87,61 @@ export const tradeHandler = http.post('*/api/algorithms/trade', () => {
   })
 })
 
+export const waiversHandler = http.post('*/api/algorithms/waivers', () => {
+  return HttpResponse.json({
+    recommendations: [
+      {
+        player: {
+          playerId: 'wr-1',
+          fullName: 'Test WR',
+          position: 'WR',
+          team: 'KC',
+          eligiblePositions: ['WR'],
+          projectedPoints: 180,
+          injuryStatus: null,
+          status: 'Active',
+          byeWeek: null,
+        },
+        priorityScore: 45.5,
+        suggestedFaabBid: {
+          min: 24,
+          max: 36,
+          budgetPercentageMin: 24,
+          budgetPercentageMax: 36,
+        },
+        vbdImprovement: 35,
+        reasons: [
+          'VBD: 40 (proj: 180 - baseline: 140)',
+          'Improvement: +35 over Worst WR (5)',
+          'Need: 1.3x (Starter upgrade)',
+          'Priority score: 45.5 = 35 × 1.3',
+          'FAAB range: $24-$36 (24%-36% of $100)',
+        ],
+      },
+    ],
+    droppable: [
+      {
+        playerId: 'rb-bench',
+        fullName: 'Bench RB',
+        position: 'RB',
+        team: 'SF',
+        eligiblePositions: ['RB'],
+        projectedPoints: 80,
+        injuryStatus: null,
+        status: 'Active',
+        byeWeek: null,
+      },
+    ],
+    explanation: {
+      algorithm: 'waiver_v1',
+      timestamp: new Date().toISOString(),
+      methodology: '## Waiver Priority Calculation\n\nRecommendations based on VBD improvement and roster need.',
+      caveats: ['Bye week conflicts not factored in v1'],
+      priorityFactors: ['VBD improvement', 'Roster need'],
+    },
+  })
+})
+
 export const sleeperHandlers = [
   http.get(`${SLEEPER_BASE}/state/nfl`, () => {
     return HttpResponse.json(TEST_NFL_STATE)
@@ -144,4 +199,4 @@ export const sleeperHandlers = [
   }),
 ]
 
-export const handlers = [vbdHandler, lineupHandler, tradeHandler, ...sleeperHandlers]
+export const handlers = [vbdHandler, lineupHandler, tradeHandler, waiversHandler, ...sleeperHandlers]
