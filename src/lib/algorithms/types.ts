@@ -220,3 +220,121 @@ export interface VBDExplanation {
   /** Known limitations and caveats */
   caveats: string[]
 }
+
+/**
+ * Platform-agnostic player representation for algorithms.
+ */
+export interface AlgorithmPlayer {
+  /** Unique player identifier */
+  playerId: string
+
+  /** Full name */
+  fullName: string
+
+  /** Team abbreviation (e.g., "KC") */
+  team: string | null
+
+  /** Primary position */
+  position: Position
+
+  /** All eligible positions for lineup slots */
+  eligiblePositions: Position[]
+
+  /** Projected points for the selected week */
+  projectedPoints: number
+
+  /** Injury status if applicable (Out, Questionable, IR) */
+  injuryStatus: string | null
+
+  /** Player status (Active, Out, IR, etc.) */
+  status: string | null
+
+  /** Bye week number if known */
+  byeWeek?: number | null
+}
+
+/**
+ * Lineup slot definition.
+ */
+export interface RosterSlot {
+  /** Unique slot identifier */
+  slotId: string
+
+  /** Slot type: starter or bench */
+  slotType: 'starter' | 'bench'
+
+  /** Allowed positions for this slot */
+  allowedPositions: Position[]
+}
+
+/**
+ * Input parameters for lineup optimization.
+ */
+export interface LineupInput {
+  /** Roster of players to consider */
+  roster: AlgorithmPlayer[]
+
+  /** Lineup slot configuration */
+  slots: RosterSlot[]
+
+  /** Week number for availability filtering */
+  week: number
+}
+
+/**
+ * Explanation for lineup optimizer decisions.
+ */
+export interface LineupExplanation {
+  /** Algorithm version identifier */
+  algorithm: 'lineup_optimizer_v1'
+
+  /** ISO timestamp of calculation */
+  timestamp: string
+
+  /** Input summary */
+  inputsSummary: {
+    rosterCount: number
+    slotCount: number
+    starterSlots: number
+    benchSlots: number
+    week: number
+  }
+
+  /** Players excluded with reasons */
+  excludedPlayers: Array<{
+    playerId: string
+    fullName: string
+    reason: string
+  }>
+
+  /** Slot assignment decisions */
+  decisions: Array<{
+    slotId: string
+    slotType: 'starter' | 'bench'
+    allowedPositions: Position[]
+    playerId: string
+    fullName: string
+    projectedPoints: number
+    reason: string
+  }>
+
+  /** Known limitations and caveats */
+  caveats: string[]
+}
+
+/**
+ * Output of lineup optimization.
+ */
+export interface LineupOutput {
+  /** Selected starters */
+  starters: AlgorithmPlayer[]
+
+  /** Bench players (eligible but not started) */
+  bench: AlgorithmPlayer[]
+
+  /** Total projected points for starters */
+  projectedPoints: number
+
+  /** Detailed explanation for transparency */
+  explanation: LineupExplanation
+}
