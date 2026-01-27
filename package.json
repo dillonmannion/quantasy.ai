@@ -60,6 +60,7 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@playwright/test": "^1.58.0",
     "@tailwindcss/postcss": "^4.1.18",

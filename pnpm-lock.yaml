@@ -75,6 +75,9 @@ importers:
         specifier: ^3.4.0
         version: 3.4.0
     devDependencies:
+      '@axe-core/playwright':
+        specifier: ^4.11.0
+        version: 4.11.0(playwright-core@1.58.0)
       '@ducanh2912/next-pwa':
         specifier: ^10.2.9
         version: 10.2.9(@types/babel__core@7.20.5)(next@16.1.5(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(webpack@5.104.1)
@@ -168,6 +171,11 @@ packages:
 
   '@asamuzakjp/nwsapi@2.3.9':
     resolution: {integrity: sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q==}
+
+  '@axe-core/playwright@4.11.0':
+    resolution: {integrity: sha512-70vBT/Ylqpm65RQz2iCG2o0JJCEG/WCNyefTr2xcOcr1CoSee60gNQYUMZZ7YukoKkFLv26I/jjlsvwwp532oQ==}
+    peerDependencies:
+      playwright-core: '>= 1.0.0'
 
   '@babel/code-frame@7.28.6':
     resolution: {integrity: sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q==}
@@ -5198,6 +5206,11 @@ snapshots:
       lru-cache: 11.2.5
 
   '@asamuzakjp/nwsapi@2.3.9': {}
+
+  '@axe-core/playwright@4.11.0(playwright-core@1.58.0)':
+    dependencies:
+      axe-core: 4.11.1
+      playwright-core: 1.58.0
 
   '@babel/code-frame@7.28.6':
     dependencies:

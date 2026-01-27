@@ -84,7 +84,7 @@ test.describe('Trade Calculator', () => {
     await searchInput.fill('Mahomes')
     await page.waitForTimeout(300)
     
-    let playerOption = page.locator('button:has-text("Patrick Mahomes")')
+    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
     await playerOption.click()
     
     await expect(modal).not.toBeVisible({ timeout: 5000 })
