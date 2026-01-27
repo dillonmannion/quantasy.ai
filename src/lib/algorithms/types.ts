@@ -338,3 +338,63 @@ export interface LineupOutput {
   /** Detailed explanation for transparency */
   explanation: LineupExplanation
 }
+
+/**
+ * Verdict classification for trade evaluation.
+ */
+export type TradeVerdict = 'great' | 'fair' | 'bad' | 'veto-worthy'
+
+/**
+ * Player-level breakdown for trade evaluation.
+ */
+export interface TradePlayerBreakdown {
+  playerId: string
+  name: string
+  position: Position
+  vbdValue: number
+  isGiving: boolean
+}
+
+/**
+ * Lineup impact summary for trade evaluation.
+ */
+export interface TradeLineupImpact {
+  preTrade: LineupOutput
+  postTrade: LineupOutput
+  delta: number
+}
+
+/**
+ * Explanation payload for trade evaluation.
+ */
+export interface TradeExplanation {
+  playerBreakdown: TradePlayerBreakdown[]
+  lineupImpact: TradeLineupImpact | null
+  methodology: string
+  caveats: string[]
+}
+
+/**
+ * Input parameters for trade evaluation.
+ */
+export interface TradeInput {
+  giving: AlgorithmPlayer[]
+  receiving: AlgorithmPlayer[]
+  leagueSettings: {
+    baselines: Record<Position, PositionBaseline>
+    rosterSlots?: RosterSlot[]
+  }
+  currentRoster?: AlgorithmPlayer[]
+  week?: number
+}
+
+/**
+ * Output of trade evaluation.
+ */
+export interface TradeOutput {
+  fairnessScore: number
+  givingValue: number
+  receivingValue: number
+  verdict: TradeVerdict
+  explanation: TradeExplanation
+}
