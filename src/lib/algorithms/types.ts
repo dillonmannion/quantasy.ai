@@ -501,3 +501,26 @@ export interface WaiverOutput {
   /** Detailed explanation for transparency */
   explanation: WaiverExplanation
 }
+
+/**
+ * Options for waiver orchestrator.
+ */
+export interface CalculateWaiversForLeagueOptions {
+  /** Sleeper league ID */
+  leagueId: string
+
+  /** User's roster ID (1-based integer) */
+  rosterId: number
+
+  /** NFL week (1-18) */
+  week: number
+
+  /** FAAB budget (omit for non-FAAB leagues) */
+  faabBudget?: {
+    /** Total season budget (e.g., 100) */
+    total: number
+
+    /** Remaining budget */
+    remaining: number
+  }
+}

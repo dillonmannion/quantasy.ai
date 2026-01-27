@@ -225,9 +225,11 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.recommendations[0].reasons).toContain(
-        expect.stringMatching(/[Ii]njury replacement/)
-      )
+      expect(
+        result.recommendations[0].reasons.some((r: string) =>
+          /[Ii]njury replacement/.test(r)
+        )
+      ).toBe(true)
     })
 
     it('applies 1.3x starter upgrade multiplier', () => {
@@ -241,9 +243,11 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.recommendations[0].reasons).toContain(
-        expect.stringMatching(/[Ss]tarter upgrade/)
-      )
+      expect(
+        result.recommendations[0].reasons.some((r: string) =>
+          /[Ss]tarter upgrade/.test(r)
+        )
+      ).toBe(true)
     })
 
     it('applies 0.8x depth multiplier when roster slots filled', () => {
@@ -258,9 +262,9 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.recommendations[0].reasons).toContain(
-        expect.stringMatching(/[Dd]epth/)
-      )
+      expect(
+        result.recommendations[0].reasons.some((r: string) => /[Dd]epth/.test(r))
+      ).toBe(true)
     })
 
     it('applies 1.0x default multiplier for filling roster gap', () => {
@@ -273,9 +277,11 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.recommendations[0].reasons).toContain(
-        expect.stringMatching(/[Ff]illing roster gap/)
-      )
+      expect(
+        result.recommendations[0].reasons.some((r: string) =>
+          /[Ff]illing roster gap/.test(r)
+        )
+      ).toBe(true)
     })
   })
 
@@ -430,8 +436,8 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.droppable).toContain(
-        expect.objectContaining({ playerId: 'k-1' })
+      expect(result.droppable).toEqual(
+        expect.arrayContaining([expect.objectContaining({ playerId: 'k-1' })])
       )
     })
 
@@ -536,6 +542,7 @@ describe('recommendWaivers', () => {
     })
 
     it('handles mixed position candidates', () => {
+      // VBD: WR = 170-140 = 30, QB = 220-200 = 20, RB = 165-150 = 15
       const qb = createMockAlgorithmPlayer('qb-1', 'QB Candidate', 'QB', 220)
       const rb = createMockAlgorithmPlayer('rb-1', 'RB Candidate', 'RB', 165)
       const wr = createMockAlgorithmPlayer('wr-1', 'WR Candidate', 'WR', 170)
@@ -548,7 +555,8 @@ describe('recommendWaivers', () => {
       const result = recommendWaivers(input)
 
       expect(result.recommendations).toHaveLength(3)
-      expect(result.recommendations[0].player.position).toBe('QB')
+      // WR has highest VBD improvement (30), so should be first
+      expect(result.recommendations[0].player.position).toBe('WR')
     })
   })
 
@@ -566,9 +574,9 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.recommendations[0].reasons).toContain(
-        expect.stringMatching(/[Ii]njury/)
-      )
+      expect(
+        result.recommendations[0].reasons.some((r: string) => /[Ii]njury/.test(r))
+      ).toBe(true)
     })
 
     it('recognizes IR status as injury', () => {
@@ -584,9 +592,9 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.recommendations[0].reasons).toContain(
-        expect.stringMatching(/[Ii]njury/)
-      )
+      expect(
+        result.recommendations[0].reasons.some((r: string) => /[Ii]njury/.test(r))
+      ).toBe(true)
     })
 
     it('recognizes Doubtful status as injury', () => {
@@ -602,9 +610,9 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.recommendations[0].reasons).toContain(
-        expect.stringMatching(/[Ii]njury/)
-      )
+      expect(
+        result.recommendations[0].reasons.some((r: string) => /[Ii]njury/.test(r))
+      ).toBe(true)
     })
 
     it('does not apply injury multiplier for Questionable status', () => {
@@ -620,9 +628,11 @@ describe('recommendWaivers', () => {
 
       const result = recommendWaivers(input)
 
-      expect(result.recommendations[0].reasons).not.toContain(
-        expect.stringMatching(/[Ii]njury replacement/)
-      )
+      expect(
+        result.recommendations[0].reasons.some((r: string) =>
+          /[Ii]njury replacement/.test(r)
+        )
+      ).toBe(false)
     })
   })
 })
