@@ -38,3 +38,6 @@ export { evaluateTrade } from './trade'
 
 export type { VBDForLeagueResult, VBDForLeagueOptions } from './calculate-vbd-for-league'
 export { calculateVBDForLeague } from './calculate-vbd-for-league'
+
+export type { LineupForWeekOptions } from './calculate-lineup-for-week'
+export { calculateLineupForWeek } from './calculate-lineup-for-week'
