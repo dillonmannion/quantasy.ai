@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode } from 'react'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
 
 interface CardFlipProps {
   front: ReactNode
@@ -18,6 +19,8 @@ export function CardFlip({
   onFlip, 
   className = '' 
 }: CardFlipProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div 
       className={`relative cursor-pointer perspective-1000 ${className}`}
@@ -31,10 +34,11 @@ export function CardFlip({
       }}
     >
       <motion.div
+        data-testid="card-flip-animation"
         className="relative w-full h-full transform-style-3d"
         initial={false}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ 
+        transition={prefersReducedMotion ? { duration: 0 } : { 
           duration: 0.6, 
           type: 'spring', 
           stiffness: 300, 

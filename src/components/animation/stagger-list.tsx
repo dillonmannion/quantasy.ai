@@ -3,6 +3,7 @@
 import { motion, type Variants } from 'motion/react'
 import { type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -34,11 +35,15 @@ interface StaggerListProps {
 }
 
 export function StaggerList({ children, className }: StaggerListProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.div
+      data-testid="stagger-list-animation"
       variants={containerVariants}
-      initial="hidden"
+      initial={prefersReducedMotion ? 'visible' : 'hidden'}
       animate="visible"
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className={cn(className)}
     >
       {children}
@@ -52,8 +57,16 @@ interface StaggerItemProps {
 }
 
 export function StaggerItem({ children, className }: StaggerItemProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
-    <motion.div variants={itemVariants} className={cn(className)}>
+    <motion.div 
+      data-testid="stagger-item-animation"
+      variants={itemVariants} 
+      initial={prefersReducedMotion ? 'visible' : undefined}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
+      className={cn(className)}
+    >
       {children}
     </motion.div>
   )

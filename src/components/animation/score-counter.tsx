@@ -2,6 +2,7 @@
 
 import { motion, useSpring, useTransform } from 'motion/react'
 import { useEffect } from 'react'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
 
 interface ScoreCounterProps {
   value: number
@@ -16,7 +17,8 @@ export function ScoreCounter({
   decimals = 1, 
   className = '' 
 }: ScoreCounterProps) {
-  const spring = useSpring(0, { duration: duration * 1000 })
+  const prefersReducedMotion = useReducedMotion()
+  const spring = useSpring(0, { duration: prefersReducedMotion ? 0 : duration * 1000 })
   const display = useTransform(spring, (current) => 
     current.toFixed(decimals)
   )
@@ -26,7 +28,7 @@ export function ScoreCounter({
   }, [spring, value])
 
   return (
-    <motion.span className={className}>
+    <motion.span data-testid="score-counter-animation" className={className}>
       {display}
     </motion.span>
   )
