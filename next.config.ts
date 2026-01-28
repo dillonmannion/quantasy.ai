@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 import withPWAInit from '@ducanh2912/next-pwa'
 import { withSentryConfig } from '@sentry/nextjs'
+import withBundleAnalyzer from '@next/bundle-analyzer'
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -90,7 +91,11 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withSentryConfig(withPWA(nextConfig), {
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
+
+export default withSentryConfig(withAnalyzer(withPWA(nextConfig)), {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
