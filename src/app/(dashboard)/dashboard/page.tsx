@@ -171,7 +171,7 @@ export default async function DashboardPage() {
                       card-balatro p-6 h-full relative
                       ${
                         isLocked
-                          ? 'opacity-60 cursor-not-allowed'
+                          ? 'cursor-not-allowed'
                           : 'cursor-pointer hover:border-primary transition-colors'
                       }
                     `}
@@ -187,17 +187,17 @@ export default async function DashboardPage() {
                           <Icon className={`w-6 h-6 ${tool.color}`} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-bold mb-1">{tool.title}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {tool.description}
-                          </p>
-                          {isLocked && (
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {!hasLeagues
-                                ? 'Connect a league first'
-                                : `Coming in Phase ${tool.phase}`}
-                            </p>
-                          )}
+                           <h3 className={`text-lg font-bold mb-1 ${isLocked ? 'text-foreground/80' : ''}`}>{tool.title}</h3>
+                           <p className={`text-sm ${isLocked ? 'text-foreground/70' : 'text-muted-foreground'}`}>
+                             {tool.description}
+                           </p>
+                           {isLocked && (
+                             <p className="text-xs text-foreground/70 mt-2">
+                               {!hasLeagues
+                                 ? 'Connect a league first'
+                                 : `Coming in Phase ${tool.phase}`}
+                             </p>
+                           )}
                         </div>
                       </div>
                     </Card>
