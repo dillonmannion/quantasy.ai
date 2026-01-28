@@ -55,3 +55,9 @@ export {
   getLeagueDrafts,
   getActiveDraft,
 } from './draft'
+
+export {
+  getDedupedPlayers,
+  getDedupedLeague,
+  getDedupedRosters,
+} from './dedup'
