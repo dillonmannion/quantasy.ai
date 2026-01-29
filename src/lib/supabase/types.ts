@@ -220,33 +220,57 @@ export type Database = {
       algorithm_outputs: {
         Row: {
           id: string
-          user_id: string
+          user_id: string | null
           league_id: string
           algorithm_type: string
+          cache_key: string | null
           input_params: Record<string, unknown>
           output_data: Record<string, unknown>
           explanation: Record<string, unknown>
+          expires_at: string | null
           created_at: string
         }
         Insert: {
           id?: string
-          user_id: string
+          user_id?: string | null
           league_id: string
           algorithm_type: string
+          cache_key?: string | null
           input_params: Record<string, unknown>
           output_data: Record<string, unknown>
           explanation: Record<string, unknown>
+          expires_at?: string | null
           created_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
+          user_id?: string | null
           league_id?: string
           algorithm_type?: string
+          cache_key?: string | null
           input_params?: Record<string, unknown>
           output_data?: Record<string, unknown>
           explanation?: Record<string, unknown>
+          expires_at?: string | null
           created_at?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          key: string
+          value: Record<string, unknown>
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          value: Record<string, unknown>
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          value?: Record<string, unknown>
+          updated_at?: string
         }
         Relationships: []
       }
