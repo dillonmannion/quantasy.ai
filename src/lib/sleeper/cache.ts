@@ -52,7 +52,7 @@ function rosterRowToSleeper(row: RosterRow): SleeperRoster {
   return {
     roster_id: row.roster_id,
     owner_id: row.owner_id,
-    league_id: row.league_id,
+    league_id: row.league_id ?? '',
     players: row.players,
     starters: row.starters,
     reserve: row.reserve,
@@ -112,9 +112,9 @@ export async function getCachedLeague(leagueId: string): Promise<SleeperLeague> 
      name: fresh.name,
      season: fresh.season,
      status: fresh.status,
-     settings: fresh.settings as Record<string, unknown>,
-     scoring_settings: fresh.scoring_settings,
-     roster_positions: fresh.roster_positions as unknown as Record<string, unknown>,
+     settings: fresh.settings as never,
+     scoring_settings: fresh.scoring_settings as never,
+     roster_positions: fresh.roster_positions as never,
      total_rosters: fresh.total_rosters,
      cached_at: new Date().toISOString(),
    }
@@ -173,7 +173,7 @@ export async function getCachedRosters(
        players: r.players,
        starters: r.starters,
        reserve: r.reserve,
-       settings: r.settings as Record<string, unknown>,
+       settings: r.settings as never,
        cached_at: new Date().toISOString(),
      }))
 
@@ -271,7 +271,7 @@ export async function syncAllPlayers(): Promise<number> {
      years_exp: p.years_exp,
      status: p.status,
      injury_status: p.injury_status,
-     sleeper_data: p as unknown as Record<string, unknown>,
+     sleeper_data: p as never,
      updated_at: new Date().toISOString(),
    }))
 

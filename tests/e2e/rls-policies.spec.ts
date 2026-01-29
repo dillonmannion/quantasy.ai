@@ -12,6 +12,8 @@ const RLS_TEST_IDS = [
   'rls-test-league',
   'rls-test-direct-auth',
   'rls-test-direct-service',
+  'rls-test-shared-cache-league',
+  'rls-test-non-member-league',
 ]
 
 async function cleanupRlsTestData() {
@@ -26,8 +28,9 @@ async function cleanupRlsTestData() {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
-  await serviceClient.from('user_leagues').delete().eq('league_id', 'rls-test-league')
-  await serviceClient.from('rosters').delete().eq('league_id', 'rls-test-league')
+  await serviceClient.from('algorithm_outputs').delete().in('league_id', RLS_TEST_IDS)
+  await serviceClient.from('user_leagues').delete().in('league_id', RLS_TEST_IDS)
+  await serviceClient.from('rosters').delete().in('league_id', RLS_TEST_IDS)
   await serviceClient.from('leagues').delete().in('id', RLS_TEST_IDS)
 }
 
@@ -129,5 +132,110 @@ test.describe('RLS Policy Verification', () => {
     expect(error).toBeNull()
 
     await serviceClient.from('leagues').delete().eq('id', 'rls-test-direct-service')
+  })
+
+  test('shared VBD cache is readable by league members', async () => {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      test.skip()
+      return
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const anonClient = createClient(supabaseUrl, anonKey)
+    const { data: authData } = await anonClient.auth.signInWithPassword({
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD,
+    })
+    expect(authData.session).not.toBeNull()
+    const userId = authData.session!.user.id
+
+    await serviceClient.from('leagues').insert({
+      id: 'rls-test-shared-cache-league',
+      name: 'RLS Test Shared Cache League',
+      season: '2025',
+    })
+
+    await serviceClient.from('user_leagues').insert({
+      user_id: userId,
+      league_id: 'rls-test-shared-cache-league',
+      roster_id: 1,
+      is_owner: false,
+    })
+
+    await serviceClient.from('algorithm_outputs').insert({
+      algorithm_type: 'vbd',
+      cache_key: 'vbd:rls-test-shared-cache-league:hash:hash:1',
+      league_id: 'rls-test-shared-cache-league',
+      user_id: null,
+      input_params: { leagueId: 'rls-test-shared-cache-league' },
+      output_data: { rankings: [], baselines: {} },
+      explanation: {},
+      expires_at: new Date(Date.now() + 3600000).toISOString(),
+    })
+
+    const { data: cacheRead, error: readError } = await anonClient
+      .from('algorithm_outputs')
+      .select('output_data')
+      .eq('cache_key', 'vbd:rls-test-shared-cache-league:hash:hash:1')
+      .single()
+
+    expect(readError).toBeNull()
+    expect(cacheRead).not.toBeNull()
+    expect(cacheRead?.output_data).toHaveProperty('rankings')
+  })
+
+  test('shared VBD cache is NOT readable for non-member leagues', async () => {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      test.skip()
+      return
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const anonClient = createClient(supabaseUrl, anonKey)
+    const { data: authData } = await anonClient.auth.signInWithPassword({
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD,
+    })
+    expect(authData.session).not.toBeNull()
+
+    await serviceClient.from('leagues').insert({
+      id: 'rls-test-non-member-league',
+      name: 'RLS Test Non-Member League',
+      season: '2025',
+    })
+
+    await serviceClient.from('algorithm_outputs').insert({
+      algorithm_type: 'vbd',
+      cache_key: 'vbd:rls-test-non-member-league:hash:hash:1',
+      league_id: 'rls-test-non-member-league',
+      user_id: null,
+      input_params: { leagueId: 'rls-test-non-member-league' },
+      output_data: { rankings: [], baselines: {} },
+      explanation: {},
+      expires_at: new Date(Date.now() + 3600000).toISOString(),
+    })
+
+    const { data: cacheRead, error: readError } = await anonClient
+      .from('algorithm_outputs')
+      .select('output_data')
+      .eq('cache_key', 'vbd:rls-test-non-member-league:hash:hash:1')
+      .single()
+
+    expect(readError).not.toBeNull()
+    expect(cacheRead).toBeNull()
   })
 })

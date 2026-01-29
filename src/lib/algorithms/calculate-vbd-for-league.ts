@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCachedLeague } from '@/lib/sleeper/cache'
 import { getAllPlayers } from '@/lib/sleeper'
+import type { SleeperPlayer, SleeperLeague } from '@/lib/sleeper'
 import { calculateVBD } from './vbd'
 import { detectScoringFormat } from './scoring'
 import type { VBDInput, ScoringFormat, Position } from './types'
@@ -46,30 +47,47 @@ export interface VBDForLeagueOptions {
   limit?: number
   offset?: number
   positions?: string[]
+  /** Pre-fetched players to avoid duplicate getAllPlayers() call */
+  prefetchedPlayers?: Record<string, SleeperPlayer>
+  /** Pre-fetched league to avoid duplicate getCachedLeague() call */
+  prefetchedLeague?: SleeperLeague
+  /** Skip cache for live drafts (future: bypass algorithm output cache) */
+  skipCache?: boolean
 }
 
 export async function calculateVBDForLeague(
   options: VBDForLeagueOptions
 ): Promise<{ data: VBDForLeagueResult | null; error: string | null }> {
-  const { leagueId, limit = 300, offset = 0, positions } = options
+  const {
+    leagueId,
+    limit = 300,
+    offset = 0,
+    positions,
+    prefetchedPlayers,
+    prefetchedLeague,
+  } = options
   const validLimit = Math.min(Math.max(1, limit), 500)
   const validOffset = Math.max(0, offset)
 
   try {
     const supabase = await createClient()
 
-    let league
-    try {
-      league = await getCachedLeague(leagueId)
-    } catch {
-      return { data: null, error: 'League not found' }
+    let league: SleeperLeague
+    if (prefetchedLeague) {
+      league = prefetchedLeague
+    } else {
+      try {
+        league = await getCachedLeague(leagueId)
+      } catch {
+        return { data: null, error: 'League not found' }
+      }
+
+      if (!league) {
+        return { data: null, error: 'League not found' }
+      }
     }
 
-    if (!league) {
-      return { data: null, error: 'League not found' }
-    }
-
-    const allPlayersObj = await getAllPlayers()
+    const allPlayersObj = prefetchedPlayers ?? await getAllPlayers()
     const allPlayersArray = Object.values(allPlayersObj)
 
     const { data: dbPlayers, error: dbError } = await supabase

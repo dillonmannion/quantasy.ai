@@ -6,10 +6,8 @@ import { DraftRankings } from '@/components/draft/draft-rankings'
 import { MockDraftControls } from '@/components/draft/mock-draft-controls'
 import { MyTeamSidebar } from '@/components/draft/my-team-sidebar'
 import { KeeperSection } from '@/components/draft/keeper-section'
-import { AuctionBanner } from '@/components/draft/auction-banner'
-import { getCachedLeague } from '@/lib/sleeper/cache'
 import { getActiveDraft } from '@/lib/sleeper/draft'
-import { getLeagueRosters, getAllPlayers } from '@/lib/sleeper'
+import { getLeagueRosters, getDedupedPlayers, getDedupedLeague } from '@/lib/sleeper'
 import { calculateVBDForLeague } from '@/lib/algorithms'
 
 export default async function DraftPage() {
@@ -33,11 +31,18 @@ export default async function DraftPage() {
   }
   
   const leagueId = typedUserLeagues[0].league_id
-  const league = await getCachedLeague(leagueId)
-  const draft = await getActiveDraft(leagueId)
   
+  // Phase A: Parallel fetch league + draft + players
+  const [league, draft, allPlayers] = await Promise.all([
+    getDedupedLeague(leagueId),
+    getActiveDraft(leagueId),
+    getDedupedPlayers(),
+  ])
+  
+  // Phase B: Determine keeper status, conditionally fetch rosters
   const leagueType = (league.settings as { type?: number }).type ?? 0
   const isAuction = draft?.type === 'auction'
+  const isKeeperLeague = leagueType === 1 || leagueType === 2
   
   let keepers: string[] = []
   let keeperInfo: Array<{
@@ -49,9 +54,8 @@ export default async function DraftPage() {
     ownerName?: string
   }> = []
 
-  if (leagueType === 1 || leagueType === 2) {
+  if (isKeeperLeague) {
     const rosters = await getLeagueRosters(leagueId)
-    const allPlayers = await getAllPlayers()
     
     keepers = rosters.flatMap(roster => roster.keepers ?? [])
     
@@ -70,7 +74,14 @@ export default async function DraftPage() {
     )
   }
   
-  const { data: vbdData } = await calculateVBDForLeague({ leagueId, limit: 500 })
+  // Pass prefetched data to VBD to avoid N+1 fetches
+  const { data: vbdData } = await calculateVBDForLeague({
+    leagueId,
+    limit: 500,
+    prefetchedLeague: league,
+    prefetchedPlayers: allPlayers,
+    skipCache: draft?.status === 'drafting',
+  })
   const players = vbdData?.rankings || []
   
   return (

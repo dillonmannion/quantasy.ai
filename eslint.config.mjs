@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "public/sw.js",
     "public/workbox-*.js",
     "coverage/**",
+    // Orchestration scripts:
+    ".sisyphus/**",
   ]),
   // Relaxed rules for test files - allow `any` for mocking and edge case testing
   {
