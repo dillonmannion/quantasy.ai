@@ -31,3 +31,9 @@ export {
   calculate2ndQBPenalty,
   applyGuardrails,
 } from './guardrails'
+
+export { runSimulation, calculateSurvivalProbability } from './simulator'
+
+export { MonteCarloWorker } from './worker-client'
+export type { WorkerMessage, WorkerResponse } from './worker-client'
+
