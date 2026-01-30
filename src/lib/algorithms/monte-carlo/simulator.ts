@@ -39,21 +39,6 @@ function getRosterIdForPick(overallPick: number, teams: number, totalRounds: num
   return pickOrder[pickWithinRound - 1]
 }
 
-function findNextUserPick(
-  currentPick: number,
-  userRosterId: number,
-  teams: number,
-  totalRounds: number,
-  maxPicks: number
-): number | null {
-  for (let pick = currentPick; pick <= maxPicks; pick++) {
-    if (getRosterIdForPick(pick, teams, totalRounds) === userRosterId) {
-      return pick
-    }
-  }
-  return null
-}
-
 export function runSimulationDeterministic(
   input: MonteCarloInput,
   targetPlayerId: string,
@@ -63,16 +48,18 @@ export function runSimulationDeterministic(
   const totalRounds = 16
   const maxPicks = teams * totalRounds
 
-  const pickedPlayers: string[] = [...input.draftState.draftedPlayerIds]
+  const preDraftedPlayers = new Set(input.draftState.draftedPlayerIds)
+  const allPickedPlayers: string[] = [...preDraftedPlayers]
+  const newPickedPlayers: string[] = []
   const userPicks: string[] = []
   const finalRoster: Array<{ position: Position; playerId: string }> = []
 
-  if (pickedPlayers.includes(targetPlayerId)) {
+  if (preDraftedPlayers.has(targetPlayerId)) {
     return null
   }
 
   const availablePlayers = new Set(
-    input.players.map((p) => p.playerId).filter((id) => !pickedPlayers.includes(id))
+    input.players.map((p) => p.playerId).filter((id) => !allPickedPlayers.includes(id))
   )
 
   let currentPick = input.draftState.currentPick
@@ -86,7 +73,8 @@ export function runSimulationDeterministic(
         if (!availablePlayers.has(targetPlayerId)) {
           return null
         }
-        pickedPlayers.push(targetPlayerId)
+        allPickedPlayers.push(targetPlayerId)
+        newPickedPlayers.push(targetPlayerId)
         userPicks.push(targetPlayerId)
         availablePlayers.delete(targetPlayerId)
 
@@ -109,7 +97,8 @@ export function runSimulationDeterministic(
           randomFn
         )
 
-        pickedPlayers.push(pickId)
+        allPickedPlayers.push(pickId)
+        newPickedPlayers.push(pickId)
         userPicks.push(pickId)
         availablePlayers.delete(pickId)
 
@@ -133,7 +122,8 @@ export function runSimulationDeterministic(
           randomFn
         )
 
-        pickedPlayers.push(pickedId)
+        allPickedPlayers.push(pickedId)
+        newPickedPlayers.push(pickedId)
         availablePlayers.delete(pickedId)
       }
     }
@@ -146,7 +136,7 @@ export function runSimulationDeterministic(
   }
 
   return {
-    pickedPlayers,
+    pickedPlayers: newPickedPlayers,
     userPicks,
     finalRoster,
   }

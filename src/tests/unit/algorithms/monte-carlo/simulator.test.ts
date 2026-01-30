@@ -260,15 +260,15 @@ describe('Monte Carlo Simulator', () => {
             currentPick: 1,
             draftedPlayers: [],
           }),
-          userRosterId: 6, // User is roster 6 (middle)
+          userRosterId: 6,
         })
 
         const lowNoiseConfig: MarketConfig = { noiseStdDev: 0.01, adpWeight: 0.8, tiebreaker: 0.001 }
         const inputWithConfig = { ...midPickInput, marketConfig: lowNoiseConfig }
         const rng = new SeededRandom(42)
 
-        // Target a lower ADP player that should still be available
-        const result = runSimulationDeterministic(inputWithConfig, '4039', () => rng.next())
+        // Target CMC (ADP 11) - should be available at pick 6 since only 5 QBs have lower ADP
+        const result = runSimulationDeterministic(inputWithConfig, '6803', () => rng.next())
 
         expect(result).not.toBeNull()
       })
@@ -550,7 +550,7 @@ describe('Monte Carlo Simulator', () => {
     })
 
     describe('Edge cases', () => {
-      it('should handle empty candidate list', () => {
+      it('should handle empty candidate list with deterministic function', () => {
         const rng = new SeededRandom(42)
 
         const result = calculateSurvivalProbabilityDeterministic(
@@ -561,6 +561,14 @@ describe('Monte Carlo Simulator', () => {
         )
 
         expect(Object.keys(result)).toHaveLength(0)
+      })
+
+      it('should handle empty candidate list with production function', () => {
+        const result = calculateSurvivalProbability(input, [])
+
+        expect(Object.keys(result.survivalRates)).toHaveLength(0)
+        expect(result.metadata.simulationCount).toBe(0)
+        expect(result.metadata.cancelled).toBe(false)
       })
 
       it('should handle candidate not in player list', () => {

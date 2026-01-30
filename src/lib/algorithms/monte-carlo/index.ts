@@ -22,3 +22,12 @@ export type {
 } from './utility'
 
 export { calculateUtility, generateRecommendation, classifyConfidence } from './utility'
+
+export type { GuardrailContext, StarterFillResult } from './guardrails'
+
+export {
+  calculateTEScarcityMultiplier,
+  calculateStarterFillGuardrail,
+  calculate2ndQBPenalty,
+  applyGuardrails,
+} from './guardrails'

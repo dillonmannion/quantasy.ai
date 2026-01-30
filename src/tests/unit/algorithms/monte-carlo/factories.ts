@@ -48,6 +48,18 @@ const REALISTIC_PLAYERS: Array<{
   { id: '5049', name: 'Mark Andrews', position: 'TE', team: 'BAL', projectedPoints: 180 },
   { id: '5050', name: 'Darren Waller', position: 'TE', team: 'NYG', projectedPoints: 170 },
   { id: '5051', name: 'George Kittle', position: 'TE', team: 'SF', projectedPoints: 165 },
+
+  // Additional players for 12-team, 2-round draft simulation (minimum 25 players needed)
+  { id: '6808', name: 'Nick Chubb', position: 'RB', team: 'CLE', projectedPoints: 215 },
+  { id: '6809', name: 'Tony Pollard', position: 'RB', team: 'TEN', projectedPoints: 210 },
+  { id: '6810', name: 'Rhamondre Stevenson', position: 'RB', team: 'NE', projectedPoints: 205 },
+  { id: '5025', name: 'Chris Olave', position: 'WR', team: 'NO', projectedPoints: 235 },
+  { id: '5026', name: 'Garrett Wilson', position: 'WR', team: 'NYJ', projectedPoints: 230 },
+  { id: '5027', name: 'Amon-Ra St. Brown', position: 'WR', team: 'DET', projectedPoints: 225 },
+  { id: '5028', name: 'DJ Moore', position: 'WR', team: 'CHI', projectedPoints: 220 },
+  { id: '5029', name: 'Jaylen Waddle', position: 'WR', team: 'MIA', projectedPoints: 215 },
+  { id: '5030', name: 'Keenan Allen', position: 'WR', team: 'LAC', projectedPoints: 210 },
+  { id: '5031', name: 'DK Metcalf', position: 'WR', team: 'SEA', projectedPoints: 205 },
 ]
 
 /**
@@ -123,7 +135,7 @@ export function createMockDraftBoard(overrides?: {
  * @returns Record mapping player ID to ADP number
  */
 export function createMockADPMap(players?: string[]): Record<string, number> {
-  const playerList = players ?? REALISTIC_PLAYERS.slice(0, 20).map((p) => p.id)
+  const playerList = players ?? REALISTIC_PLAYERS.slice(0, 30).map((p) => p.id)
 
   const adpMap: Record<string, number> = {}
 
@@ -212,8 +224,7 @@ export function createMockPreferences(
 export function createMockSimulationInput(
   overrides?: Partial<MonteCarloInput>
 ): MonteCarloInput {
-  // Default players: top 20 realistic players
-  const defaultPlayers = REALISTIC_PLAYERS.slice(0, 20).map((p, index) =>
+  const defaultPlayers = REALISTIC_PLAYERS.slice(0, 30).map((p, index) =>
     createMockPlayerRanking(p.id, p.name, p.position, p.team, p.projectedPoints, index + 1)
   )
 
