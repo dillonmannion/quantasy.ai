@@ -1,7 +1,7 @@
 # QUANTASY - PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-26
-**Commit:** bece717
+**Generated:** 2026-01-29
+**Commit:** 2e00535
 **Branch:** dev
 
 ## OVERVIEW
@@ -16,6 +16,7 @@ qai/
 │   ├── app/                    # Next.js 16 App Router
 │   │   ├── (auth)/             # Public routes (login, callback)
 │   │   ├── (dashboard)/        # Protected routes (dashboard, draft, roster, trade, waivers, connect)
+│   │   ├── (sandbox)/          # Public sandbox (draft-sandbox)
 │   │   └── api/                # API routes (algorithms, ai, players, projections, draft)
 │   ├── components/
 │   │   ├── animation/          # Balatro-inspired primitives (see ./animation/AGENTS.md)
@@ -25,13 +26,15 @@ qai/
 │   │   ├── players/            # Player cards/lists (has index.ts barrel)
 │   │   └── providers/          # AuthProvider context
 │   ├── lib/
-│   │   ├── algorithms/         # VBD + planned algorithms (see ./algorithms/AGENTS.md)
+│   │   ├── algorithms/         # VBD + algorithms (see ./algorithms/AGENTS.md)
+│   │   │   └── monte-carlo/    # Draft simulation (see ./monte-carlo/AGENTS.md)
 │   │   ├── sleeper/            # Sleeper API client (see ./sleeper/AGENTS.md)
-│   │   ├── supabase/           # Auth + DB (client.ts, server.ts, middleware.ts, types.ts)
+│   │   ├── supabase/           # Auth + DB (see ./supabase/AGENTS.md)
 │   │   ├── draft/              # Draft state (Context + reducer)
 │   │   ├── projections/        # Projection data layer (CSV upload)
-│   │   └── ai/                 # Groq AI integration (llama-3.3-70b-versatile)
-│   ├── hooks/                  # use-celebration, use-draft-sync, use-connection-status, use-reduced-motion
+│   │   ├── ai/                 # Groq AI (llama-3.3-70b-versatile, 30 req/min)
+│   │   └── adp/                # ADP from FantasyFootballCalculator
+│   ├── hooks/                  # Custom hooks (see ./hooks/AGENTS.md)
 │   └── tests/                  # Vitest setup + unit tests
 ├── tests/e2e/                  # Playwright E2E tests (see ./tests/e2e/AGENTS.md)
 ├── supabase/migrations/        # SQL migrations
@@ -49,6 +52,7 @@ qai/
 | DB query | `src/lib/supabase/server.ts` | Use `createClient()` in server |
 | Auth check | `src/app/(dashboard)/layout.tsx` | Layout redirects to /login |
 | VBD algorithm | `src/lib/algorithms/vbd.ts` | Pure function, see AGENTS.md |
+| Monte Carlo sim | `src/lib/algorithms/monte-carlo/` | See monte-carlo/AGENTS.md |
 | Draft state | `src/lib/draft/state.tsx` | React Context + reducer |
 | Add unit test | `src/tests/unit/*.test.tsx` | Vitest + Testing Library |
 | Add E2E test | `tests/e2e/*.spec.ts` | Playwright, see AGENTS.md |
@@ -61,11 +65,15 @@ qai/
 ```
 CLIENT → API ROUTES → [Sleeper API | Supabase | Groq AI]
 
-Caching:
-  Sleeper Players: 24h (in Supabase)
-  League: 1h | Rosters: 15m | Matchups: 5m
-  Draft Picks: No cache (real-time)
-  AI Explanations: Infinite (SHA256 key)
+Caching (3-tier):
+  Tier 1 - Supabase TTL:
+    Players: 24h | League: 1h | Rosters: 15m | Matchups: 5m | Draft: 0 (real-time)
+  Tier 2 - React cache():
+    Request deduplication for RSC (src/lib/sleeper/dedup.ts)
+  Tier 3 - Algorithm cache:
+    SHA256 key with projection version, 1h TTL
+    
+AI Explanations: Cached indefinitely (SHA256 of inputs)
 ```
 
 ## CONVENTIONS
@@ -74,6 +82,7 @@ Caching:
 - Strict mode enabled
 - Path aliases: `@/*` → `./src/*`
 - No `as any`, `@ts-ignore`, `@ts-expect-error` in production code
+- Types in `types.ts` files, never inline
 
 ### File Naming
 - kebab-case: `player-card.tsx`, `use-celebration.ts`
@@ -85,9 +94,10 @@ Caching:
 - `'use client'` only when needed (hooks, events, browser APIs)
 - shadcn/ui in `components/ui/` - do not modify directly
 - `motion/react` library (not framer-motion)
+- Named exports only (no default exports)
 
 ### App Router
-- Route groups: `(auth)` = public, `(dashboard)` = protected
+- Route groups: `(auth)` = public, `(dashboard)` = protected, `(sandbox)` = public demo
 - Server Actions in `actions.ts` files (`'use server'`)
 - API routes return `NextResponse.json()`
 - Dynamic route params: use `await params` (Next.js 15+ pattern)
@@ -102,6 +112,13 @@ Caching:
 - VBD algorithm: 100% coverage required (97% branches, 100% functions/lines/statements)
 - Mock factories: `createMock*()` functions for test data
 - MSW for E2E API mocking (via `ENABLE_MSW=true`)
+- E2E browsers: Chromium + Mobile Safari (iPhone 13)
+
+### State Management
+- Complex state: Context + useReducer (DraftStateProvider)
+- Simple state: Context + useState (AuthProvider)
+- Encapsulated logic: Custom hooks in `src/hooks/`
+- SSR safety: Check `typeof window !== 'undefined'`
 
 ## ANTI-PATTERNS
 
@@ -113,6 +130,9 @@ Caching:
 - **DO NOT** bypass rate limiter for Sleeper API (16 req/sec)
 - **DO NOT** fetch all players on every request - cache 24h minimum
 - **DO NOT** use `framer-motion` - use `motion/react`
+- **DO NOT** use deep imports (`@/lib/sleeper/client`) - use barrel (`@/lib/sleeper`)
+- **DO NOT** skip `await` on server client creation
+- **DO NOT** use default exports - use named exports only
 
 ## SECURITY
 
@@ -130,10 +150,6 @@ Caching:
 ### Environment Variables
 - Server-only secrets: No `NEXT_PUBLIC_` prefix (e.g., `GROQ_API_KEY`)
 - Client-safe values: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-### Dependency Updates
-- Security patches: Apply immediately via `pnpm audit fix`
-- Dependabot: weekly updates with production/dev grouping
 
 ## DATABASE
 
@@ -170,10 +186,9 @@ pnpm validate         # type-check + lint + test:run
 | Unit | Vitest + Testing Library | `src/tests/unit/` | `*.test.tsx` |
 | E2E | Playwright | `tests/e2e/` | `*.spec.ts` |
 
-- VBD algorithm: 100% coverage required (97% branches, 100% functions/lines/statements)
-- E2E browsers: Chromium + Mobile Safari (iPhone 13)
-- MSW for API mocking in E2E (handlers in `tests/mocks/`)
-- Global setup creates test user + seeds data
+- VBD algorithm: 100% coverage required
+- Mock factories: `createMock*()` pattern with partial overrides
+- E2E: MSW for Sleeper mocking, real local Supabase for RLS validation
 
 ## DEPLOYMENT
 
@@ -184,10 +199,27 @@ pnpm validate         # type-check + lint + test:run
 - **Region:** San Jose (sjc), shared-cpu-1x, 256MB
 - **PWA:** Enabled with Workbox runtime caching
 
+## ARCHITECTURE PATTERNS
+
+### Algorithm Layer
+- **Pure functions**: `vbd.ts`, `lineup.ts`, `trade.ts`, `waivers.ts` (no side effects)
+- **Orchestrators**: `calculate-*-for-league.ts` (fetch data → call pure fn → cache)
+- **Sub-modules**: `monte-carlo/` has own barrel + types
+
+### API Routes
+- Auth check first: `supabase.auth.getUser()` → 401 if unauthorized
+- Typed request body: `const body = (await request.json()) as RequestBody`
+- Console logging: `[RouteName]` prefix for filtering
+
+### Component Organization
+- Barrel exports: `index.ts` in animation, players, trade, roster, waiver
+- No barrel in: draft (page-specific), layout, providers, ui (shadcn)
+
 ## NOTES
 
 - React 19 + Next.js 16
-- pnpm required (v10.28.1)
+- pnpm required (v10.28.x)
+- Node 22+ required
 - Turbopack in dev
 - Player sync: 60s timeout
 - Sleeper: 16 req/sec rate limit

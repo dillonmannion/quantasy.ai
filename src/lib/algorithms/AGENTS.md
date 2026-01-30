@@ -65,14 +65,15 @@ const output: VBDOutput = calculateVBD({
 4. Create API route at `src/app/api/algorithms/[name]/route.ts`
 5. Wire up UI components
 
-## PLANNED
+## STATUS
 
-| Algorithm | Status | Purpose |
-|-----------|--------|---------|
-| VBD | Complete | Draft rankings |
-| Lineup Optimizer | Planned | Weekly lineup |
-| Trade Evaluator | Planned | Trade comparison |
-| Waiver Priority | Planned | Waiver recommendations |
+| Algorithm | Status | File | Purpose |
+|-----------|--------|------|---------|
+| VBD | Complete | `vbd.ts` | Draft rankings |
+| Lineup Optimizer | Complete | `lineup.ts` | Weekly lineup (backtracking, 500ms timeout) |
+| Trade Evaluator | Complete | `trade.ts` | Trade value comparison |
+| Waiver Priority | Complete | `waivers.ts` | Waiver recommendations + FAAB bids |
+| Monte Carlo | Complete | `monte-carlo/` | Draft survival simulation (see AGENTS.md) |
 
 ## CONVENTIONS
 

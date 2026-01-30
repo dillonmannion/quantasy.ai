@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
 import { getNFLState } from '@/lib/sleeper'
+import { calculateWaiversForLeague } from '@/lib/algorithms/calculate-waivers-for-league'
 import { WaiversClient } from './waivers-client'
 
 export default async function WaiversPage() {
@@ -27,12 +28,20 @@ export default async function WaiversPage() {
   const nflState = await getNFLState()
   const currentWeek = nflState.week || 1
   
+  // Pre-fetch waiver recommendations on server
+  const { data: initialRecommendations } = await calculateWaiversForLeague({
+    leagueId,
+    rosterId: rosterId || 0,
+    week: currentWeek,
+  })
+  
   return (
     <PageContainer>
       <WaiversClient 
         leagueId={leagueId}
         rosterId={rosterId || 0}
         defaultWeek={currentWeek}
+        initialRecommendations={initialRecommendations}
       />
     </PageContainer>
   )

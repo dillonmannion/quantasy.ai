@@ -59,4 +59,12 @@ src/lib/supabase/types.generated.ts
 # PWA generated files
 public/sw.js
 public/workbox-*.js
+public/*.map
 supabase/.temp/
+
+# Development artifacts
+data/
+scripts/
+*.heapsnapshot
+git-diagnostics-*.zip
+.serena/

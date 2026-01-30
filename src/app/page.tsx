@@ -39,6 +39,14 @@ const features = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen">
+      <div className="fixed top-4 right-4 z-50">
+        <Link href="/draft-sandbox">
+          <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm">
+            Sandbox
+          </Button>
+        </Link>
+      </div>
+
       <section className="container mx-auto px-4 py-20 text-center">
         <FadeIn>
           <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-pink-500 bg-clip-text text-transparent">

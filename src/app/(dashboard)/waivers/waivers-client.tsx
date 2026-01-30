@@ -14,6 +14,7 @@ interface Props {
   leagueId: string
   rosterId: number
   defaultWeek: number
+  initialRecommendations: WaiverOutput | null
 }
 
 interface WaiversState {
@@ -25,12 +26,12 @@ interface WaiversState {
   error: string | null
 }
 
-export function WaiversClient({ leagueId, rosterId, defaultWeek }: Props) {
+export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommendations }: Props) {
   const [state, setState] = useState<WaiversState>({
     week: defaultWeek,
     faabTotal: '100',
     faabRemaining: '100',
-    recommendations: null,
+    recommendations: initialRecommendations,
     loading: false,
     error: null
   })
@@ -85,13 +86,7 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek }: Props) {
     }
   }, [leagueId, rosterId, state.week, state.faabTotal, state.faabRemaining])
 
-  // Initial fetch
-  useEffect(() => {
-    // Only fetch if we haven't loaded data yet
-    if (!state.recommendations && !state.loading && !state.error) {
-      fetchRecommendations()
-    }
-  }, [fetchRecommendations, state.recommendations, state.loading, state.error])
+
 
   const handleWeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newWeek = parseInt(e.target.value)
