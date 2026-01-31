@@ -50,6 +50,8 @@ export { getFlexBaseline } from './flex'
 
 export { calculateVBD } from './vbd'
 
+export { calculatePickValue } from './pick-value'
+
 export type { DynastyVBDInput, DynastyVBDOutput } from './dynasty-vbd'
 export { calculateDynastyVBD } from './dynasty-vbd'
 

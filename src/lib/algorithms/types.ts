@@ -714,6 +714,12 @@ export interface PickValueInput {
   /** Pick number (1-based) */
   pickNumber: number
 
+  /** Bias factor applied to pick value (0-0.2 recommended) */
+  biasFactor?: number
+
+  /** Optional position bias indicator for explanations */
+  biasPosition?: Position | null
+
   /** Remaining players available in draft */
   remainingPlayers: SleeperPlayer[]
 
