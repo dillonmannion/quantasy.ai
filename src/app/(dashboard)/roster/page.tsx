@@ -1,12 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
-import { getCachedLeague, getCachedRosters, getNFLState } from '@/lib/sleeper'
-import { RosterOptimizerClient } from './roster-optimizer-client'
+import { getCachedLeague, getNFLState } from '@/lib/sleeper'
+import { Skeleton } from '@/components/ui/skeleton'
+import dynamic from 'next/dynamic'
+
+const RosterOptimizerClient = dynamic(
+  () => import('./roster-optimizer-client').then((mod) => mod.RosterOptimizerClient),
+  { loading: () => <Skeleton className="h-[600px] w-full" /> }
+)
 
 export default async function RosterPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  
+  const [userResult, nflState] = await Promise.all([
+    supabase.auth.getUser(),
+    getNFLState()
+  ])
+  
+  const user = userResult.data.user
   
   if (!user) {
     redirect('/login')
@@ -27,16 +39,10 @@ export default async function RosterPage() {
   const { league_id: leagueId, roster_id: rosterId } = typedUserLeagues[0]
   
   const league = await getCachedLeague(leagueId)
-  const rosters = await getCachedRosters(leagueId)
   
-  const nflState = await getNFLState()
   const currentWeek = nflState.week || 1
   
-  const userRoster = rosters.find(
-    (roster) => roster.roster_id === rosterId
-  )
-  
-  if (!userRoster) {
+  if (!rosterId) {
     return (
       <PageContainer>
         <div className="card-balatro p-8 text-center">
@@ -54,7 +60,7 @@ export default async function RosterPage() {
       <RosterOptimizerClient
         leagueId={leagueId}
         leagueName={league.name}
-        rosterId={userRoster.roster_id}
+        rosterId={rosterId}
         currentWeek={currentWeek}
       />
     </PageContainer>

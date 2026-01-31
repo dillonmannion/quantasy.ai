@@ -2,12 +2,23 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
 import { getNFLState } from '@/lib/sleeper'
-import { calculateWaiversForLeague } from '@/lib/algorithms/calculate-waivers-for-league'
-import { WaiversClient } from './waivers-client'
+import { Skeleton } from '@/components/ui/skeleton'
+import dynamic from 'next/dynamic'
+
+const WaiversClient = dynamic(
+  () => import('./waivers-client').then((mod) => mod.WaiversClient),
+  { loading: () => <Skeleton className="h-[600px] w-full" /> }
+)
 
 export default async function WaiversPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  
+  const [userResult, nflState] = await Promise.all([
+    supabase.auth.getUser(),
+    getNFLState()
+  ])
+  
+  const user = userResult.data.user
   
   if (!user) {
     redirect('/login')
@@ -25,15 +36,7 @@ export default async function WaiversPage() {
   
   const { league_id: leagueId, roster_id: rosterId } = userLeagues[0]
   
-  const nflState = await getNFLState()
   const currentWeek = nflState.week || 1
-  
-  // Pre-fetch waiver recommendations on server
-  const { data: initialRecommendations } = await calculateWaiversForLeague({
-    leagueId,
-    rosterId: rosterId || 0,
-    week: currentWeek,
-  })
   
   return (
     <PageContainer>
@@ -41,7 +44,7 @@ export default async function WaiversPage() {
         leagueId={leagueId}
         rosterId={rosterId || 0}
         defaultWeek={currentWeek}
-        initialRecommendations={initialRecommendations}
+        initialRecommendations={null}
       />
     </PageContainer>
   )
