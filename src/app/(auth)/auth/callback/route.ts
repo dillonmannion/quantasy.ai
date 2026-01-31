@@ -25,7 +25,7 @@ function isValidRedirect(path: string | null): string {
   }
 
   // Check if path is in allowlist
-  if (ALLOWED_REDIRECTS.includes(path as any)) {
+  if (ALLOWED_REDIRECTS.includes(path as typeof ALLOWED_REDIRECTS[number])) {
     return path
   }
 
