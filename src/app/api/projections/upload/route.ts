@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { saveProjections } from '@/lib/projections'
+import { incrementProjectionVersion } from '@/lib/algorithms/cache'
 import type { PlayerProjection } from '@/lib/projections/types'
 
 interface CSVRow {
@@ -225,7 +226,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
     // 6. Call saveProjections()
     const result = await saveProjections(validProjections)
 
-    // 7. Return success count + warnings
+    // 7. Increment projection version to invalidate algorithm caches
+    try {
+      await incrementProjectionVersion()
+    } catch (error) {
+      console.error('[Projections] Failed to increment projection version:', error)
+      // Don't fail the upload, projections are still valid
+    }
+
+    // 8. Return success count + warnings
     return NextResponse.json({
       success: true,
       count: result.success,

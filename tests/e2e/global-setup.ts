@@ -1,6 +1,7 @@
 import { chromium, type FullConfig } from '@playwright/test'
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
+import * as fs from 'fs'
 import * as path from 'path'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
@@ -80,6 +81,7 @@ export default async function globalSetup(config: FullConfig) {
     sameSite: 'Lax',
   }])
 
+  fs.mkdirSync('tests/e2e/.auth', { recursive: true })
   await context.storageState({ path: 'tests/e2e/.auth/user.json' })
   await browser.close()
 
