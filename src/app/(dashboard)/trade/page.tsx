@@ -3,14 +3,9 @@ import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
 import { getNFLState } from '@/lib/sleeper'
 import { TradeClient } from './trade-client'
+import type { Database } from '@/lib/supabase/types'
 
-interface RosterPlayer {
-  id: string
-  full_name: string | null
-  position: string | null
-  team: string | null
-  projected_points: number | null
-}
+type PlayerRow = Database['public']['Tables']['players']['Row']
 
 export default async function TradePage() {
   const supabase = await createClient()
@@ -32,27 +27,14 @@ export default async function TradePage() {
   
   const { league_id: leagueId, roster_id: rosterId } = userLeagues[0]
   
-  const { data: rosters } = await supabase
-    .from('rosters')
-    .select('players')
-    .eq('league_id', leagueId)
-    .eq('roster_id', rosterId ?? 0)
-    .single()
-  
-  const rosterPlayerIds: string[] = (rosters?.players as string[]) || []
-  
-  let rosterPlayers: RosterPlayer[] = []
-  if (rosterPlayerIds.length > 0) {
-    const { data: players } = await supabase
-      .from('players')
-      .select('id, full_name, position, team, projected_points')
-      .in('id', rosterPlayerIds)
-    
-    rosterPlayers = (players || []) as RosterPlayer[]
-  }
-  
   const nflState = await getNFLState()
   const currentWeek = nflState.week || 1
+  
+  const { data: players } = await supabase
+    .from('players')
+    .select('*')
+    
+  const allPlayers = (players || []) as PlayerRow[]
   
   return (
     <PageContainer>
@@ -60,7 +42,7 @@ export default async function TradePage() {
         leagueId={leagueId}
         rosterId={rosterId || 0}
         defaultWeek={currentWeek}
-        initialRosterPlayers={rosterPlayers}
+        initialPlayers={allPlayers}
       />
     </PageContainer>
   )
