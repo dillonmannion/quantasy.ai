@@ -52,6 +52,7 @@ export function ApplyOptimizationButton({
         onClick={() => setIsOpen(true)}
         disabled={disabled || isLoading || !hasChanges}
         className={className}
+        aria-label="Apply optimized lineup"
       >
         <Zap className="h-4 w-4 mr-2" />
         {isLoading ? 'Optimizing...' : 'Apply Optimization'}

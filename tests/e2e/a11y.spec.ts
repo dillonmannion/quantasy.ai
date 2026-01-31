@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 
 test.describe('Accessibility', () => {
   // aXe automated audits for auth-protected pages
-  const pagesToAudit = ['/dashboard', '/draft', '/waivers']
+  const pagesToAudit = ['/dashboard', '/draft', '/waivers', '/trade', '/roster']
 
   for (const pagePath of pagesToAudit) {
     test(`aXe audit: ${pagePath} has no critical/serious violations`, async ({ page }) => {

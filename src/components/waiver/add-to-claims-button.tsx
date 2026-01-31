@@ -28,6 +28,7 @@ export function AddToClaimsButton({ playerId }: Props) {
       onClick={handleClick}
       className="bg-primary hover:bg-primary/90"
       size="sm"
+      aria-label="Add player to waiver claims"
     >
       Add to Claims
     </Button>

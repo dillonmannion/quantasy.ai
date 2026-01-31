@@ -76,8 +76,8 @@ export function PlayerPicker({
             <h2 className="text-lg font-bold">Add Player</h2>
             <button
               onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Close"
+              className="text-muted-foreground hover:text-foreground transition-colors rounded-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Close player picker"
             >
               <X className="w-5 h-5" />
             </button>
@@ -91,6 +91,7 @@ export function PlayerPicker({
                 type="text"
                 placeholder="Search players..."
                 value={searchQuery}
+                aria-label="Search players"
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
                 autoFocus
@@ -101,8 +102,9 @@ export function PlayerPicker({
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedPosition(null)}
+                aria-pressed={selectedPosition === null}
                 className={cn(
-                  'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                  'px-3 py-1 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary',
                   selectedPosition === null
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -114,8 +116,9 @@ export function PlayerPicker({
                 <button
                   key={pos}
                   onClick={() => setSelectedPosition(pos)}
+                  aria-pressed={selectedPosition === pos}
                   className={cn(
-                    'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                    'px-3 py-1 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary',
                     selectedPosition === pos
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -145,7 +148,8 @@ export function PlayerPicker({
                       onAdd(player)
                       setSearchQuery('')
                     }}
-                    className="w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left"
+                    aria-label={`Add ${player.full_name} to trade`}
+                    className="w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <div
                       className={cn(

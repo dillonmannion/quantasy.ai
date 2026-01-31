@@ -140,11 +140,12 @@ export function TradeBuilder({
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">You Give</h2>
               <button
+                aria-label="Add player to give"
                 onClick={() => {
                   setPickerMode('give')
                   setIsPickerOpen(true)
                 }}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               >
                 <Plus className="w-4 h-4" />
                 Add
@@ -153,10 +154,10 @@ export function TradeBuilder({
 
             <div className="card-balatro p-4 min-h-[200px] space-y-2">
               {youGive.length === 0 ? (
-                <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+                <div className="flex items-center justify-center h-[200px] text-foreground">
                   <div className="text-center">
-                    <p className="text-sm">No players selected</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-sm font-medium">No players selected</p>
+                    <p className="text-xs text-foreground/80 mt-1">
                       Tap or drag to add
                     </p>
                   </div>
@@ -190,11 +191,12 @@ export function TradeBuilder({
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">You Receive</h2>
               <button
+                aria-label="Add player to receive"
                 onClick={() => {
                   setPickerMode('receive')
                   setIsPickerOpen(true)
                 }}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               >
                 <Plus className="w-4 h-4" />
                 Add
@@ -203,10 +205,10 @@ export function TradeBuilder({
 
             <div className="card-balatro p-4 min-h-[200px] space-y-2">
               {youReceive.length === 0 ? (
-                <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+                <div className="flex items-center justify-center h-[200px] text-foreground">
                   <div className="text-center">
-                    <p className="text-sm">No players selected</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-sm font-medium">No players selected</p>
+                    <p className="text-xs text-foreground/80 mt-1">
                       Tap or drag to add
                     </p>
                   </div>
@@ -261,13 +263,14 @@ export function TradeBuilder({
         </motion.div>
       )}
 
-      {(youGive.length > 0 || youReceive.length > 0) && onTradeSubmit && (
+        {(youGive.length > 0 || youReceive.length > 0) && onTradeSubmit && (
         <motion.button
+          aria-label="Propose trade with selected players"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           onClick={() => onTradeSubmit(youGive, youReceive)}
-          className="w-full px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold"
+          className="w-full px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold focus:ring-2 focus:ring-primary focus:outline-none"
         >
           Propose Trade
         </motion.button>

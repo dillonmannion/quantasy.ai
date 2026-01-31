@@ -73,8 +73,11 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
     <>
       <div
         ref={parentRef}
-        className="h-[600px] overflow-auto border rounded-lg"
+        className="h-[600px] overflow-auto border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         data-testid="rankings-list"
+        tabIndex={0}
+        role="region"
+        aria-label="Player rankings list"
       >
         <div
           style={{
