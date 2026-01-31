@@ -1,16 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { isDevModeEnabled } from '@/lib/dev-mode'
 
 export async function updateSession(request: NextRequest) {
-  if (isDevModeEnabled()) {
-    return NextResponse.next({
-      request: {
-        headers: request.headers,
-      },
-    })
-  }
-
   let response = NextResponse.next({
     request: {
       headers: request.headers,

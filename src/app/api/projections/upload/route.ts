@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Papa from 'papaparse'
 import { createClient } from '@/lib/supabase/server'
 import { saveProjections } from '@/lib/projections'
 import { incrementProjectionVersion } from '@/lib/algorithms/cache'

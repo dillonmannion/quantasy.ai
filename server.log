@@ -1,0 +1,13 @@
+
+> qai@0.1.0 start /home/fourclovr/projects/qai
+> next start
+
+▲ Next.js 16.1.5
+- Local:         http://localhost:3002
+- Network:       http://10.255.255.254:3002
+
+✓ Starting...
+⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+✓ Ready in 2.5s
+Killed
+ ELIFECYCLE  Command failed with exit code 137.

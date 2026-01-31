@@ -8,8 +8,6 @@ import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { FadeIn } from '@/components/animation/fade-in'
 
-const DEV_TEST_EMAIL = 'admin.skip@qai.com'
-
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,22 +18,6 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setMessage(null)
-
-    if (process.env.NODE_ENV === 'development' && email === DEV_TEST_EMAIL) {
-      const res = await fetch('/api/auth/dev-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-      const data = await res.json()
-      setLoading(false)
-      if (data.redirectUrl) {
-        window.location.href = data.redirectUrl
-        return
-      }
-      setMessage({ type: 'error', text: data.error || 'Dev login failed' })
-      return
-    }
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
