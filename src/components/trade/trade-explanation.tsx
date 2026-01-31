@@ -39,7 +39,7 @@ export function TradeExplanation({
   const pointsDifference = totalPointsReceive - totalPointsGive
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-4', className)} data-testid="trade-explanation">
       <div className="grid grid-cols-2 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -134,10 +134,11 @@ export function TradeExplanation({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="card-balatro p-4 space-y-2"
+        data-testid="trade-net-value"
       >
         <h3 className="font-bold text-sm">Net Value</h3>
         <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Points Difference</span>
+          <span className="text-muted-foreground" data-testid="trade-points-label">Points Difference</span>
           <motion.span
             key={pointsDifference}
             initial={{ scale: 0.8 }}

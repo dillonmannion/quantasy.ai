@@ -1,13 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { TradeBuilder } from '@/components/trade'
-import { Kaching } from '@/components/animation'
+import dynamic from 'next/dynamic'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
 import type { Database } from '@/lib/supabase/types'
 import type { TradeOutput } from '@/lib/algorithms/types'
+
+const TradeBuilder = dynamic(
+  () => import('@/components/trade').then((mod) => mod.TradeBuilder),
+  { loading: () => <div className="space-y-4"><Skeleton className="h-[200px] w-full" /><Skeleton className="h-[200px] w-full" /></div> }
+)
+
+const Kaching = dynamic(
+  () => import('@/components/animation').then((mod) => mod.Kaching),
+  { ssr: false }
+)
 
 type PlayerRow = Database['public']['Tables']['players']['Row']
 

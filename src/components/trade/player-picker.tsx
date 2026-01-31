@@ -70,14 +70,16 @@ export function PlayerPicker({
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="bg-background w-full md:w-full md:max-w-2xl md:rounded-lg rounded-t-2xl max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
+          data-testid="player-picker-modal"
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-background/95 backdrop-blur">
-            <h2 className="text-lg font-bold">Add Player</h2>
+            <h2 className="text-lg font-bold" data-testid="player-picker-title">Add Player</h2>
             <button
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground transition-colors rounded-sm focus:outline-none focus:ring-2 focus:ring-primary"
               aria-label="Close player picker"
+              data-testid="player-picker-close"
             >
               <X className="w-5 h-5" />
             </button>
@@ -92,6 +94,7 @@ export function PlayerPicker({
                 placeholder="Search players..."
                 value={searchQuery}
                 aria-label="Search players"
+                data-testid="player-picker-search"
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
                 autoFocus
@@ -99,10 +102,11 @@ export function PlayerPicker({
             </div>
 
             {/* Position Filter */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" data-testid="player-picker-filters">
               <button
                 onClick={() => setSelectedPosition(null)}
                 aria-pressed={selectedPosition === null}
+                data-testid="filter-All"
                 className={cn(
                   'px-3 py-1 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary',
                   selectedPosition === null
@@ -117,6 +121,7 @@ export function PlayerPicker({
                   key={pos}
                   onClick={() => setSelectedPosition(pos)}
                   aria-pressed={selectedPosition === pos}
+                  data-testid={`filter-${pos}`}
                   className={cn(
                     'px-3 py-1 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary',
                     selectedPosition === pos
@@ -131,9 +136,9 @@ export function PlayerPicker({
           </div>
 
           {/* Player List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto" data-testid="player-picker-list">
             {filteredPlayers.length === 0 ? (
-              <div className="flex items-center justify-center h-32 text-muted-foreground">
+              <div className="flex items-center justify-center h-32 text-muted-foreground" data-testid="player-picker-empty">
                 No players found
               </div>
             ) : (
@@ -149,6 +154,7 @@ export function PlayerPicker({
                       setSearchQuery('')
                     }}
                     aria-label={`Add ${player.full_name} to trade`}
+                    data-testid="player-picker-item"
                     className="w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <div

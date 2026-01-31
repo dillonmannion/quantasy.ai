@@ -43,14 +43,15 @@ export function FairnessMeter({
   }
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn('space-y-3', className)} data-testid="fairness-meter">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-sm">{label}</h3>
+        <h3 className="font-semibold text-sm" data-testid="fairness-meter-label">{label}</h3>
         <motion.div
           key={clampedValue}
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className={cn('text-sm font-bold', verdictColor)}
+          data-testid="fairness-meter-verdict"
         >
           {verdict}
         </motion.div>
@@ -86,6 +87,7 @@ export function FairnessMeter({
         initial={{ opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center text-sm font-semibold"
+        data-testid="fairness-meter-value"
       >
         {clampedValue > 0 ? '+' : ''}
         {clampedValue}

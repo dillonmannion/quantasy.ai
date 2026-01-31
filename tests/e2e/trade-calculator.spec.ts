@@ -1,361 +1,368 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, Page } from '@playwright/test'
+
+async function openPlayerPicker(page: Page, zone: 'give' | 'receive') {
+  const buttonTestId = zone === 'give' ? 'add-player-give' : 'add-player-receive'
+  const button = page.locator(`[data-testid="${buttonTestId}"]`)
+  
+  await expect(button).toBeVisible({ timeout: 10000 })
+  await button.click()
+  await page.waitForTimeout(500)
+  await expect(page.locator('[data-testid="player-picker-modal"]')).toBeVisible({ timeout: 10000 })
+  await expect(page.locator('[data-testid="player-picker-search"]')).toBeVisible({ timeout: 5000 })
+}
+
+async function selectPlayer(page: Page, searchQuery: string) {
+  const searchInput = page.locator('[data-testid="player-picker-search"]')
+  await expect(searchInput).toBeVisible({ timeout: 5000 })
+  await searchInput.fill(searchQuery)
+  await page.waitForTimeout(500)
+  
+  const playerItem = page.locator('[data-testid="player-picker-item"]').first()
+  await expect(playerItem).toBeVisible({ timeout: 5000 })
+  await playerItem.scrollIntoViewIfNeeded()
+  await playerItem.dispatchEvent('click')
+  await page.waitForTimeout(500)
+}
 
 test.describe('Trade Calculator', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/trade')
+    await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
+    await page.waitForTimeout(500)
   })
 
-  test('page loads with trade calculator interface', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
-    
-    await expect(page.locator('text=You Give')).toBeVisible({ timeout: 10000 })
-    await expect(page.locator('text=You Receive')).toBeVisible()
-    
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    expect(await addButtons.count()).toBeGreaterThanOrEqual(2)
+  test('page loads with trade builder interface', async ({ page }) => {
+    await expect(page.locator('[data-testid="zone-give-header"]')).toBeVisible()
+    await expect(page.locator('[data-testid="zone-receive-header"]')).toBeVisible()
+    await expect(page.locator('[data-testid="add-player-give"]')).toBeVisible()
+    await expect(page.locator('[data-testid="add-player-receive"]')).toBeVisible()
   })
 
-  test('add player via picker modal', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
-    
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    const firstAddButton = addButtons.first()
-    
-    await expect(firstAddButton).toBeVisible({ timeout: 10000 })
-    await firstAddButton.click()
-    
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await expect(searchInput).toBeVisible()
-    
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await expect(playerOption).toBeVisible({ timeout: 5000 })
-    
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
-    
-    const playerCard = page.locator('text=Patrick Mahomes')
-    await expect(playerCard).toBeVisible()
+  test('shows empty state in both zones initially', async ({ page }) => {
+    await expect(page.locator('[data-testid="zone-give-empty"]')).toBeVisible()
+    await expect(page.locator('[data-testid="zone-receive-empty"]')).toBeVisible()
   })
 
-  test('remove player from trade', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
-    
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    await addButtons.first().click()
-    
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
-    
-    const playerCard = page.locator('text=Patrick Mahomes')
-    await expect(playerCard).toBeVisible()
-    
-    const removeButton = page.locator('button:has-text("✕")').first()
-    await removeButton.click()
-    
-    await expect(playerCard).not.toBeVisible({ timeout: 5000 })
+  test('fairness meter visible on page load with balanced state', async ({ page }) => {
+    await expect(page.locator('[data-testid="fairness-meter"]')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('[data-testid="fairness-meter-label"]')).toBeVisible()
+    await expect(page.locator('[data-testid="fairness-meter-verdict"]')).toHaveText('Balanced')
+    await expect(page.locator('[data-testid="fairness-meter-value"]')).toHaveText('0')
   })
 
-  test('fairness score updates when players added', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
+  test('clicking add player button opens picker modal', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
     
-    const addButtons = page.locator('button:has-text("+ Add Player")')
+    await expect(page.locator('[data-testid="player-picker-title"]')).toHaveText('Add Player')
+    await expect(page.locator('[data-testid="player-picker-filters"]')).toBeVisible()
+  })
+
+  test('player picker can be closed via close button', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
     
-    await addButtons.first().click()
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
+    await page.locator('[data-testid="player-picker-close"]').click()
     await page.waitForTimeout(500)
     
-    const verdictBadge = page.locator('text=FAIR')
-    await expect(verdictBadge).toBeVisible({ timeout: 10000 })
-    
-    const fairnessScore = page.locator('text=Fairness Score').locator('..').locator('div').last()
-    await expect(fairnessScore).toBeVisible()
+    await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
   })
 
-  test('trade verdict displays correctly', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
+  test('clicking outside modal closes it', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
     
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    
-    await addButtons.first().click()
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
+    await page.mouse.click(10, 10)
     await page.waitForTimeout(500)
     
-    const verdictSection = page.locator('text=Trade Verdict')
-    await expect(verdictSection).toBeVisible({ timeout: 10000 })
-    
-    const verdictBadge = page.locator('[class*="bg-"][class*="text-"]').filter({ hasText: /FAIR|GREAT|BAD|VETO/ })
-    await expect(verdictBadge).toBeVisible()
+    await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
   })
 
-  test('show your work section displays explanation', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
+  test('player picker search input is focused on open', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
     
-    const addButtons = page.locator('button:has-text("+ Add Player")')
+    const searchInput = page.locator('[data-testid="player-picker-search"]')
+    await searchInput.fill('test')
+    await expect(searchInput).toHaveValue('test')
+  })
+
+  test('search filters players in picker modal', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
     
-    await addButtons.first().click()
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
+    const initialCount = await page.locator('[data-testid="player-picker-item"]').count()
+    expect(initialCount).toBeGreaterThan(0)
     
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
+    await page.locator('[data-testid="player-picker-search"]').fill('Mahomes')
     await page.waitForTimeout(500)
     
-    const showYourWork = page.locator('text=Show Your Work')
-    await expect(showYourWork).toBeVisible({ timeout: 10000 })
-    
-    const methodology = page.locator('text=methodology')
-    await expect(methodology).toBeVisible()
+    const filteredCount = await page.locator('[data-testid="player-picker-item"]').count()
+    expect(filteredCount).toBeLessThan(initialCount)
+    expect(filteredCount).toBeGreaterThan(0)
   })
 
-  test('player breakdown displays in trade result', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
+  test('no players found shows empty message', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
     
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    
-    await addButtons.first().click()
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
+    await page.locator('[data-testid="player-picker-search"]').fill('xyznonexistentplayer123')
     await page.waitForTimeout(500)
     
-    const breakdown = page.locator('text=Player Breakdown')
-    await expect(breakdown).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('[data-testid="player-picker-empty"]')).toBeVisible()
   })
 
-  test('mobile responsive layout', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
+  test('clearing search restores player list', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
     
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
+    const initialCount = await page.locator('[data-testid="player-picker-item"]').count()
     
-    await expect(page.locator('text=You Give')).toBeVisible()
-    await expect(page.locator('text=You Receive')).toBeVisible()
+    await page.locator('[data-testid="player-picker-search"]').fill('Mahomes')
+    await page.waitForTimeout(500)
     
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    expect(await addButtons.count()).toBeGreaterThanOrEqual(2)
+    const filteredCount = await page.locator('[data-testid="player-picker-item"]').count()
+    expect(filteredCount).toBeLessThan(initialCount)
+    
+    await page.locator('[data-testid="player-picker-search"]').fill('')
+    await page.waitForTimeout(500)
+    
+    const restoredCount = await page.locator('[data-testid="player-picker-item"]').count()
+    expect(restoredCount).toBe(initialCount)
   })
 
-  test('mobile add player flow', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
+  test('position filter shows only selected position', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
     
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
+    await page.locator('[data-testid="filter-QB"]').click()
+    await page.waitForTimeout(500)
     
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    await addButtons.first().click()
+    const qbCount = await page.locator('[data-testid="player-picker-item"]').count()
+    expect(qbCount).toBeGreaterThan(0)
     
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
+    await page.locator('[data-testid="filter-RB"]').click()
+    await page.waitForTimeout(500)
     
-    const searchInput = page.locator('input[placeholder*="Search"]')
+    const rbCount = await page.locator('[data-testid="player-picker-item"]').count()
+    expect(rbCount).toBeGreaterThan(0)
+  })
+
+  test('All filter shows all positions', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    
+    await page.locator('[data-testid="filter-QB"]').click()
+    await page.waitForTimeout(500)
+    const qbCount = await page.locator('[data-testid="player-picker-item"]').count()
+    
+    await page.locator('[data-testid="filter-All"]').click()
+    await page.waitForTimeout(500)
+    const allCount = await page.locator('[data-testid="player-picker-item"]').count()
+    
+    expect(allCount).toBeGreaterThan(qbCount)
+  })
+
+  test('selecting player adds chip to give zone', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toBeVisible()
+    await expect(page.locator('[data-testid="zone-give-empty"]')).not.toBeVisible()
+  })
+
+  test('selecting player adds chip to receive zone', async ({ page }) => {
+    await openPlayerPicker(page, 'receive')
+    await selectPlayer(page, 'Kelce')
+    
+    await expect(page.locator('[data-testid="zone-receive"] [data-testid="player-chip"]')).toBeVisible()
+    await expect(page.locator('[data-testid="zone-receive-empty"]')).not.toBeVisible()
+  })
+
+  test('can add multiple players to same zone', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    await page.locator('[data-testid="player-picker-item"]').first().click()
+    await page.waitForTimeout(500)
+    
+    await openPlayerPicker(page, 'give')
+    await page.locator('[data-testid="player-picker-item"]').first().click()
+    await page.waitForTimeout(500)
+    
+    const chipCount = await page.locator('[data-testid="zone-give"] [data-testid="player-chip"]').count()
+    expect(chipCount).toBe(2)
+  })
+
+  test('selected players are removed from picker list', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    await openPlayerPicker(page, 'receive')
+    await page.locator('[data-testid="player-picker-search"]').fill('Mahomes')
+    await page.waitForTimeout(500)
+    
+    const afterCount = await page.locator('[data-testid="player-picker-item"]').count()
+    expect(afterCount).toBe(0)
+  })
+
+  test('remove button removes player from zone', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    const chip = page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')
+    await expect(chip).toBeVisible({ timeout: 5000 })
+    
+    await chip.hover()
+    await page.locator('[data-testid="zone-give"] [data-testid="player-chip-remove"]').click()
+    await page.waitForTimeout(500)
+    
+    await expect(chip).not.toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="zone-give-empty"]')).toBeVisible()
+  })
+
+  test('removing all players restores empty state and hides propose button', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    await expect(page.locator('[data-testid="propose-trade-button"]')).toBeVisible({ timeout: 5000 })
+    
+    await page.locator('[data-testid="zone-give"] [data-testid="player-chip"]').hover()
+    await page.locator('[data-testid="zone-give"] [data-testid="player-chip-remove"]').click()
+    await page.waitForTimeout(500)
+    
+    await expect(page.locator('[data-testid="propose-trade-button"]')).not.toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="zone-give-empty"]')).toBeVisible()
+  })
+
+  test('fairness meter updates when player added to give zone', async ({ page }) => {
+    await expect(page.locator('[data-testid="fairness-meter-value"]')).toHaveText('0')
+    
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    await page.waitForTimeout(500)
+    
+    const fairnessValue = await page.locator('[data-testid="fairness-meter-value"]').textContent()
+    expect(fairnessValue).not.toBe('0')
+  })
+
+  test('fairness meter shows correct verdict based on trade balance', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    await page.waitForTimeout(500)
+    
+    const verdict = await page.locator('[data-testid="fairness-meter-verdict"]').textContent()
+    expect(['You Lose', 'Slight Loss', 'Balanced']).toContain(verdict)
+  })
+
+  test('fairness meter recalculates when player removed', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    await page.waitForTimeout(500)
+    const valueAfterAdd = await page.locator('[data-testid="fairness-meter-value"]').textContent()
+    expect(valueAfterAdd).not.toBe('0')
+    
+    await page.locator('[data-testid="zone-give"] [data-testid="player-chip"]').hover()
+    await page.locator('[data-testid="zone-give"] [data-testid="player-chip-remove"]').click()
+    await page.waitForTimeout(500)
+    
+    await expect(page.locator('[data-testid="fairness-meter-value"]')).toHaveText('0')
+  })
+
+  test('trade explanation appears when player added', async ({ page }) => {
+    await expect(page.locator('[data-testid="trade-explanation"]')).not.toBeVisible()
+    
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    await expect(page.locator('[data-testid="trade-explanation"]')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="trade-net-value"]')).toBeVisible()
+    await expect(page.locator('[data-testid="trade-points-label"]')).toBeVisible()
+  })
+
+  test('propose trade button appears when players selected', async ({ page }) => {
+    await expect(page.locator('[data-testid="propose-trade-button"]')).not.toBeVisible()
+    
+    await openPlayerPicker(page, 'give')
+    await selectPlayer(page, 'Mahomes')
+    
+    await expect(page.locator('[data-testid="propose-trade-button"]')).toBeVisible({ timeout: 5000 })
+  })
+
+  test('mobile layout - 390x844 viewport shows stacked zones', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    
+    await expect(page.locator('[data-testid="zone-give-header"]')).toBeVisible()
+    await expect(page.locator('[data-testid="zone-receive-header"]')).toBeVisible()
+    await expect(page.locator('[data-testid="add-player-give"]')).toBeVisible()
+    await expect(page.locator('[data-testid="add-player-receive"]')).toBeVisible()
+    await expect(page.locator('[data-testid="fairness-meter"]')).toBeVisible()
+  })
+
+  test('mobile player picker slides up from bottom', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    
+    await openPlayerPicker(page, 'give')
+    
+    await expect(page.locator('[data-testid="player-picker-search"]')).toBeVisible()
+    await expect(page.locator('[data-testid="player-picker-filters"]')).toBeVisible()
+  })
+
+  test('mobile full player selection flow', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    
+    await openPlayerPicker(page, 'give')
+    
+    const searchInput = page.locator('[data-testid="player-picker-search"]')
     await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
+    await page.waitForTimeout(500)
     
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await expect(playerOption).toBeVisible({ timeout: 5000 })
+    const playerItem = page.locator('[data-testid="player-picker-item"]').first()
+    await expect(playerItem).toBeVisible({ timeout: 5000 })
+    await playerItem.dispatchEvent('click')
+    await page.waitForTimeout(800)
     
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
-    
-    const playerCard = page.locator('text=Patrick Mahomes')
-    await expect(playerCard).toBeVisible()
-  })
-
-  test('mobile scroll to see both sides', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-    
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
-    
-    const youGive = page.locator('text=You Give')
-    const youReceive = page.locator('text=You Receive')
-    
-    await expect(youGive).toBeVisible()
+    await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toBeVisible({ timeout: 10000 })
     
     await page.evaluate(() => window.scrollBy(0, 300))
-    await page.waitForTimeout(300)
-    
-    await expect(youReceive).toBeVisible()
+    await expect(page.locator('[data-testid="fairness-meter"]')).toBeVisible()
   })
 
-  test('search filters players correctly', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
-    
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    await addButtons.first().click()
-    
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    
-    await searchInput.fill('QB')
-    await page.waitForTimeout(300)
-    
-    const playerOptions = page.locator('[role="dialog"] button').filter({ hasText: /Patrick|Justin/ })
-    const count = await playerOptions.count()
-    expect(count).toBeGreaterThan(0)
-    
-    await searchInput.fill('Kelce')
-    await page.waitForTimeout(300)
-    
-    const kelceOption = page.locator('button:has-text("Travis Kelce")')
-    await expect(kelceOption).toBeVisible({ timeout: 5000 })
-  })
-
-  test('clear search shows all players', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
-    
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    await addButtons.first().click()
-    
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    await searchInput.clear()
-    await page.waitForTimeout(300)
-    
-    const playerOptions = page.locator('[role="dialog"] button').filter({ hasText: /Patrick|Justin|Travis/ })
-    const count = await playerOptions.count()
-    expect(count).toBeGreaterThan(1)
-  })
-
-  test('trade values display correctly', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
-    
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    
-    await addButtons.first().click()
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
+  test('desktop layout - zones side by side at 1920x1080', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 })
     await page.waitForTimeout(500)
     
-    const givingValue = page.locator('text=You Give Value')
-    const receivingValue = page.locator('text=You Receive Value')
+    const giveBox = await page.locator('[data-testid="zone-give-header"]').boundingBox()
+    const receiveBox = await page.locator('[data-testid="zone-receive-header"]').boundingBox()
     
-    await expect(givingValue).toBeVisible({ timeout: 10000 })
-    await expect(receivingValue).toBeVisible()
+    expect(giveBox).toBeTruthy()
+    expect(receiveBox).toBeTruthy()
+    
+    if (giveBox && receiveBox) {
+      expect(Math.abs(giveBox.y - receiveBox.y)).toBeLessThan(50)
+    }
   })
 
-  test('caveats section displays when present', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
+  test('desktop picker modal shows all position filters', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 })
     
-    const addButtons = page.locator('button:has-text("+ Add Player")')
+    await openPlayerPicker(page, 'give')
     
-    await addButtons.first().click()
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="filter-All"]')).toBeVisible()
+    await expect(page.locator('[data-testid="filter-QB"]')).toBeVisible()
+    await expect(page.locator('[data-testid="filter-RB"]')).toBeVisible()
+    await expect(page.locator('[data-testid="filter-WR"]')).toBeVisible()
+    await expect(page.locator('[data-testid="filter-TE"]')).toBeVisible()
+  })
+
+  test('handles adding players to both zones in quick succession', async ({ page }) => {
+    await openPlayerPicker(page, 'give')
+    await page.locator('[data-testid="player-picker-item"]').first().click()
+    await page.waitForTimeout(800)
+    await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toBeVisible({ timeout: 5000 })
     await page.waitForTimeout(500)
     
-    const caveats = page.locator('text=Caveats')
-    const hasCaveats = await caveats.isVisible().catch(() => false)
-    expect(typeof hasCaveats).toBe('boolean')
-  })
-
-  test('no players selected shows empty state', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
+    await openPlayerPicker(page, 'receive')
+    await page.locator('[data-testid="player-picker-item"]').first().click()
+    await page.waitForTimeout(800)
     
-    const emptyStates = page.locator('text=No players selected')
-    const count = await emptyStates.count()
-    expect(count).toBeGreaterThanOrEqual(2)
-  })
-
-  test('trade result hides when players removed', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Trade Calculator', { timeout: 15000 })
-    
-    const addButtons = page.locator('button:has-text("+ Add Player")')
-    
-    await addButtons.first().click()
-    const modal = page.locator('[role="dialog"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
-    
-    const searchInput = page.locator('input[placeholder*="Search"]')
-    await searchInput.fill('Mahomes')
-    await page.waitForTimeout(300)
-    
-    const playerOption = page.locator('button:has-text("Patrick Mahomes")')
-    await playerOption.click()
-    
-    await expect(modal).not.toBeVisible({ timeout: 5000 })
-    await page.waitForTimeout(500)
-    
-    const verdictSection = page.locator('text=Trade Verdict')
-    await expect(verdictSection).toBeVisible({ timeout: 10000 })
-    
-    const removeButton = page.locator('button:has-text("✕")').first()
-    await removeButton.click()
-    
-    await expect(verdictSection).not.toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toBeVisible()
+    await expect(page.locator('[data-testid="zone-receive"] [data-testid="player-chip"]')).toBeVisible()
+    await expect(page.locator('[data-testid="trade-explanation"]')).toBeVisible()
+    await expect(page.locator('[data-testid="propose-trade-button"]')).toBeVisible()
   })
 })

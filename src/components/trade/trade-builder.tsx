@@ -120,7 +120,7 @@ export function TradeBuilder({
   })()
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('space-y-6', className)} data-testid="trade-builder">
       <DndContext
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
@@ -138,8 +138,9 @@ export function TradeBuilder({
             className="space-y-3"
           >
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">You Give</h2>
+              <h2 className="text-lg font-bold" data-testid="zone-give-header">You Give</h2>
               <button
+                data-testid="add-player-give"
                 aria-label="Add player to give"
                 onClick={() => {
                   setPickerMode('give')
@@ -152,9 +153,9 @@ export function TradeBuilder({
               </button>
             </div>
 
-            <div className="card-balatro p-4 min-h-[200px] space-y-2">
+            <div className="card-balatro p-4 min-h-[200px] space-y-2" data-testid="zone-give">
               {youGive.length === 0 ? (
-                <div className="flex items-center justify-center h-[200px] text-foreground">
+                <div className="flex items-center justify-center h-[200px] text-foreground" data-testid="zone-give-empty">
                   <div className="text-center">
                     <p className="text-sm font-medium">No players selected</p>
                     <p className="text-xs text-foreground/80 mt-1">
@@ -189,8 +190,9 @@ export function TradeBuilder({
             className="space-y-3"
           >
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">You Receive</h2>
+              <h2 className="text-lg font-bold" data-testid="zone-receive-header">You Receive</h2>
               <button
+                data-testid="add-player-receive"
                 aria-label="Add player to receive"
                 onClick={() => {
                   setPickerMode('receive')
@@ -203,9 +205,9 @@ export function TradeBuilder({
               </button>
             </div>
 
-            <div className="card-balatro p-4 min-h-[200px] space-y-2">
+            <div className="card-balatro p-4 min-h-[200px] space-y-2" data-testid="zone-receive">
               {youReceive.length === 0 ? (
-                <div className="flex items-center justify-center h-[200px] text-foreground">
+                <div className="flex items-center justify-center h-[200px] text-foreground" data-testid="zone-receive-empty">
                   <div className="text-center">
                     <p className="text-sm font-medium">No players selected</p>
                     <p className="text-xs text-foreground/80 mt-1">
@@ -265,6 +267,7 @@ export function TradeBuilder({
 
         {(youGive.length > 0 || youReceive.length > 0) && onTradeSubmit && (
         <motion.button
+          data-testid="propose-trade-button"
           aria-label="Propose trade with selected players"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

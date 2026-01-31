@@ -59,6 +59,7 @@ export function PlayerChip({
       ref={setNodeRef}
       style={style}
       layout
+      data-testid="player-chip"
       className={cn(
         'card-balatro p-3 flex items-center gap-2 group',
         isDragging && 'shadow-lg ring-2 ring-primary',
@@ -114,6 +115,7 @@ export function PlayerChip({
         onClick={() => onRemove(player.id)}
         className="shrink-0 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
         aria-label={`Remove ${player.full_name}`}
+        data-testid="player-chip-remove"
       >
         <X className="w-4 h-4" />
       </button>

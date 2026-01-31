@@ -32,7 +32,7 @@ export default async function TradePage() {
   
   const { data: players } = await supabase
     .from('players')
-    .select('*')
+    .select('id, full_name, team, position, projected_points, injury_status')
     
   const allPlayers = (players || []) as PlayerRow[]
   
