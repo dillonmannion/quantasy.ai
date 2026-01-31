@@ -14,17 +14,17 @@ export default async function RosterPage() {
   
   const { data: userLeagues } = await supabase
     .from('user_leagues')
-    .select('league_id')
+    .select('league_id, roster_id')
     .eq('user_id', user.id)
     .limit(1)
   
-  const typedUserLeagues = userLeagues as { league_id: string }[] | null
+  const typedUserLeagues = userLeagues as { league_id: string; roster_id: number | null }[] | null
   
   if (!typedUserLeagues || typedUserLeagues.length === 0) {
     redirect('/connect')
   }
   
-  const leagueId = typedUserLeagues[0].league_id
+  const { league_id: leagueId, roster_id: rosterId } = typedUserLeagues[0]
   
   const league = await getCachedLeague(leagueId)
   const rosters = await getCachedRosters(leagueId)
@@ -33,7 +33,7 @@ export default async function RosterPage() {
   const currentWeek = nflState.week || 1
   
   const userRoster = rosters.find(
-    (roster) => roster.owner_id === user.id
+    (roster) => roster.roster_id === rosterId
   )
   
   if (!userRoster) {
