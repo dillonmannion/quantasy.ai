@@ -74,3 +74,12 @@ scripts/
 *.heapsnapshot
 git-diagnostics-*.zip
 .serena/
+
+# Browser/Lighthouse cache (from Playwright runs)
+**/lighthouse.*/
+**/AppData/
+undefined:*
+*wsl.localhost*
+
+# CLI config (user-specific)
+.qai.json
