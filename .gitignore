@@ -17,6 +17,9 @@
 /playwright-report/
 /tests/e2e/.auth/
 
+# Agent-browser verification artifacts
+/artifacts/
+
 # next.js
 /.next/
 /out/
@@ -46,7 +49,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-.opencode/
+# OpenCode (ignore all except skills)
+.opencode/*
+!.opencode/skills/
 # OpenCode/Sisyphus working files
 .sisyphus/
 
