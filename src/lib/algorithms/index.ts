@@ -18,6 +18,7 @@ export type {
   TradeLineupImpact,
   TradeExplanation,
   TradeInput,
+  DynastyTradeInput,
   TradeOutput,
   WaiverInput,
   WaiverOutput,

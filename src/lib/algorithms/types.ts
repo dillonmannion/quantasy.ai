@@ -1,4 +1,5 @@
 import type { SleeperPlayer } from '@/lib/sleeper/types'
+import type { DraftPick } from './draft-picks'
 
 /**
  * Scoring settings from Sleeper league configuration.
@@ -251,6 +252,9 @@ export interface AlgorithmPlayer {
 
   /** Bye week number if known */
   byeWeek?: number | null
+
+  /** Player age in years (for dynasty evaluations) */
+  age?: number
 }
 
 /**
@@ -386,6 +390,16 @@ export interface TradeInput {
   }
   currentRoster?: AlgorithmPlayer[]
   week?: number
+}
+
+/**
+ * Input parameters for dynasty trade evaluation.
+ */
+export interface DynastyTradeInput extends TradeInput {
+  givingDraftPicks?: DraftPick[]
+  receivingDraftPicks?: DraftPick[]
+  useDynastyValues?: boolean
+  currentYear?: number
 }
 
 /**

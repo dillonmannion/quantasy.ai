@@ -1,11 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { evaluateTrade } from '@/lib/algorithms/trade'
+import { calculateDynastyVBD } from '@/lib/algorithms/dynasty-vbd'
+import { getDraftPickValue } from '@/lib/algorithms/draft-picks'
+import type { DraftPick } from '@/lib/algorithms/draft-picks'
 import type {
   AlgorithmPlayer,
+  DynastyTradeInput,
+  PlayerRanking,
   Position,
   PositionBaseline,
   RosterSlot,
-  TradeInput,
 } from '@/lib/algorithms/types'
 
 function createMockAlgorithmPlayer(
@@ -13,7 +17,8 @@ function createMockAlgorithmPlayer(
   fullName: string,
   position: Position,
   projectedPoints: number,
-  eligiblePositions: Position[] = [position]
+  eligiblePositions: Position[] = [position],
+  age?: number
 ): AlgorithmPlayer {
   return {
     playerId,
@@ -25,6 +30,25 @@ function createMockAlgorithmPlayer(
     injuryStatus: null,
     status: 'Active',
     byeWeek: null,
+    age,
+  }
+}
+
+function createMockPlayerRanking(player: AlgorithmPlayer, vbdScore: number): PlayerRanking {
+  return {
+    playerId: player.playerId,
+    fullName: player.fullName,
+    firstName: null,
+    lastName: null,
+    team: player.team,
+    position: player.position,
+    eligiblePositions: player.eligiblePositions,
+    projectedPoints: player.projectedPoints,
+    vbdScore,
+    overallRank: 0,
+    positionRank: 0,
+    status: player.status,
+    injuryStatus: player.injuryStatus,
   }
 }
 
@@ -62,7 +86,7 @@ function createMockBaselines(overrides?: Partial<Record<Position, number>>): Rec
   return baselines
 }
 
-function createMockTradeInput(partial?: Partial<TradeInput>): TradeInput {
+function createMockTradeInput(partial?: Partial<DynastyTradeInput>): DynastyTradeInput {
   return {
     giving: [],
     receiving: [],
@@ -200,5 +224,67 @@ describe('evaluateTrade', () => {
 
     expect(result.explanation.lineupImpact).toBeNull()
     expect(result.explanation.caveats.length).toBeGreaterThan(0)
+  })
+
+  it('applies dynasty value adjustments when enabled', () => {
+    const baselines = createMockBaselines({ RB: 0 })
+    const giving = [createMockAlgorithmPlayer('rb-1', 'RB Young', 'RB', 100, ['RB'], 23)]
+    const receiving = [createMockAlgorithmPlayer('rb-2', 'RB Old', 'RB', 100, ['RB'], 32)]
+
+    const input = createMockTradeInput({
+      giving,
+      receiving,
+      leagueSettings: { baselines },
+      useDynastyValues: true,
+    })
+
+    const givingVbd = giving[0].projectedPoints - baselines.RB.projectedPoints
+    const receivingVbd = receiving[0].projectedPoints - baselines.RB.projectedPoints
+    const givingDynasty = calculateDynastyVBD({
+      player: createMockPlayerRanking(giving[0], givingVbd),
+      age: giving[0].age ?? 0,
+    }).dynastyVBD
+    const receivingDynasty = calculateDynastyVBD({
+      player: createMockPlayerRanking(receiving[0], receivingVbd),
+      age: receiving[0].age ?? 0,
+    }).dynastyVBD
+    const maxAbs = Math.max(Math.abs(givingDynasty), Math.abs(receivingDynasty))
+    const expectedFairness =
+      maxAbs === 0 ? 0 : ((receivingDynasty - givingDynasty) / maxAbs) * 100
+
+    const result = evaluateTrade(input)
+
+    expect(result.givingValue).toBe(givingDynasty)
+    expect(result.receivingValue).toBe(receivingDynasty)
+    expect(result.givingValue).toBeGreaterThan(result.receivingValue)
+    expect(result.fairnessScore).toBeCloseTo(expectedFairness, 2)
+  })
+
+  it('adds draft pick values to trade totals', () => {
+    const baselines = createMockBaselines({ RB: 0, WR: 0 })
+    const giving = [createMockAlgorithmPlayer('rb-1', 'RB One', 'RB', 100)]
+    const receiving = [createMockAlgorithmPlayer('wr-1', 'WR One', 'WR', 80)]
+    const givingDraftPicks: DraftPick[] = [{ year: 2026, round: 2, position: 'mid' }]
+    const receivingDraftPicks: DraftPick[] = [{ year: 2025, round: 1, position: 'early' }]
+
+    const input = createMockTradeInput({
+      giving,
+      receiving,
+      givingDraftPicks,
+      receivingDraftPicks,
+      currentYear: 2025,
+      leagueSettings: { baselines },
+    })
+
+    const givingValue = giving[0].projectedPoints - baselines.RB.projectedPoints
+    const receivingValue = receiving[0].projectedPoints - baselines.WR.projectedPoints
+    const expectedGiving = givingValue + getDraftPickValue(givingDraftPicks[0], 2025)
+    const expectedReceiving =
+      receivingValue + getDraftPickValue(receivingDraftPicks[0], 2025)
+
+    const result = evaluateTrade(input)
+
+    expect(result.givingValue).toBeCloseTo(expectedGiving, 5)
+    expect(result.receivingValue).toBeCloseTo(expectedReceiving, 5)
   })
 })

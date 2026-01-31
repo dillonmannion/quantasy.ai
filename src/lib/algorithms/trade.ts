@@ -1,5 +1,7 @@
 import type {
   AlgorithmPlayer,
+  DynastyTradeInput,
+  PlayerRanking,
   PositionBaseline,
   TradeInput,
   TradeLineupImpact,
@@ -7,6 +9,8 @@ import type {
   TradePlayerBreakdown,
   TradeVerdict,
 } from './types'
+import { calculateDynastyVBD } from './dynasty-vbd'
+import { getDraftPickValue } from './draft-picks'
 import { optimizeLineup } from './lineup'
 
 function calculatePlayerVBD(
@@ -20,6 +24,67 @@ function calculatePlayerVBD(
   }
   const baselinePoints = baseline?.projectedPoints ?? 0
   return player.projectedPoints - baselinePoints
+}
+
+function buildDynastyRanking(player: AlgorithmPlayer, vbdScore: number): PlayerRanking {
+  return {
+    playerId: player.playerId,
+    fullName: player.fullName,
+    firstName: null,
+    lastName: null,
+    team: player.team,
+    position: player.position,
+    eligiblePositions: player.eligiblePositions,
+    projectedPoints: player.projectedPoints,
+    vbdScore,
+    overallRank: 0,
+    positionRank: 0,
+    status: player.status,
+    injuryStatus: player.injuryStatus,
+  }
+}
+
+function calculatePlayerValue(
+  player: AlgorithmPlayer,
+  baselines: Record<string, PositionBaseline>,
+  caveats: string[],
+  useDynastyValues: boolean
+): number {
+  const baseValue = calculatePlayerVBD(player, baselines, caveats)
+
+  if (!useDynastyValues) return baseValue
+
+  if (player.age === undefined || Number.isNaN(player.age)) {
+    caveats.push(`Missing age for ${player.fullName}; dynasty adjustment skipped.`)
+    return baseValue
+  }
+
+  const dynastyValue = calculateDynastyVBD({
+    player: buildDynastyRanking(player, baseValue),
+    age: player.age,
+  })
+
+  return dynastyValue.dynastyVBD
+}
+
+function buildTradeMethodology(useDynastyValues: boolean, hasDraftPicks: boolean): string {
+  const lines = [
+    'Values are calculated using VBD (projected points minus positional baseline).',
+  ]
+
+  if (useDynastyValues) {
+    lines.push('Dynasty values adjust VBD using age curves and multi-year discounting.')
+  }
+
+  if (hasDraftPicks) {
+    lines.push('Draft pick values are added using a discounted pick chart.')
+  }
+
+  lines.push(
+    'Fairness is computed as ((receiving - giving) / max(abs(receiving), abs(giving))) * 100.'
+  )
+
+  return lines.join('\n')
 }
 
 function buildLineupImpact(input: TradeInput, caveats: string[]): TradeLineupImpact | null {
@@ -62,12 +127,19 @@ function getVerdict(score: number): TradeVerdict {
   return 'veto-worthy'
 }
 
-export function evaluateTrade(input: TradeInput): TradeOutput {
+export function evaluateTrade(input: DynastyTradeInput): TradeOutput {
   const caveats: string[] = []
   const playerBreakdown: TradePlayerBreakdown[] = []
 
-  const givingValue = input.giving.reduce((total, player) => {
-    const vbdValue = calculatePlayerVBD(player, input.leagueSettings.baselines, caveats)
+  const { useDynastyValues = false, currentYear = new Date().getFullYear() } = input
+
+  let givingValue = input.giving.reduce((total, player) => {
+    const vbdValue = calculatePlayerValue(
+      player,
+      input.leagueSettings.baselines,
+      caveats,
+      useDynastyValues
+    )
     playerBreakdown.push({
       playerId: player.playerId,
       name: player.fullName,
@@ -78,8 +150,13 @@ export function evaluateTrade(input: TradeInput): TradeOutput {
     return total + vbdValue
   }, 0)
 
-  const receivingValue = input.receiving.reduce((total, player) => {
-    const vbdValue = calculatePlayerVBD(player, input.leagueSettings.baselines, caveats)
+  let receivingValue = input.receiving.reduce((total, player) => {
+    const vbdValue = calculatePlayerValue(
+      player,
+      input.leagueSettings.baselines,
+      caveats,
+      useDynastyValues
+    )
     playerBreakdown.push({
       playerId: player.playerId,
       name: player.fullName,
@@ -90,10 +167,26 @@ export function evaluateTrade(input: TradeInput): TradeOutput {
     return total + vbdValue
   }, 0)
 
+  if (input.givingDraftPicks && input.givingDraftPicks.length > 0) {
+    givingValue += input.givingDraftPicks.reduce(
+      (total, pick) => total + getDraftPickValue(pick, currentYear),
+      0
+    )
+  }
+
+  if (input.receivingDraftPicks && input.receivingDraftPicks.length > 0) {
+    receivingValue += input.receivingDraftPicks.reduce(
+      (total, pick) => total + getDraftPickValue(pick, currentYear),
+      0
+    )
+  }
+
   const maxAbs = Math.max(Math.abs(givingValue), Math.abs(receivingValue))
   const fairnessScore = maxAbs === 0 ? 0 : ((receivingValue - givingValue) / maxAbs) * 100
 
   const lineupImpact = buildLineupImpact(input, caveats)
+  const hasDraftPicks =
+    (input.givingDraftPicks?.length ?? 0) > 0 || (input.receivingDraftPicks?.length ?? 0) > 0
 
   return {
     fairnessScore,
@@ -103,9 +196,7 @@ export function evaluateTrade(input: TradeInput): TradeOutput {
     explanation: {
       playerBreakdown,
       lineupImpact,
-      methodology:
-        'Values are calculated using VBD (projected points minus positional baseline).\n' +
-        'Fairness is computed as ((receiving - giving) / max(abs(receiving), abs(giving))) * 100.',
+      methodology: buildTradeMethodology(useDynastyValues, hasDraftPicks),
       caveats,
     },
   }
