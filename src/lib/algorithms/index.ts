@@ -54,3 +54,6 @@ export type { CalculateTradeForLeagueOptions } from './calculate-trade-for-leagu
 export { calculateTradeForLeague } from './calculate-trade-for-league'
 
 export { calculateWaiversForLeague } from './calculate-waivers-for-league'
+
+export type { AgeCurveConfig } from './age-curves'
+export { AGE_CURVES, getAgeFactor, getYearsToCliff } from './age-curves'
