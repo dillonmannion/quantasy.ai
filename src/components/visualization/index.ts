@@ -29,4 +29,6 @@ export type {
 // export { NetworkGraph } from './network-graph'
 export { FairnessBarSVG } from './fairness-bar-svg'
 export { Sparkline } from './sparkline'
+export { RadarLite } from './radar-lite'
+export type { RadarLiteProps, RadarLiteDataPoint } from './radar-lite'
 
