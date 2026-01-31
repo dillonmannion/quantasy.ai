@@ -166,6 +166,15 @@ export function optimizeLineup(input: LineupInput): LineupOutput {
     return a.slotId.localeCompare(b.slotId)
   })
 
+  const slotToPlayers = new Map<string, AlgorithmPlayer[]>()
+  for (const slot of slotsForSearch) {
+    const positions = slotPositions.get(slot.slotId) || []
+    const eligible = availablePlayers
+      .filter(player => isEligibleForSlot(player, positions))
+      .sort((a, b) => b.projectedPoints - a.projectedPoints)
+    slotToPlayers.set(slot.slotId, eligible)
+  }
+
   let bestAssignment = new Map(greedy.assignment)
   let bestScore = greedy.projectedPoints
   let timedOut = false
@@ -191,10 +200,8 @@ export function optimizeLineup(input: LineupInput): LineupOutput {
     }
 
     const slot = slotsForSearch[index]
-    const positions = slotPositions.get(slot.slotId) || []
-    const eligiblePlayers = availablePlayers
-      .filter(player => !used.has(player.playerId) && isEligibleForSlot(player, positions))
-      .sort((a, b) => b.projectedPoints - a.projectedPoints)
+    const allEligible = slotToPlayers.get(slot.slotId) || []
+    const eligiblePlayers = allEligible.filter(player => !used.has(player.playerId))
 
     if (eligiblePlayers.length === 0) {
       currentAssignment.set(slot.slotId, null)
