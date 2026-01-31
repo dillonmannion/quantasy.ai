@@ -497,12 +497,7 @@ test.describe('Draft Assistant', () => {
     // Navigate fresh without waiting for full load
     await page.goto('/draft', { waitUntil: 'domcontentloaded' })
     
-    // Check for either skeleton or loaded content
-    const hasContent = await page.locator('[data-testid="rankings-list"]').isVisible({ timeout: 100 }).catch(() => false)
-    const hasSkeleton = await page.locator('[data-skeleton]').isVisible({ timeout: 100 }).catch(() => false)
-    const hasLoadingText = await page.locator('text=Loading').isVisible({ timeout: 100 }).catch(() => false)
-    
-    // Either loading state or content should be present
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    // Check for either loading state or content
+    await expect(page.locator('[data-testid="rankings-list"], [data-skeleton], :text("Loading")')).toBeVisible({ timeout: 15000 })
   })
 })
