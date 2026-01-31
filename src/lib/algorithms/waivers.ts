@@ -184,26 +184,37 @@ export function recommendWaivers(input: WaiverInput): WaiverOutput {
     return true
   })
 
-  // Add caveat if candidates were excluded
-  if (candidatesWithBaselines.length < input.availablePlayers.length) {
-    caveats.push('Players at positions without baselines are excluded')
-  }
-
-  // Step 2: For each candidate, calculate VBD improvement and priority
-  for (const candidate of candidatesWithBaselines) {
-    const baseline = input.leagueSettings.baselines[candidate.position] as PositionBaseline
-
-    // VBD calculation
-    const candidateVBD = candidate.projectedPoints - baseline.projectedPoints
-
-    // Find worst starter at position for vbdImprovement calculation
-    const rosterAtPosition = input.currentRoster
-      .filter((p) => p.position === candidate.position)
-      .sort((a, b) => {
-        const pointsDiff = b.projectedPoints - a.projectedPoints
-        if (pointsDiff !== 0) return pointsDiff
-        return a.playerId.localeCompare(b.playerId)
-      })
+   // Add caveat if candidates were excluded
+   if (candidatesWithBaselines.length < input.availablePlayers.length) {
+     caveats.push('Players at positions without baselines are excluded')
+   }
+ 
+   // Step 2: Pre-compute roster position map (O(n) instead of O(n²))
+   // Group roster by position and sort each group once
+   const rosterByPosition = new Map<Position, AlgorithmPlayer[]>()
+   for (const player of input.currentRoster) {
+     const group = rosterByPosition.get(player.position) || []
+     group.push(player)
+     rosterByPosition.set(player.position, group)
+   }
+   // Sort each position group once
+   rosterByPosition.forEach((players) => {
+     players.sort((a, b) => {
+       const pointsDiff = b.projectedPoints - a.projectedPoints
+       if (pointsDiff !== 0) return pointsDiff
+       return a.playerId.localeCompare(b.playerId)
+     })
+   })
+ 
+   // Step 3: For each candidate, calculate VBD improvement and priority
+   for (const candidate of candidatesWithBaselines) {
+     const baseline = input.leagueSettings.baselines[candidate.position] as PositionBaseline
+ 
+     // VBD calculation
+     const candidateVBD = candidate.projectedPoints - baseline.projectedPoints
+ 
+     // Find worst starter at position for vbdImprovement calculation (use pre-computed map)
+     const rosterAtPosition = rosterByPosition.get(candidate.position) || []
 
     const startersNeeded = countStartersAtPosition(
       candidate.position,
