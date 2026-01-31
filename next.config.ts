@@ -39,18 +39,25 @@ const withPWA = withPWAInit({
 // Security headers for defense-in-depth
 const isDev = process.env.NODE_ENV === 'development'
 
-// In development, allow local Supabase; in production, only remote
 const connectSrc = isDev
   ? "connect-src 'self' http://localhost:54321 http://127.0.0.1:54321 https://*.supabase.co https://api.sleeper.app https://api.groq.com"
   : "connect-src 'self' https://*.supabase.co https://api.sleeper.app https://api.groq.com"
+
+const scriptSrc = isDev
+  ? "'self' 'unsafe-inline' 'unsafe-eval'"
+  : "'self' 'strict-dynamic'"
+
+const styleSrc = isDev
+  ? "'self' 'unsafe-inline'"
+  : "'self'"
 
 const securityHeaders = [
   {
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Required for Next.js
-      "style-src 'self' 'unsafe-inline'", // Required for Tailwind
+      `script-src ${scriptSrc}`,
+      `style-src ${styleSrc}`,
       "img-src 'self' data: blob: https:",
       "font-src 'self'",
       connectSrc,
