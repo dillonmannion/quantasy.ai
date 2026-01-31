@@ -49,7 +49,7 @@ export function runSimulationDeterministic(
   const maxPicks = teams * totalRounds
 
   const preDraftedPlayers = new Set(input.draftState.draftedPlayerIds)
-  const allPickedPlayers: string[] = [...preDraftedPlayers]
+  const allPickedPlayers = new Set<string>(preDraftedPlayers)
   const newPickedPlayers: string[] = []
   const userPicks: string[] = []
   const finalRoster: Array<{ position: Position; playerId: string }> = []
@@ -59,7 +59,7 @@ export function runSimulationDeterministic(
   }
 
   const availablePlayers = new Set(
-    input.players.map((p) => p.playerId).filter((id) => !allPickedPlayers.includes(id))
+    input.players.map((p) => p.playerId).filter((id) => !allPickedPlayers.has(id))
   )
 
   let currentPick = input.draftState.currentPick
@@ -73,7 +73,7 @@ export function runSimulationDeterministic(
         if (!availablePlayers.has(targetPlayerId)) {
           return null
         }
-        allPickedPlayers.push(targetPlayerId)
+        allPickedPlayers.add(targetPlayerId)
         newPickedPlayers.push(targetPlayerId)
         userPicks.push(targetPlayerId)
         availablePlayers.delete(targetPlayerId)
@@ -97,7 +97,7 @@ export function runSimulationDeterministic(
           randomFn
         )
 
-        allPickedPlayers.push(pickId)
+        allPickedPlayers.add(pickId)
         newPickedPlayers.push(pickId)
         userPicks.push(pickId)
         availablePlayers.delete(pickId)
@@ -121,8 +121,7 @@ export function runSimulationDeterministic(
           input.marketConfig,
           randomFn
         )
-
-        allPickedPlayers.push(pickedId)
+        allPickedPlayers.add(pickedId)
         newPickedPlayers.push(pickedId)
         availablePlayers.delete(pickedId)
       }
