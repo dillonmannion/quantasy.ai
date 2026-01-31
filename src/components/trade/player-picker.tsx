@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { motion, AnimatePresence } from 'motion/react'
 import { Search, X } from 'lucide-react'
 import type { Database } from '@/lib/supabase/types'
@@ -36,6 +37,7 @@ export function PlayerPicker({
 }: PlayerPickerProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null)
+  const parentRef = useRef<HTMLDivElement>(null)
 
   const filteredPlayers = useMemo(() => {
     return availablePlayers.filter((player) => {
@@ -51,6 +53,13 @@ export function PlayerPicker({
       return matchesSearch && matchesPosition && notSelected
     })
   }, [searchQuery, selectedPosition, availablePlayers, selectedPlayerIds])
+
+  const rowVirtualizer = useVirtualizer({
+    count: filteredPlayers.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 64,
+    overscan: 5,
+  })
 
   if (!isOpen) return null
 
@@ -135,65 +144,85 @@ export function PlayerPicker({
             </div>
           </div>
 
-          {/* Player List */}
-          <div className="flex-1 overflow-y-auto" data-testid="player-picker-list">
+          {/* Player List - Virtualized */}
+          <div
+            ref={parentRef}
+            className="flex-1 overflow-y-auto"
+            data-testid="player-picker-list"
+          >
             {filteredPlayers.length === 0 ? (
               <div className="flex items-center justify-center h-32 text-muted-foreground" data-testid="player-picker-empty">
                 No players found
               </div>
             ) : (
-              <div className="divide-y divide-border">
-                {filteredPlayers.map((player, index) => (
-                  <motion.button
-                    key={player.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.02 }}
-                    onClick={() => {
-                      onAdd(player)
-                      setSearchQuery('')
-                    }}
-                    aria-label={`Add ${player.full_name} to trade`}
-                    data-testid="player-picker-item"
-                    className="w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <div
-                      className={cn(
-                        'w-10 h-10 rounded flex items-center justify-center text-sm font-bold shrink-0',
-                        positionColors[player.position ?? ''] ??
-                          'text-gray-400 bg-gray-400/20'
-                      )}
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const player = filteredPlayers[virtualRow.index]
+                  return (
+                    <motion.button
+                      key={player.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${virtualRow.size}px`,
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                      onClick={() => {
+                        onAdd(player)
+                        setSearchQuery('')
+                      }}
+                      aria-label={`Add ${player.full_name} to trade`}
+                      data-testid="player-picker-item"
+                      className="p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-primary border-b border-border"
                     >
-                      {player.first_name?.[0]}
-                      {player.last_name?.[0]}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold">{player.full_name}</div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span
-                          className={cn(
-                            'px-2 py-0.5 rounded text-xs font-semibold',
-                            positionColors[player.position ?? ''] ??
-                              'text-gray-400 bg-gray-400/20'
-                          )}
-                        >
-                          {player.position}
-                        </span>
-                        {player.team && <span>{player.team}</span>}
+                      <div
+                        className={cn(
+                          'w-10 h-10 rounded flex items-center justify-center text-sm font-bold shrink-0',
+                          positionColors[player.position ?? ''] ??
+                            'text-gray-400 bg-gray-400/20'
+                        )}
+                      >
+                        {player.first_name?.[0]}
+                        {player.last_name?.[0]}
                       </div>
-                    </div>
 
-                    {player.projected_points !== null && (
-                      <div className="text-right shrink-0">
-                        <div className="font-bold text-accent">
-                          {player.projected_points.toFixed(1)}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold">{player.full_name}</div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span
+                            className={cn(
+                              'px-2 py-0.5 rounded text-xs font-semibold',
+                              positionColors[player.position ?? ''] ??
+                                'text-gray-400 bg-gray-400/20'
+                            )}
+                          >
+                            {player.position}
+                          </span>
+                          {player.team && <span>{player.team}</span>}
                         </div>
-                        <div className="text-xs text-muted-foreground">pts</div>
                       </div>
-                    )}
-                  </motion.button>
-                ))}
+
+                      {player.projected_points !== null && (
+                        <div className="text-right shrink-0">
+                          <div className="font-bold text-accent">
+                            {player.projected_points.toFixed(1)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">pts</div>
+                        </div>
+                      )}
+                    </motion.button>
+                  )
+                })}
               </div>
             )}
           </div>
