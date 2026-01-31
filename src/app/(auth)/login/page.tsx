@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
+import { ErrorAlert } from '@/components/ui/error-alert'
 import { FadeIn } from '@/components/animation/fade-in'
 
 export default function LoginPage() {
@@ -76,15 +77,13 @@ export default function LoginPage() {
             </form>
 
             {message && (
-              <div className={`
-                p-4 rounded-lg text-sm
-                ${message.type === 'success' 
-                  ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
-                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                }
-              `}>
-                {message.text}
-              </div>
+              message.type === 'error' ? (
+                <ErrorAlert message={message.text} />
+              ) : (
+                <div className="p-4 rounded-lg text-sm bg-green-500/10 text-green-400 border border-green-500/20">
+                  {message.text}
+                </div>
+              )
             )}
           </Card>
       </FadeIn>

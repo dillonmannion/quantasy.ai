@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import { refreshLeagueData } from './actions'
+import { showSuccess, showError } from '@/lib/toast'
 
 interface RefreshButtonProps {
   leagueId: string
@@ -19,13 +20,20 @@ export function RefreshButton({ leagueId }: RefreshButtonProps) {
     setIsRefreshing(true)
 
     try {
-      await refreshLeagueData(leagueId)
+      const result = await refreshLeagueData(leagueId)
+
+      if (result.success) {
+        showSuccess('League data refreshed', 'Your league data has been updated')
+      } else {
+        showError('Refresh failed', 'Could not refresh league data')
+      }
 
       startTransition(() => {
         router.refresh()
       })
     } catch (error) {
       console.error('Refresh error:', error)
+      showError('Refresh error', 'An unexpected error occurred')
     } finally {
       setIsRefreshing(false)
     }

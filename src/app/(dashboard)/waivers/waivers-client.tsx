@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorAlert } from '@/components/ui/error-alert'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { FadeIn } from '@/components/animation'
 import type { WaiverOutput } from '@/lib/algorithms/types'
@@ -169,10 +170,7 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommen
       </div>
 
       {state.error && (
-        <Card className="p-4 bg-destructive/10 border-destructive/20 text-destructive">
-          <p className="font-semibold">Error</p>
-          <p>{state.error}</p>
-        </Card>
+        <ErrorAlert message={state.error} />
       )}
 
       {state.recommendations && (
