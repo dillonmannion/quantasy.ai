@@ -115,7 +115,7 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
               }
             }
             
-            const rowContent = (
+              const rowContent = (
               <div
                 className={cn(
                   'relative flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-all duration-200',
@@ -187,28 +187,18 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
-                <motion.div
-                  initial={!prefersReducedMotion ? { opacity: 0, y: 10 } : false}
-                  animate={!prefersReducedMotion ? { opacity: 1, y: 0 } : false}
-                  transition={{ 
-                    delay: Math.min(visibleIndex * 0.05, 0.5),
-                    duration: 0.2 
-                  }}
-                  className="w-full h-full"
-                >
-                  {isMobile ? (
-                    <SwipeablePlayerRow
-                      playerId={player.playerId}
-                      onDraft={handleDraft}
-                      isDraftable={isDraftable}
-                      enableDrag={isMobile}
-                    >
-                      {rowContent}
-                    </SwipeablePlayerRow>
-                  ) : (
-                    rowContent
-                  )}
-                </motion.div>
+                {isMobile ? (
+                  <SwipeablePlayerRow
+                    playerId={player.playerId}
+                    onDraft={handleDraft}
+                    isDraftable={isDraftable}
+                    enableDrag={isMobile}
+                  >
+                    {rowContent}
+                  </SwipeablePlayerRow>
+                ) : (
+                  rowContent
+                )}
               </div>
             )
           })}

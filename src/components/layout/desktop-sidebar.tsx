@@ -7,10 +7,10 @@ import { motion } from 'motion/react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/dashboard/draft', label: 'Draft Assistant', icon: BarChart3 },
-  { href: '/dashboard/roster', label: 'Roster Optimizer', icon: Users },
-  { href: '/dashboard/trade', label: 'Trade Calculator', icon: ArrowLeftRight },
-  { href: '/dashboard/waivers', label: 'Waiver Wire', icon: TrendingUp },
+  { href: '/draft', label: 'Draft Assistant', icon: BarChart3 },
+  { href: '/roster', label: 'Roster Optimizer', icon: Users },
+  { href: '/trade', label: 'Trade Calculator', icon: ArrowLeftRight },
+  { href: '/waivers', label: 'Waiver Wire', icon: TrendingUp },
 ]
 
 export function DesktopSidebar() {

@@ -1,14 +1,28 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { FadeIn, Shimmer } from '@/components/animation'
-import { LineupComparison } from '@/components/roster/lineup-comparison'
-import { LineupExplanationPanel } from '@/components/roster/lineup-explanation'
-import { ApplyOptimizationButton } from '@/components/roster/apply-optimization-button'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { LineupOutput } from '@/lib/algorithms/types'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+
+const LineupComparison = dynamic(
+  () => import('@/components/roster/lineup-comparison').then((mod) => mod.LineupComparison),
+  { loading: () => <Skeleton className="h-96 w-full" /> }
+)
+
+const LineupExplanationPanel = dynamic(
+  () => import('@/components/roster/lineup-explanation').then((mod) => mod.LineupExplanationPanel),
+  { loading: () => <Skeleton className="h-32 w-full" /> }
+)
+
+const ApplyOptimizationButton = dynamic(
+  () => import('@/components/roster/apply-optimization-button').then((mod) => mod.ApplyOptimizationButton),
+  { ssr: false }
+)
 
 interface RosterOptimizerClientProps {
   leagueId: string
@@ -98,57 +112,53 @@ export function RosterOptimizerClient({
 
   return (
     <div className="space-y-6">
-      <FadeIn>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Roster Optimizer</h1>
+          <p className="text-muted-foreground">
+            {leagueName} - Week {selectedWeek}
+          </p>
+        </div>
+      </div>
+
+      <Card className="p-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Roster Optimizer</h1>
-            <p className="text-muted-foreground">
-              {leagueName} - Week {selectedWeek}
-            </p>
+          <h2 className="font-semibold">Select Week</h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleWeekChange(selectedWeek - 1)}
+              disabled={selectedWeek <= 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex gap-1">
+              {Array.from({ length: 18 }, (_, i) => i + 1).map((week) => (
+                <Button
+                  key={week}
+                  variant={selectedWeek === week ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleWeekChange(week)}
+                  className="w-10"
+                >
+                  {week}
+                </Button>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleWeekChange(selectedWeek + 1)}
+              disabled={selectedWeek >= 18}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-      </FadeIn>
-
-      <FadeIn delay={0.1}>
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Select Week</h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleWeekChange(selectedWeek - 1)}
-                disabled={selectedWeek <= 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              <div className="flex gap-1">
-                {Array.from({ length: 18 }, (_, i) => i + 1).map((week) => (
-                  <Button
-                    key={week}
-                    variant={selectedWeek === week ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleWeekChange(week)}
-                    className="w-10"
-                  >
-                    {week}
-                  </Button>
-                ))}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleWeekChange(selectedWeek + 1)}
-                disabled={selectedWeek >= 18}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </FadeIn>
+      </Card>
 
       {error && (
         <FadeIn delay={0.2}>

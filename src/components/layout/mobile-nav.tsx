@@ -7,9 +7,9 @@ import { motion } from 'motion/react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/dashboard/draft', label: 'Draft', icon: BarChart3 },
-  { href: '/dashboard/trade', label: 'Trade', icon: ArrowLeftRight },
-  { href: '/dashboard/waivers', label: 'Waivers', icon: TrendingUp },
+  { href: '/draft', label: 'Draft', icon: BarChart3 },
+  { href: '/trade', label: 'Trade', icon: ArrowLeftRight },
+  { href: '/waivers', label: 'Waivers', icon: TrendingUp },
 ]
 
 export function MobileNav() {

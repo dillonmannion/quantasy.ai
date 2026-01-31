@@ -1,14 +1,25 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { FadeIn } from '@/components/animation'
-import { RecommendationList, DroppablePlayerSelector } from '@/components/waiver'
 import type { WaiverOutput } from '@/lib/algorithms/types'
+
+const RecommendationList = dynamic(
+  () => import('@/components/waiver').then((mod) => mod.RecommendationList),
+  { loading: () => <div className="space-y-4">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full" />)}</div> }
+)
+
+const DroppablePlayerSelector = dynamic(
+  () => import('@/components/waiver').then((mod) => mod.DroppablePlayerSelector),
+  { loading: () => <Skeleton className="h-64 w-full" /> }
+)
 
 interface Props {
   leagueId: string
@@ -85,6 +96,12 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommen
       }))
     }
   }, [leagueId, rosterId, state.week, state.faabTotal, state.faabRemaining])
+
+  useEffect(() => {
+    if (!initialRecommendations) {
+      fetchRecommendations()
+    }
+  }, [initialRecommendations, fetchRecommendations])
 
 
 
