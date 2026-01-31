@@ -5,11 +5,16 @@ import { getDraftPickValue } from '@/lib/algorithms/draft-picks'
 import type { DraftPick } from '@/lib/algorithms/draft-picks'
 import type {
   AlgorithmPlayer,
+  DraftPickAsset,
   DynastyTradeInput,
+  FutureRookiePickAsset,
+  PlayerAsset,
   PlayerRanking,
   Position,
   PositionBaseline,
   RosterSlot,
+  TradeableAsset,
+  TradeInputV2,
 } from '@/lib/algorithms/types'
 
 function createMockAlgorithmPlayer(
@@ -87,6 +92,55 @@ function createMockBaselines(overrides?: Partial<Record<Position, number>>): Rec
 }
 
 function createMockTradeInput(partial?: Partial<DynastyTradeInput>): DynastyTradeInput {
+  return {
+    giving: [],
+    receiving: [],
+    leagueSettings: {
+      baselines: createMockBaselines(),
+    },
+    ...partial,
+  }
+}
+
+function createMockPlayerAsset(overrides?: Partial<PlayerAsset>): PlayerAsset {
+  return {
+    type: 'player',
+    playerId: 'player-1',
+    fullName: 'Test Player',
+    position: 'RB',
+    projectedPoints: 200,
+    ...overrides,
+  }
+}
+
+function createMockDraftPickAsset(overrides?: Partial<DraftPickAsset>): DraftPickAsset {
+  return {
+    type: 'draft_pick',
+    pickId: 'pick-2025-1-01',
+    pickNumber: 1,
+    round: 1,
+    rosterId: 1,
+    year: 2025,
+    isFutureRookie: false,
+    ...overrides,
+  }
+}
+
+function createMockFutureRookiePickAsset(
+  overrides?: Partial<FutureRookiePickAsset>
+): FutureRookiePickAsset {
+  return {
+    type: 'future_rookie_pick',
+    pickId: 'pick-2026-1-01',
+    pickNumber: 1,
+    round: 1,
+    rosterId: 1,
+    year: 2026,
+    ...overrides,
+  }
+}
+
+function createMockTradeInputV2(partial?: Partial<TradeInputV2>): TradeInputV2 {
   return {
     giving: [],
     receiving: [],
@@ -286,5 +340,152 @@ describe('evaluateTrade', () => {
 
     expect(result.givingValue).toBeCloseTo(expectedGiving, 5)
     expect(result.receivingValue).toBeCloseTo(expectedReceiving, 5)
+  })
+
+  describe('TradeInputV2 with TradeableAssets', () => {
+    const currentYear = new Date().getFullYear()
+
+    it('evaluates player-for-pick trade using TradeInputV2', () => {
+      const baselines = createMockBaselines({ RB: 0 })
+      const giving: TradeableAsset[] = [
+        createMockPlayerAsset({
+          playerId: 'rb-1',
+          fullName: 'RB One',
+          position: 'RB',
+          projectedPoints: 100,
+        }),
+      ]
+      const receiving: TradeableAsset[] = [
+        createMockDraftPickAsset({
+          pickId: `pick-${currentYear}-1-01`,
+          round: 1,
+          year: currentYear,
+        }),
+      ]
+
+      const input = createMockTradeInputV2({
+        giving,
+        receiving,
+        leagueSettings: { baselines },
+      })
+
+      const result = evaluateTrade(input)
+
+      expect(result.givingValue).toBe(100)
+      expect(result.receivingValue).toBe(getDraftPickValue({ year: currentYear, round: 1, position: 'unknown' }, currentYear))
+      expect(result.verdict).toBeDefined()
+      expect(result.explanation.playerBreakdown).toBeDefined()
+    })
+
+    it('evaluates pick-for-pick trade using TradeInputV2', () => {
+      const giving: TradeableAsset[] = [
+        createMockDraftPickAsset({
+          pickId: `pick-${currentYear}-2-01`,
+          round: 2,
+          year: currentYear,
+        }),
+      ]
+      const receiving: TradeableAsset[] = [
+        createMockDraftPickAsset({
+          pickId: `pick-${currentYear}-1-12`,
+          round: 1,
+          year: currentYear,
+        }),
+      ]
+
+      const input = createMockTradeInputV2({ giving, receiving })
+      const result = evaluateTrade(input)
+
+      const givingPickValue = getDraftPickValue({ year: currentYear, round: 2, position: 'unknown' }, currentYear)
+      const receivingPickValue = getDraftPickValue({ year: currentYear, round: 1, position: 'unknown' }, currentYear)
+
+      expect(result.givingValue).toBe(givingPickValue)
+      expect(result.receivingValue).toBe(receivingPickValue)
+      expect(result.receivingValue).toBeGreaterThan(result.givingValue)
+    })
+
+    it('evaluates multi-asset trade with players and picks', () => {
+      const baselines = createMockBaselines({ RB: 0, WR: 0 })
+      const giving: TradeableAsset[] = [
+        createMockPlayerAsset({
+          playerId: 'rb-1',
+          fullName: 'RB One',
+          position: 'RB',
+          projectedPoints: 150,
+        }),
+        createMockDraftPickAsset({
+          pickId: `pick-${currentYear}-2-01`,
+          round: 2,
+          year: currentYear,
+        }),
+      ]
+      const receiving: TradeableAsset[] = [
+        createMockPlayerAsset({
+          playerId: 'wr-1',
+          fullName: 'WR One',
+          position: 'WR',
+          projectedPoints: 200,
+        }),
+      ]
+
+      const input = createMockTradeInputV2({
+        giving,
+        receiving,
+        leagueSettings: { baselines },
+      })
+
+      const result = evaluateTrade(input)
+
+      const playerValue = 150
+      const pickValue = getDraftPickValue({ year: currentYear, round: 2, position: 'unknown' }, currentYear)
+      const expectedGiving = playerValue + pickValue
+
+      expect(result.givingValue).toBeCloseTo(expectedGiving, 5)
+      expect(result.receivingValue).toBe(200)
+    })
+
+    it('evaluates future rookie pick trade', () => {
+      const baselines = createMockBaselines({ RB: 0 })
+      const nextYear = currentYear + 1
+      const giving: TradeableAsset[] = [
+        createMockPlayerAsset({
+          playerId: 'rb-1',
+          fullName: 'RB One',
+          position: 'RB',
+          projectedPoints: 100,
+        }),
+      ]
+      const receiving: TradeableAsset[] = [
+        createMockFutureRookiePickAsset({
+          pickId: `pick-${nextYear}-1-01`,
+          round: 1,
+          year: nextYear,
+        }),
+      ]
+
+      const input = createMockTradeInputV2({
+        giving,
+        receiving,
+        leagueSettings: { baselines },
+      })
+
+      const result = evaluateTrade(input)
+
+      const futurePickValue = getDraftPickValue({ year: nextYear, round: 1, position: 'unknown' }, currentYear)
+
+      expect(result.givingValue).toBe(100)
+      expect(result.receivingValue).toBe(futurePickValue)
+      expect(result.receivingValue).toBeGreaterThan(result.givingValue)
+    })
+
+    it('handles empty TradeInputV2 with neutral output', () => {
+      const input = createMockTradeInputV2()
+      const result = evaluateTrade(input)
+
+      expect(result.givingValue).toBe(0)
+      expect(result.receivingValue).toBe(0)
+      expect(result.fairnessScore).toBe(0)
+      expect(result.verdict).toBe('fair')
+    })
   })
 })

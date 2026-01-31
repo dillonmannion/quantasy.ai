@@ -1,9 +1,14 @@
 import type {
   AlgorithmPlayer,
+  DraftPickAsset,
   DynastyTradeInput,
+  FutureRookiePickAsset,
+  PlayerAsset,
   PlayerRanking,
   PositionBaseline,
+  TradeableAsset,
   TradeInput,
+  TradeInputV2,
   TradeLineupImpact,
   TradeOutput,
   TradePlayerBreakdown,
@@ -11,7 +16,80 @@ import type {
 } from './types'
 import { calculateDynastyVBD } from './dynasty-vbd'
 import { getDraftPickValue } from './draft-picks'
+import type { DraftPick } from './draft-picks'
 import { optimizeLineup } from './lineup'
+
+function isTradeInputV2(input: DynastyTradeInput | TradeInputV2): input is TradeInputV2 {
+  const firstAsset = input.giving[0] ?? input.receiving[0]
+  return firstAsset !== undefined && 'type' in firstAsset
+}
+
+function pickAssetToDraftPick(asset: DraftPickAsset | FutureRookiePickAsset): DraftPick {
+  return {
+    year: asset.year,
+    round: asset.round,
+    position: 'unknown',
+  }
+}
+
+function calculateAssetValue(
+  asset: TradeableAsset,
+  baselines: Record<string, PositionBaseline>,
+  caveats: string[],
+  currentYear: number
+): { value: number; breakdown: TradePlayerBreakdown } {
+  switch (asset.type) {
+    case 'player': {
+      const baseline = baselines[asset.position]
+      if (!baseline) {
+        caveats.push(`Missing baseline for position ${asset.position}.`)
+      }
+      const baselinePoints = baseline?.projectedPoints ?? 0
+      const vbdValue = asset.projectedPoints - baselinePoints
+
+      return {
+        value: vbdValue,
+        breakdown: {
+          playerId: asset.playerId,
+          name: asset.fullName,
+          position: asset.position,
+          vbdValue,
+          isGiving: false,
+        },
+      }
+    }
+    case 'draft_pick': {
+      const pick = pickAssetToDraftPick(asset)
+      const value = getDraftPickValue(pick, currentYear)
+
+      return {
+        value,
+        breakdown: {
+          playerId: asset.pickId,
+          name: `${asset.year} Round ${asset.round} Pick`,
+          position: 'FLEX',
+          vbdValue: value,
+          isGiving: false,
+        },
+      }
+    }
+    case 'future_rookie_pick': {
+      const pick = pickAssetToDraftPick(asset)
+      const value = getDraftPickValue(pick, currentYear)
+
+      return {
+        value,
+        breakdown: {
+          playerId: asset.pickId,
+          name: `${asset.year} Round ${asset.round} Pick (Future)`,
+          position: 'FLEX',
+          vbdValue: value,
+          isGiving: false,
+        },
+      }
+    }
+  }
+}
 
 function calculatePlayerVBD(
   player: AlgorithmPlayer,
@@ -127,7 +205,17 @@ function getVerdict(score: number): TradeVerdict {
   return 'veto-worthy'
 }
 
-export function evaluateTrade(input: DynastyTradeInput): TradeOutput {
+export function evaluateTrade(input: DynastyTradeInput): TradeOutput
+export function evaluateTrade(input: TradeInputV2): TradeOutput
+export function evaluateTrade(input: DynastyTradeInput | TradeInputV2): TradeOutput {
+  if (isTradeInputV2(input)) {
+    return evaluateTradeV2(input)
+  }
+
+  return evaluateTradeLegacy(input)
+}
+
+function evaluateTradeLegacy(input: DynastyTradeInput): TradeOutput {
   const caveats: string[] = []
   const playerBreakdown: TradePlayerBreakdown[] = []
 
@@ -199,5 +287,111 @@ export function evaluateTrade(input: DynastyTradeInput): TradeOutput {
       methodology: buildTradeMethodology(useDynastyValues, hasDraftPicks),
       caveats,
     },
+  }
+}
+
+function evaluateTradeV2(input: TradeInputV2): TradeOutput {
+  const caveats: string[] = []
+  const playerBreakdown: TradePlayerBreakdown[] = []
+  const currentYear = new Date().getFullYear()
+
+  let givingValue = 0
+  let receivingValue = 0
+  let hasDraftPicks = false
+
+  for (const asset of input.giving) {
+    const result = calculateAssetValue(
+      asset,
+      input.leagueSettings.baselines,
+      caveats,
+      currentYear
+    )
+    givingValue += result.value
+    playerBreakdown.push({ ...result.breakdown, isGiving: true })
+
+    if (asset.type === 'draft_pick' || asset.type === 'future_rookie_pick') {
+      hasDraftPicks = true
+    }
+  }
+
+  for (const asset of input.receiving) {
+    const result = calculateAssetValue(
+      asset,
+      input.leagueSettings.baselines,
+      caveats,
+      currentYear
+    )
+    receivingValue += result.value
+    playerBreakdown.push({ ...result.breakdown, isGiving: false })
+
+    if (asset.type === 'draft_pick' || asset.type === 'future_rookie_pick') {
+      hasDraftPicks = true
+    }
+  }
+
+  const maxAbs = Math.max(Math.abs(givingValue), Math.abs(receivingValue))
+  const fairnessScore = maxAbs === 0 ? 0 : ((receivingValue - givingValue) / maxAbs) * 100
+
+  const lineupImpact = buildLineupImpactV2(input, caveats)
+
+  return {
+    fairnessScore,
+    givingValue,
+    receivingValue,
+    verdict: getVerdict(fairnessScore),
+    explanation: {
+      playerBreakdown,
+      lineupImpact,
+      methodology: buildTradeMethodology(false, hasDraftPicks),
+      caveats,
+    },
+  }
+}
+
+function buildLineupImpactV2(input: TradeInputV2, caveats: string[]): TradeLineupImpact | null {
+  const rosterSlots = input.leagueSettings.rosterSlots
+  if (!input.currentRoster || !rosterSlots || rosterSlots.length === 0 || input.week === undefined) {
+    caveats.push('Lineup impact not calculated due to missing roster, slots, or week.')
+    return null
+  }
+
+  const preTrade = optimizeLineup({
+    roster: input.currentRoster,
+    slots: rosterSlots,
+    week: input.week,
+  })
+
+  const givingPlayerIds = new Set(
+    input.giving.filter((a): a is PlayerAsset => a.type === 'player').map((p) => p.playerId)
+  )
+  const receivingPlayers = input.receiving.filter((a): a is PlayerAsset => a.type === 'player')
+
+  const postTradeRoster = input.currentRoster
+    .filter((player) => !givingPlayerIds.has(player.playerId))
+    .filter((player) => !receivingPlayers.some((incoming) => incoming.playerId === player.playerId))
+    .concat(
+      receivingPlayers.map((p) => ({
+        playerId: p.playerId,
+        fullName: p.fullName,
+        team: 'UNK',
+        position: p.position,
+        eligiblePositions: [p.position],
+        projectedPoints: p.projectedPoints,
+        injuryStatus: null,
+        status: 'Active' as const,
+        byeWeek: null,
+      }))
+    )
+
+  const postTrade = optimizeLineup({
+    roster: postTradeRoster,
+    slots: rosterSlots,
+    week: input.week,
+  })
+
+  return {
+    preTrade,
+    postTrade,
+    delta: postTrade.projectedPoints - preTrade.projectedPoints,
   }
 }
