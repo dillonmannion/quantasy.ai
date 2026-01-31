@@ -186,63 +186,103 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
       )
     }
 
-    // 4. Parse CSV (simple split, no library)
-    const content = await file.text()
-    const csvRows = parseCSV(content)
+     // 4. Validate file size (5MB max)
+     if (file.size > MAX_FILE_SIZE) {
+       return NextResponse.json(
+         {
+           success: false,
+           count: 0,
+           warnings: [],
+           error: `File size exceeds 5MB limit (${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+         },
+         { status: 400 }
+       )
+     }
 
-    if (csvRows.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          count: 0,
-          warnings: [],
-          error: 'CSV file is empty or invalid',
-        },
-        { status: 400 }
-      )
-    }
+     // 5. Parse CSV using Papa Parse
+     const content = await file.text()
+     const parseResult = parseCSV(content)
 
-    // 5. Validate rows (player_id, projected_points)
-    const warnings: ValidationWarning[] = []
-    const validProjections: PlayerProjection[] = []
+     if (parseResult.error) {
+       return NextResponse.json(
+         {
+           success: false,
+           count: 0,
+           warnings: [],
+           error: `CSV parsing failed: ${parseResult.error}`,
+         },
+         { status: 400 }
+       )
+     }
 
-    csvRows.forEach((row, index) => {
-      const rowNumber = index + 2 // +2 because row 1 is header, 0-indexed
-      const validation = validateRow(row, rowNumber)
+     const csvRows = parseResult.rows
 
-      if (!validation.valid && validation.warning) {
-        warnings.push(validation.warning)
-      } else if (validation.projection) {
-        validProjections.push(validation.projection)
-      }
-    })
+     if (csvRows.length === 0) {
+       return NextResponse.json(
+         {
+           success: false,
+           count: 0,
+           warnings: [],
+           error: 'CSV file is empty or invalid',
+         },
+         { status: 400 }
+       )
+     }
 
-    // If no valid projections, return early
-    if (validProjections.length === 0) {
-      return NextResponse.json({
-        success: true,
-        count: 0,
-        warnings,
-      })
-    }
+     // 6. Validate row count (2000 max)
+     if (csvRows.length > MAX_ROWS) {
+       return NextResponse.json(
+         {
+           success: false,
+           count: 0,
+           warnings: [],
+           error: `CSV contains ${csvRows.length} rows, exceeds 2000 row limit`,
+         },
+         { status: 400 }
+       )
+     }
 
-    // 6. Call saveProjections()
-    const result = await saveProjections(validProjections)
+     // 7. Validate rows (player_id, projected_points)
+     const warnings: ValidationWarning[] = []
+     const validProjections: PlayerProjection[] = []
 
-    // 7. Increment projection version to invalidate algorithm caches
-    try {
-      await incrementProjectionVersion()
-    } catch (error) {
-      console.error('[Projections] Failed to increment projection version:', error)
-      // Don't fail the upload, projections are still valid
-    }
+     csvRows.forEach((row, index) => {
+       const rowNumber = index + 2 // +2 because row 1 is header, 0-indexed
+       const validation = validateRow(row, rowNumber)
 
-    // 8. Return success count + warnings
-    return NextResponse.json({
-      success: true,
-      count: result.success,
-      warnings,
-    })
+       if (!validation.valid && validation.warning) {
+         warnings.push(validation.warning)
+       } else if (validation.projection) {
+         validProjections.push(validation.projection)
+       }
+     })
+
+     // If no valid projections, return early
+     if (validProjections.length === 0) {
+       return NextResponse.json({
+         success: true,
+         count: 0,
+         warnings,
+       })
+     }
+
+     // 8. Call saveProjections()
+     const result = await saveProjections(validProjections)
+
+     // 9. Increment projection version to invalidate algorithm caches
+     try {
+       await incrementProjectionVersion()
+     } catch (error) {
+       console.error('[Projections] Failed to increment projection version:', error)
+       // Don't fail the upload, projections are still valid
+     }
+
+     // 10. Return success count + warnings
+     return NextResponse.json({
+       success: true,
+       count: result.success,
+       warnings,
+     })
   } catch (error) {
     console.error('[API] Projection upload error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
