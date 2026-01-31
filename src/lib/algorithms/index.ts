@@ -57,3 +57,6 @@ export { calculateWaiversForLeague } from './calculate-waivers-for-league'
 
 export type { AgeCurveConfig } from './age-curves'
 export { AGE_CURVES, getAgeFactor, getYearsToCliff } from './age-curves'
+
+export type { DraftPick } from './draft-picks'
+export { getDraftPickValue, compareDraftPicks } from './draft-picks'
