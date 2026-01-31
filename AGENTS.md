@@ -95,6 +95,8 @@ AI Explanations: Cached indefinitely (SHA256 of inputs)
 - shadcn/ui in `components/ui/` - do not modify directly
 - `motion/react` library (not framer-motion)
 - Named exports only (no default exports)
+- **Performance**: Use `next/dynamic` for lazy loading heavy client components (Builder, Optimizer) with `Skeleton` fallbacks.
+- **Animations**: Avoid `motion.div` in virtualized lists or LCP elements.
 
 ### App Router
 - Route groups: `(auth)` = public, `(dashboard)` = protected, `(sandbox)` = public demo
@@ -113,6 +115,9 @@ AI Explanations: Cached indefinitely (SHA256 of inputs)
 - Mock factories: `createMock*()` functions for test data
 - MSW for E2E API mocking (via `ENABLE_MSW=true`)
 - E2E browsers: Chromium + Mobile Safari (iPhone 13)
+- **E2E Pattern**: Use `data-testid` for all interactive elements and lists.
+- **Mobile E2E**: Use `dispatchEvent('click')` instead of `click()` in tests to avoid interception by fixed navigation elements.
+- **Wait Strategies**: Use 300-500ms waits after interactions that trigger debounced state changes.
 
 ### State Management
 - Complex state: Context + useReducer (DraftStateProvider)

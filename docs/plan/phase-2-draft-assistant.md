@@ -111,6 +111,8 @@
 - [ ] "My Team" sidebar showing drafted players
 - [ ] Undo last pick functionality
 
+> **Note on Monte Carlo Simulation:** Advanced Monte Carlo simulations for draft projections have been deferred to v1.1. The current implementation uses static VBD rankings which are sufficient for alpha testing. This decision was made to avoid complexity-related blockers (agent freezes) and prioritize core stability for the alpha launch.
+
 ### Day 5: Animations & Polish
 
 - [ ] Player card hover effects
