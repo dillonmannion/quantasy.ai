@@ -38,6 +38,9 @@ export { getFlexBaseline } from './flex'
 
 export { calculateVBD } from './vbd'
 
+export type { DynastyVBDInput, DynastyVBDOutput } from './dynasty-vbd'
+export { calculateDynastyVBD } from './dynasty-vbd'
+
 export { optimizeLineup } from './lineup'
 
 export { evaluateTrade } from './trade'
