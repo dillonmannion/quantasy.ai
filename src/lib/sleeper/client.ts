@@ -5,8 +5,10 @@ import type {
   SleeperMatchup,
   SleeperPlayer,
   SleeperNFLState,
+  SleeperDraftPick,
   SleeperAPIError,
 } from './types'
+import { isSleeperAPIError } from './types'
 
 const BASE_URL = 'https://api.sleeper.app/v1'
 const DEBUG = process.env.NODE_ENV === 'development'
@@ -95,7 +97,7 @@ export async function sleeperFetch<T>(
 
     return data as T
   } catch (error) {
-    if ((error as SleeperAPIError).statusCode) {
+    if (isSleeperAPIError(error)) {
       throw error
     }
 
@@ -158,7 +160,7 @@ export async function sleeperFetchNoCache<T>(
 
     return data as T
   } catch (error) {
-    if ((error as SleeperAPIError).statusCode) {
+    if (isSleeperAPIError(error)) {
       throw error
     }
 
@@ -184,7 +186,7 @@ export async function getUserByUsername(
     )
     return user
   } catch (error) {
-    if ((error as SleeperAPIError).statusCode === 404) {
+    if (isSleeperAPIError(error) && error.statusCode === 404) {
       return null
     }
     throw error
@@ -195,7 +197,7 @@ export async function getUserById(userId: string): Promise<SleeperUser | null> {
   try {
     return await sleeperFetch<SleeperUser>(`/user/${userId}`)
   } catch (error) {
-    if ((error as SleeperAPIError).statusCode === 404) {
+    if (isSleeperAPIError(error) && error.statusCode === 404) {
       return null
     }
     throw error
