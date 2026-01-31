@@ -27,3 +27,5 @@ export type {
 // export { AreaChart } from './area-chart'
 // export { HeatmapChart } from './heatmap-chart'
 // export { NetworkGraph } from './network-graph'
+export { FairnessBarSVG } from './fairness-bar-svg'
+export { Sparkline } from './sparkline'
