@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, BarChart3, ArrowLeftRight, TrendingUp } from 'lucide-react'
+import { Home, BarChart3, ArrowLeftRight, TrendingUp, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/draft', label: 'Draft', icon: BarChart3 },
+  { href: '/roster', label: 'Roster', icon: Users },
   { href: '/trade', label: 'Trade', icon: ArrowLeftRight },
   { href: '/waivers', label: 'Waivers', icon: TrendingUp },
 ]
@@ -17,8 +18,8 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
-      <div className="bg-card border-t border-border backdrop-blur-lg">
-        <div className="flex items-center justify-around px-4 py-3">
+      <div className="bg-card/80 backdrop-blur-md border-t border-border">
+        <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
             const isActive = pathname === item.href
             const Icon = item.icon
@@ -27,12 +28,12 @@ export function MobileNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors"
+                className="relative flex flex-col items-center justify-center gap-1 h-full w-full transition-colors"
               >
                 {isActive && (
                   <motion.div
                     layoutId="mobile-nav-indicator"
-                    className="absolute inset-0 bg-accent/20 rounded-lg"
+                    className="absolute inset-1 bg-accent/20 rounded-lg"
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
@@ -42,7 +43,7 @@ export function MobileNav() {
                   }`}
                 />
                 <span
-                  className={`text-xs relative z-10 ${
+                  className={`text-[10px] relative z-10 ${
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
