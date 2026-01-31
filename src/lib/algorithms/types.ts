@@ -538,3 +538,217 @@ export interface CalculateWaiversForLeagueOptions {
     remaining: number
   }
 }
+
+/**
+ * A draft pick that can be traded.
+ * Includes current year picks and future rookie picks.
+ */
+export interface DraftPickAsset {
+  /** Discriminator for union type */
+  type: 'draft_pick'
+
+  /** Unique pick identifier */
+  pickId: string
+
+  /** Pick number in draft order (1-based) */
+  pickNumber: number
+
+  /** Round number (1-based) */
+  round: number
+
+  /** Roster ID of pick owner */
+  rosterId: number
+
+  /** Year of draft (e.g., 2025) */
+  year: number
+
+  /** Whether this is a future rookie pick */
+  isFutureRookie: boolean
+}
+
+/**
+ * A future rookie pick (next year's draft).
+ * Specialized asset for dynasty leagues.
+ */
+export interface FutureRookiePickAsset {
+  /** Discriminator for union type */
+  type: 'future_rookie_pick'
+
+  /** Unique pick identifier */
+  pickId: string
+
+  /** Pick number in draft order (1-based) */
+  pickNumber: number
+
+  /** Round number (1-based) */
+  round: number
+
+  /** Roster ID of pick owner */
+  rosterId: number
+
+  /** Year of draft (e.g., 2026) */
+  year: number
+}
+
+/**
+ * A player that can be traded.
+ */
+export interface PlayerAsset {
+  /** Discriminator for union type */
+  type: 'player'
+
+  /** Sleeper player ID */
+  playerId: string
+
+  /** Full name */
+  fullName: string
+
+  /** Position */
+  position: Position
+
+  /** Projected points */
+  projectedPoints: number
+}
+
+/**
+ * Union type for tradeable assets.
+ * Can be a player, draft pick, or future rookie pick.
+ */
+export type TradeableAsset = PlayerAsset | DraftPickAsset | FutureRookiePickAsset
+
+/**
+ * Expected player outcomes for a draft pick.
+ */
+export interface ExpectedPlayer {
+  /** Sleeper player ID */
+  playerId: string
+
+  /** Full name */
+  fullName: string
+
+  /** Position */
+  position: Position
+
+  /** Probability this player is available at this pick (0-1) */
+  probability: number
+
+  /** Projected points if drafted */
+  projectedPoints: number
+}
+
+/**
+ * Positional value breakdown for a pick.
+ */
+export interface PositionalValue {
+  /** Position (QB, RB, WR, TE, K, DEF, etc.) */
+  position: Position
+
+  /** Expected value for this position at this pick */
+  expectedValue: number
+
+  /** Scarcity multiplier for this position */
+  scarcityMultiplier: number
+}
+
+/**
+ * Detailed breakdown of pick valuation.
+ */
+export interface PickValueBreakdown {
+  /** Expected players available at this pick (top 5) */
+  expectedPlayers: ExpectedPlayer[]
+
+  /** Positional values at this pick */
+  positionalValues: PositionalValue[]
+
+  /** Bias adjustment for league tendencies (e.g., QB run, RB heavy) */
+  biasAdjustment: {
+    /** Position being over-drafted */
+    position: Position | null
+
+    /** Adjustment factor (>1 = over-drafted, <1 = under-drafted) */
+    factor: number
+  }
+}
+
+/**
+ * Explanation of pick valuation for "Show Your Work" transparency.
+ */
+export interface PickValueExplanation {
+  /** Algorithm version identifier */
+  algorithm: 'pick_value_v1'
+
+  /** ISO timestamp of calculation */
+  timestamp: string
+
+  /** Methodology description */
+  methodology: string
+
+  /** Known limitations and caveats */
+  caveats: string[]
+
+  /** Position run information (e.g., "QB run expected in round 3") */
+  positionRunInfo: string[]
+}
+
+/**
+ * Output of pick valuation calculation.
+ */
+export interface PickValueOutput {
+  /** Overall value score for this pick (0-100) */
+  value: number
+
+  /** Detailed breakdown of valuation */
+  breakdown: PickValueBreakdown
+
+  /** Explanation for transparency */
+  explanation: PickValueExplanation
+}
+
+/**
+ * Input parameters for pick valuation.
+ */
+export interface PickValueInput {
+  /** Draft ID */
+  draftId: string
+
+  /** Pick number (1-based) */
+  pickNumber: number
+
+  /** Remaining players available in draft */
+  remainingPlayers: SleeperPlayer[]
+
+  /** League configuration */
+  leagueSettings: {
+    /** Number of teams in the league */
+    teams: number
+
+    /** Roster positions in order */
+    rosterPositions: Position[]
+
+    /** Scoring settings from Sleeper */
+    scoringSettings: ScoringSettings
+  }
+
+  /** Detected scoring format */
+  scoringFormat: ScoringFormat
+
+  /** Projected points for each player */
+  projections: Record<string, number>
+
+  /** Already drafted player IDs */
+  draftedPlayerIds: Set<string>
+}
+
+/**
+ * Updated TradeInput to accept tradeable assets.
+ */
+export interface TradeInputV2 {
+  giving: TradeableAsset[]
+  receiving: TradeableAsset[]
+  leagueSettings: {
+    baselines: Record<Position, PositionBaseline>
+    rosterSlots?: RosterSlot[]
+  }
+  currentRoster?: AlgorithmPlayer[]
+  week?: number
+}

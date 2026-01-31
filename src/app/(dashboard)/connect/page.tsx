@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { ErrorAlert } from '@/components/ui/error-alert'
 import { Shimmer } from '@/components/animation/shimmer'
 import { Kaching } from '@/components/animation/kaching'
 import { StaggerList, StaggerItem } from '@/components/animation/stagger-list'
@@ -14,7 +15,7 @@ import { FadeIn } from '@/components/animation/fade-in'
 import { useCelebration } from '@/hooks/use-celebration'
 import { searchSleeperUser, connectLeague } from './actions'
 import type { SleeperLeague, SleeperUser } from '@/lib/sleeper/types'
-import { ArrowLeft, Users, Trophy, Check, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Users, Trophy, Check } from 'lucide-react'
 import Image from 'next/image'
 
 type Step = 'username' | 'select' | 'syncing' | 'complete'
@@ -135,13 +136,7 @@ export default function ConnectLeaguePage() {
 
         {error && (
           <FadeIn>
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-destructive">Error</p>
-                <p className="text-sm text-muted-foreground">{error}</p>
-              </div>
-            </div>
+            <ErrorAlert message={error} />
           </FadeIn>
         )}
 

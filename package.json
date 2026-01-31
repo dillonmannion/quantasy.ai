@@ -25,6 +25,7 @@
     "test:e2e:ui": "playwright test --ui",
     "validate": "pnpm type-check && pnpm lint && pnpm test:run",
     "clean": "rm -rf .next .turbo node_modules/.cache",
+    "cli": "tsx scripts/cli",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
@@ -57,10 +58,12 @@
     "lucide-react": "^0.563.0",
     "motion": "12.29.2",
     "next": "16.1.5",
+    "next-themes": "^0.4.6",
     "papaparse": "^5.5.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "server-only": "^0.0.1",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
@@ -86,6 +89,7 @@
     "msw": "^2.12.7",
     "supabase": "^2.72.9",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "4.0.18"
   },

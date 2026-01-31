@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { ErrorAlert } from '@/components/ui/error-alert'
 import { LeagueForm } from './league-form'
 import { SandboxDraftView } from './sandbox-draft-view'
 import type { SleeperLeague, SleeperPlayer } from '@/lib/sleeper/types'
@@ -53,9 +54,7 @@ export default function DraftSandboxPage() {
       <LeagueForm onLeagueLoaded={handleLeagueLoaded} onError={handleError} />
 
       {error && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
-          {error}
-        </div>
+        <ErrorAlert message={error} />
       )}
 
       <div className="rounded-lg border border-border/50 bg-card/50 p-6 text-sm text-muted-foreground">

@@ -26,6 +26,17 @@ export type {
   WaiverExplanation,
   FABBidRange,
   CalculateWaiversForLeagueOptions,
+  DraftPickAsset,
+  FutureRookiePickAsset,
+  PlayerAsset,
+  TradeableAsset,
+  ExpectedPlayer,
+  PositionalValue,
+  PickValueBreakdown,
+  PickValueExplanation,
+  PickValueOutput,
+  PickValueInput,
+  TradeInputV2,
 } from './types'
 
 export type { BaselineInput } from './baselines'

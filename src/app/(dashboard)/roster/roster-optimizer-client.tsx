@@ -6,6 +6,7 @@ import { FadeIn, Shimmer } from '@/components/animation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorAlert } from '@/components/ui/error-alert'
 import type { LineupOutput } from '@/lib/algorithms/types'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -162,9 +163,7 @@ export function RosterOptimizerClient({
 
       {error && (
         <FadeIn delay={0.2}>
-          <Card className="p-4 border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/20">
-            <p className="text-sm text-red-900 dark:text-red-200">{error}</p>
-          </Card>
+          <ErrorAlert message={error} />
         </FadeIn>
       )}
 
