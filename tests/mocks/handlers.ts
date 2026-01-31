@@ -41,31 +41,98 @@ export const vbdHandler = http.post('*/api/algorithms/vbd', () => {
 })
 
 export const lineupHandler = http.post('*/api/algorithms/lineup', () => {
+  // Return LineupOutput format matching the algorithm types
   return HttpResponse.json({
-    currentLineup: {
-      starters: [
-        { playerId: '4046', name: 'Patrick Mahomes', position: 'QB', projectedPoints: 25.5 },
-        { playerId: '6794', name: 'Justin Herbert', position: 'QB', projectedPoints: 22.3 },
-      ],
-      bench: [
-        { playerId: '4034', name: 'Travis Kelce', position: 'TE', projectedPoints: 18.2 },
-      ],
-      totalProjectedPoints: 66.0,
-    },
-    optimizedLineup: {
-      starters: [
-        { playerId: '4046', name: 'Patrick Mahomes', position: 'QB', projectedPoints: 25.5 },
-        { playerId: '4034', name: 'Travis Kelce', position: 'TE', projectedPoints: 18.2 },
-      ],
-      bench: [
-        { playerId: '6794', name: 'Justin Herbert', position: 'QB', projectedPoints: 22.3 },
-      ],
-      totalProjectedPoints: 66.0,
-    },
+    starters: [
+      {
+        playerId: '4046',
+        fullName: 'Patrick Mahomes',
+        team: 'KC',
+        position: 'QB',
+        eligiblePositions: ['QB', 'SUPERFLEX'],
+        projectedPoints: 25.5,
+        injuryStatus: null,
+        status: 'Active',
+      },
+      {
+        playerId: '6794',
+        fullName: 'Derrick Henry',
+        team: 'BAL',
+        position: 'RB',
+        eligiblePositions: ['RB', 'FLEX'],
+        projectedPoints: 18.3,
+        injuryStatus: null,
+        status: 'Active',
+      },
+      {
+        playerId: '4034',
+        fullName: 'Travis Kelce',
+        team: 'KC',
+        position: 'TE',
+        eligiblePositions: ['TE', 'FLEX'],
+        projectedPoints: 14.2,
+        injuryStatus: null,
+        status: 'Active',
+      },
+    ],
+    bench: [
+      {
+        playerId: '6801',
+        fullName: 'Justin Herbert',
+        team: 'LAC',
+        position: 'QB',
+        eligiblePositions: ['QB', 'SUPERFLEX'],
+        projectedPoints: 22.3,
+        injuryStatus: null,
+        status: 'Active',
+      },
+      {
+        playerId: '5001',
+        fullName: 'Bench RB',
+        team: 'SF',
+        position: 'RB',
+        eligiblePositions: ['RB', 'FLEX'],
+        projectedPoints: 8.5,
+        injuryStatus: 'Questionable',
+        status: 'Active',
+      },
+    ],
+    projectedPoints: 58.0,
     explanation: {
-      methodology: 'Optimized lineup based on projected points and position requirements.',
-      changes: ['Moved Travis Kelce to starters for better projection'],
-      caveats: ['Projections are estimates and may change'],
+      algorithm: 'lineup_optimizer_v1',
+      timestamp: new Date().toISOString(),
+      inputsSummary: {
+        rosterCount: 5,
+        slotCount: 5,
+        starterSlots: 3,
+        benchSlots: 2,
+        week: 1,
+      },
+      excludedPlayers: [],
+      decisions: [
+        {
+          slotId: 'slot-1',
+          slotType: 'starter',
+          allowedPositions: ['QB'],
+          playerId: '4046',
+          fullName: 'Patrick Mahomes',
+          projectedPoints: 25.5,
+          reason: 'Highest projected points at QB position',
+        },
+        {
+          slotId: 'slot-2',
+          slotType: 'starter',
+          allowedPositions: ['RB'],
+          playerId: '6794',
+          fullName: 'Derrick Henry',
+          projectedPoints: 18.3,
+          reason: 'Highest projected points at RB position',
+        },
+      ],
+      caveats: [
+        'Projections are estimates and may change before game time',
+        'Injury statuses should be verified before lineup lock',
+      ],
     },
   })
 })

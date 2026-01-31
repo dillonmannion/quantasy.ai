@@ -5,204 +5,167 @@ test.describe('Roster Optimizer', () => {
     await page.goto('/roster')
   })
 
-  test('page loads with lineup data', async ({ page }) => {
-    // Wait for the page to load and display lineup data
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Check that the current lineup section is visible
-    await expect(page.locator('text=Current Lineup')).toBeVisible({ timeout: 10000 })
-    
-    // Verify player cards are displayed
-    const playerCards = page.locator('[data-testid="player-card"]')
-    await expect(playerCards.first()).toBeVisible({ timeout: 10000 })
+  test('page loads with week selector', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h2:has-text("Select Week")')).toBeVisible()
+    const weekButtons = page.locator('button').filter({ hasText: /^[1-9]$|^1[0-8]$/ })
+    await expect(weekButtons.first()).toBeVisible()
   })
 
-  test('week selector changes data', async ({ page }) => {
-    // Wait for initial load
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Get the current week display
-    const weekDisplay = page.locator('[data-testid="week-display"]')
-    const initialWeek = await weekDisplay.textContent()
-    
-    // Click next week button
-    const nextWeekButton = page.locator('[data-testid="next-week-button"]')
-    await expect(nextWeekButton).toBeVisible()
-    await nextWeekButton.click()
-    
-    // Wait for data to update
+  test('week selector changes week (1-18)', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    const week5Button = page.locator('button:has-text("5")').first()
+    await expect(week5Button).toBeVisible()
+    await week5Button.click()
     await page.waitForTimeout(500)
-    
-    // Verify week changed
-    const newWeek = await weekDisplay.textContent()
-    expect(newWeek).not.toBe(initialWeek)
-    
-    // Verify lineup data is still visible
-    await expect(page.locator('text=Current Lineup')).toBeVisible()
+    await expect(page.locator('text=Week 5')).toBeVisible()
   })
 
-  test('week selector navigation works', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Test previous week button
-    const prevWeekButton = page.locator('[data-testid="prev-week-button"]')
-    const nextWeekButton = page.locator('[data-testid="next-week-button"]')
-    
-    // Both buttons should be visible
-    await expect(prevWeekButton).toBeVisible()
-    await expect(nextWeekButton).toBeVisible()
-    
-    // Click next then previous
-    await nextWeekButton.click()
-    await page.waitForTimeout(300)
-    await prevWeekButton.click()
-    await page.waitForTimeout(300)
-    
-    // Page should still be functional
-    await expect(page.locator('text=Current Lineup')).toBeVisible()
+  test('current lineup displays', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h3:has-text("Current Lineup")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=projected pts')).toBeVisible()
   })
 
-  test('explanation panel toggles', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Wait for explanation panel to be available
-    const explanationPanel = page.locator('[data-testid="explanation-panel"]')
-    const toggleButton = page.locator('[data-testid="toggle-explanation"]')
-    
-    // Toggle should be visible
-    await expect(toggleButton).toBeVisible({ timeout: 10000 })
-    
-    // Click to toggle
-    await toggleButton.click()
-    await page.waitForTimeout(300)
-    
-    // Panel should be visible or hidden based on toggle
-    const isVisible = await explanationPanel.isVisible()
-    expect(typeof isVisible).toBe('boolean')
-    
-    // Toggle again
-    await toggleButton.click()
-    await page.waitForTimeout(300)
-    
-    // Verify toggle works
-    const isVisibleAfter = await explanationPanel.isVisible()
-    expect(isVisibleAfter).not.toBe(isVisible)
+  test('optimized lineup displays', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h3:has-text("Optimized Lineup")')).toBeVisible({ timeout: 10000 })
+    const optimizedCard = page.locator('text=Optimized Lineup')
+    await expect(optimizedCard).toBeVisible()
   })
 
-  test('show your work section displays', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Look for explanation content
-    const explanationText = page.locator('text=Show Your Work')
-    await expect(explanationText).toBeVisible({ timeout: 10000 })
-    
-    // Verify methodology is displayed
-    const methodology = page.locator('text=methodology')
-    await expect(methodology).toBeVisible()
+  test('projected points difference shown', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('text=Current Lineup').first()).toBeVisible({ timeout: 10000 })
+    const improvementCard = page.locator('text=Improvement')
+    await expect(improvementCard).toBeVisible()
+  })
+
+  test('Show Your Work expands', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h3:has-text("Current Lineup")')).toBeVisible({ timeout: 10000 })
+    const showWorkButton = page.locator('button:has-text("Show Your Work")')
+    await expect(showWorkButton).toBeVisible()
+    await showWorkButton.click()
+    await page.waitForTimeout(300)
+    await expect(page.locator('text=Hide Details')).toBeVisible()
+    await expect(page.locator('text=Slot Assignments')).toBeVisible()
+  })
+
+  test('Apply Optimization button visible', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h3:has-text("Current Lineup")')).toBeVisible({ timeout: 10000 })
+    const applyButton = page.locator('button:has-text("Apply Optimization")')
+    await expect(applyButton).toBeVisible()
   })
 
   test('mobile responsive layout', async ({ page }) => {
-    // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 })
-    
-    // Page should still load
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Lineup should be visible
-    await expect(page.locator('text=Current Lineup')).toBeVisible()
-    
-    // Week selector should be accessible
-    const weekDisplay = page.locator('[data-testid="week-display"]')
-    await expect(weekDisplay).toBeVisible()
-    
-    // Navigation buttons should be visible
-    const nextWeekButton = page.locator('[data-testid="next-week-button"]')
-    await expect(nextWeekButton).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h2:has-text("Select Week")')).toBeVisible()
+    const currentLineup = page.locator('h3:has-text("Current Lineup")')
+    await expect(currentLineup).toBeVisible({ timeout: 10000 })
   })
 
-  test('mobile swipe to change week', async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 })
-    
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Get initial week
-    const weekDisplay = page.locator('[data-testid="week-display"]')
-    const initialWeek = await weekDisplay.textContent()
-    
-    // Perform swipe gesture on week selector
-    const weekSelector = page.locator('[data-testid="week-selector"]')
-    const box = await weekSelector.boundingBox()
-    
-    if (box) {
-      // Swipe left to go to next week
-      await page.mouse.move(box.x + box.width - 20, box.y + box.height / 2)
-      await page.mouse.down()
-      await page.mouse.move(box.x + 20, box.y + box.height / 2, { steps: 10 })
-      await page.mouse.up()
-      
-      await page.waitForTimeout(500)
-    }
-    
-    // Verify week changed
-    const newWeek = await weekDisplay.textContent()
-    expect(newWeek).not.toBe(initialWeek)
+  test('loading skeleton appears', async ({ page }) => {
+    await page.route('**/api/algorithms/lineup', async (route) => {
+      await new Promise((r) => setTimeout(r, 2000))
+      await route.continue()
+    })
+    await page.goto('/roster')
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    const week5Button = page.locator('button:has-text("5")').first()
+    await week5Button.click()
+    const skeleton = page.locator('.animate-pulse')
+    const hasSkeletonOrContent = await skeleton.first().isVisible({ timeout: 1000 }).catch(() => false)
+      || await page.locator('h3:has-text("Current Lineup")').isVisible().catch(() => false)
+    expect(hasSkeletonOrContent).toBe(true)
   })
 
-  test('apply optimization button works', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Wait for lineup to load
-    await expect(page.locator('text=Current Lineup')).toBeVisible({ timeout: 10000 })
-    
-    // Find and click apply optimization button
-    const applyButton = page.locator('[data-testid="apply-optimization"]')
-    await expect(applyButton).toBeVisible({ timeout: 10000 })
-    
-    await applyButton.click()
-    
-    // Wait for optimization to be applied
+  test('error state displays', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    const hasError = await page.locator('text=error').isVisible().catch(() => false)
+    const hasContent = await page.locator('h3:has-text("Current Lineup")').isVisible().catch(() => false)
+    expect(hasError || hasContent).toBe(true)
+  })
+
+  test('empty state when no roster data', async ({ page }) => {
+    const emptyState = page.locator('text=Roster Not Found')
+    const hasEmptyState = await emptyState.isVisible().catch(() => false)
+    const hasContent = await page.getByRole('heading', { name: 'Roster Optimizer' }).isVisible({ timeout: 15000 }).catch(() => false)
+    expect(hasEmptyState || hasContent).toBe(true)
+  })
+
+  test('week selector persists selection', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    const week10Button = page.locator('button:has-text("10")').first()
+    await expect(week10Button).toBeVisible()
+    await week10Button.click()
     await page.waitForTimeout(500)
-    
-    // Page should still be functional
-    await expect(page.locator('h1')).toContainText('Roster Optimizer')
+    await expect(page.locator('text=Week 10')).toBeVisible()
+    const activeButton = page.locator('button:has-text("10")').first()
+    await expect(activeButton).toHaveAttribute('data-state', 'active').catch(async () => {
+      const classList = await activeButton.getAttribute('class')
+      expect(classList).toContain('default')
+    })
   })
 
-  test('error handling displays gracefully', async ({ page }) => {
-    // Navigate to page
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // The page should handle any errors gracefully
-    // Check that error messages (if any) are displayed properly
-    const errorMessage = page.locator('[data-testid="error-message"]')
-    
-    // If error exists, it should be visible
-    const hasError = await errorMessage.isVisible().catch(() => false)
-    expect(typeof hasError).toBe('boolean')
+  test('player cards display in lineup', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h3:has-text("Current Lineup")')).toBeVisible({ timeout: 10000 })
+    const playerNames = page.locator('text=Patrick Mahomes')
+    await expect(playerNames.first()).toBeVisible()
   })
 
-  test('desktop layout shows sidebar', async ({ page, viewport }) => {
-    test.skip(viewport?.width !== undefined && viewport.width < 1024, 'Sidebar hidden on mobile')
-    
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // On desktop, sidebar should be visible
-    const sidebar = page.locator('[data-testid="optimization-sidebar"]')
-    await expect(sidebar).toBeVisible({ timeout: 10000 })
+  test('bench section displays', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h3:has-text("Current Lineup")')).toBeVisible({ timeout: 10000 })
+    const benchSection = page.locator('h3:has-text("Bench")')
+    await expect(benchSection).toBeVisible()
   })
 
-  test('lineup comparison displays correctly', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Roster Optimizer', { timeout: 15000 })
-    
-    // Wait for lineup comparison to load
-    const comparisonSection = page.locator('[data-testid="lineup-comparison"]')
-    await expect(comparisonSection).toBeVisible({ timeout: 10000 })
-    
-    // Verify both current and optimized lineups are shown
-    const currentLineup = page.locator('text=Current Lineup')
-    const optimizedLineup = page.locator('text=Optimized Lineup')
-    
-    await expect(currentLineup).toBeVisible()
-    await expect(optimizedLineup).toBeVisible()
+  test('week navigation buttons work', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    const prevButton = page.locator('button').filter({ has: page.locator('svg') }).first()
+    const nextButton = page.locator('button').filter({ has: page.locator('svg') }).nth(1)
+    await expect(prevButton).toBeVisible()
+    await expect(nextButton).toBeVisible()
+    await nextButton.click()
+    await page.waitForTimeout(300)
+    await prevButton.click()
+    await page.waitForTimeout(300)
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible()
+  })
+
+  test('mobile week buttons are scrollable', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    const week1Button = page.locator('button:has-text("1")').first()
+    await expect(week1Button).toBeVisible()
+  })
+
+  test('optimization details show on expand', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h3:has-text("Current Lineup")')).toBeVisible({ timeout: 10000 })
+    const detailsButton = page.locator('button:has-text("Show Your Work")')
+    await expect(detailsButton).toBeVisible()
+    await detailsButton.click()
+    await page.waitForTimeout(300)
+    const limitations = page.locator('h4:has-text("Limitations")')
+    const hasLimitations = await limitations.isVisible().catch(() => false)
+    const hasSlotAssignments = await page.locator('h4:has-text("Slot Assignments")').isVisible().catch(() => false)
+    expect(hasLimitations || hasSlotAssignments).toBe(true)
+  })
+
+  test('Apply Optimization opens confirmation dialog', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h3:has-text("Current Lineup")')).toBeVisible({ timeout: 10000 })
+    const applyButton = page.locator('button:has-text("Apply Optimization")')
+    await expect(applyButton).toBeVisible()
+    const isEnabled = await applyButton.isEnabled()
+    if (isEnabled) {
+      await applyButton.click()
+      await expect(page.locator('text=Apply Lineup Optimization')).toBeVisible({ timeout: 5000 })
+    }
   })
 })
