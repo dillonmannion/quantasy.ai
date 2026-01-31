@@ -31,37 +31,39 @@ const ACCEPTED_MIME_TYPES = [
   'application/vnd.ms-excel',
 ]
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_ROWS = 2000
+
 /**
- * Parse CSV content into rows
- * Simple implementation: split by newlines, parse headers, map to objects
+ * Parse CSV content into rows using Papa Parse
+ * Handles quoted fields, escapes, and various line endings safely
  */
-function parseCSV(content: string): CSVRow[] {
-  const lines = content.trim().split('\n')
-  if (lines.length < 2) {
-    return []
+function parseCSV(content: string): { rows: CSVRow[]; error?: string } {
+  const result = Papa.parse<Record<string, string>>(content, {
+    header: true,
+    skipEmptyLines: true,
+    dynamicTyping: false,
+  })
+
+  if (result.errors.length > 0) {
+    const firstError = result.errors[0]
+    return {
+      rows: [],
+      error: `CSV parse error at row ${firstError.row}: ${firstError.message}`,
+    }
   }
 
-  const headerLine = lines[0]
-  const headers = headerLine.split(',').map((h) => h.trim().toLowerCase())
-
-  const rows: CSVRow[] = []
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim()
-    if (!line) continue
-
-    const values = line.split(',').map((v) => v.trim())
-    const row: CSVRow = {}
-
-    headers.forEach((header, index) => {
-      if (values[index] !== undefined) {
-        row[header as keyof CSVRow] = values[index]
-      }
+  // Normalize headers to lowercase
+  const normalizedRows: CSVRow[] = result.data.map((row) => {
+    const normalized: CSVRow = {}
+    Object.entries(row).forEach(([key, value]) => {
+      const lowerKey = key.toLowerCase().trim()
+      normalized[lowerKey as keyof CSVRow] = String(value).trim()
     })
+    return normalized
+  })
 
-    rows.push(row)
-  }
-
-  return rows
+  return { rows: normalizedRows }
 }
 
 /**
