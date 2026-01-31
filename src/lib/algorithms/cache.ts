@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 import { createHash } from 'crypto'
 
 export type AlgorithmType = 'vbd' | 'trade' | 'waivers' | 'lineup'
@@ -59,10 +60,10 @@ export async function getProjectionVersion(): Promise<number> {
     .eq('key', 'projection_version')
     .single()
 
-  if (error) {
-    console.error('[AlgorithmCache] Error reading projection_version:', error)
-    return 1
-  }
+   if (error) {
+     logger.error('AlgorithmCache', 'Error reading projection_version', { error })
+     return 1
+   }
 
   const value = data?.value as { version?: number } | null
   return value?.version ?? 1
@@ -88,13 +89,13 @@ export async function incrementProjectionVersion(): Promise<number> {
     })
     .eq('key', 'projection_version')
 
-  if (error) {
-    console.error('[AlgorithmCache] Error incrementing projection_version:', error)
-    throw new Error('Failed to increment projection version')
-  }
+   if (error) {
+     logger.error('AlgorithmCache', 'Error incrementing projection_version', { error })
+     throw new Error('Failed to increment projection version')
+   }
 
-  console.log(`[AlgorithmCache] Projection version incremented: ${currentVersion} -> ${newVersion}`)
-  return newVersion
+   logger.info('AlgorithmCache', `Projection version incremented: ${currentVersion} -> ${newVersion}`)
+   return newVersion
 }
 
 export async function generateVBDCacheKey(params: VBDCacheParams): Promise<string> {
@@ -187,9 +188,9 @@ async function writeSharedCache<T>(
     expires_at: expiresAt,
   } as never)
 
-  if (error) {
-    console.error(`[AlgorithmCache] Error writing shared cache for ${algorithmType}:`, error)
-  }
+   if (error) {
+     logger.error('AlgorithmCache', `Error writing shared cache for ${algorithmType}`, { error })
+   }
 }
 
 async function writeUserCache<T>(
@@ -217,9 +218,9 @@ async function writeUserCache<T>(
     expires_at: expiresAt,
   } as never)
 
-  if (error) {
-    console.error(`[AlgorithmCache] Error writing user cache for ${algorithmType}:`, error)
-  }
+   if (error) {
+     logger.error('AlgorithmCache', `Error writing user cache for ${algorithmType}`, { error })
+   }
 }
 
 export async function getOrComputeAlgorithm<T>(
@@ -232,19 +233,19 @@ export async function getOrComputeAlgorithm<T>(
 ): Promise<T> {
   const { skipCache = false, userId, ttlMs = DEFAULT_TTL_MS } = options ?? {}
 
-  if (skipCache) {
-    console.log(`[AlgorithmCache] Skipping cache for ${type} (skipCache=true)`)
-    return computeFn()
-  }
+   if (skipCache) {
+     logger.debug('AlgorithmCache', `Skipping cache for ${type} (skipCache=true)`)
+     return computeFn()
+   }
 
   const cacheResult = await lookupCache<T>(cacheKey)
 
-  if (cacheResult.hit && cacheResult.data !== null) {
-    console.log(`[AlgorithmCache] Cache HIT for ${type}: ${cacheKey}`)
-    return cacheResult.data
-  }
+   if (cacheResult.hit && cacheResult.data !== null) {
+     logger.debug('AlgorithmCache', `Cache HIT for ${type}: ${cacheKey}`)
+     return cacheResult.data
+   }
 
-  console.log(`[AlgorithmCache] Cache MISS for ${type}: ${cacheKey}`)
+   logger.debug('AlgorithmCache', `Cache MISS for ${type}: ${cacheKey}`)
 
   const result = await computeFn()
 
@@ -252,11 +253,11 @@ export async function getOrComputeAlgorithm<T>(
 
   if (isSharedCache) {
     await writeSharedCache(type, cacheKey, leagueId, inputParams, result, ttlMs)
-  } else if (userId) {
-    await writeUserCache(type, cacheKey, leagueId, userId, inputParams, result, ttlMs)
-  } else {
-    console.warn(`[AlgorithmCache] User-scoped algorithm ${type} called without userId, skipping cache write`)
-  }
+   } else if (userId) {
+     await writeUserCache(type, cacheKey, leagueId, userId, inputParams, result, ttlMs)
+   } else {
+     logger.warn('AlgorithmCache', `User-scoped algorithm ${type} called without userId, skipping cache write`)
+   }
 
   return result
 }

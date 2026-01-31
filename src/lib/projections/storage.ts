@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 import type { Database } from '@/lib/supabase/types';
 import type { PlayerProjection, ProjectionSource } from './types';
 
@@ -71,10 +72,10 @@ export async function getProjections(
 
   const { data, error } = await query;
 
-  if (error) {
-    console.error('Error fetching projections:', error);
-    return [];
-  }
+   if (error) {
+     logger.error('Projections', 'Error fetching projections', { error });
+     return [];
+   }
 
   if (!data) {
     return [];

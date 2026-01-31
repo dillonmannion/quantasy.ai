@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import { getCachedLeague, getCachedRosters } from '@/lib/sleeper/cache'
 import { getAllPlayers } from '@/lib/sleeper'
 import { evaluateTrade } from './trade'
@@ -172,10 +173,10 @@ export async function calculateTradeForLeague(
       .select('id, projected_points')
       .not('projected_points', 'is', null)
 
-    if (dbError) {
-      console.error('[Trade] Error fetching projections:', dbError)
-      return { data: null, error: 'Failed to fetch projections' }
-    }
+     if (dbError) {
+       logger.error('Trade', 'Error fetching projections', { dbError })
+       return { data: null, error: 'Failed to fetch projections' }
+     }
 
     if (!dbPlayers || dbPlayers.length === 0) {
       return { data: null, error: 'No projections available' }
@@ -289,9 +290,9 @@ export async function calculateTradeForLeague(
 
     // Step 7: Return result
     return { data: result, error: null }
-  } catch (error) {
-    console.error('[Trade] Unexpected error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return { data: null, error: `Trade calculation failed: ${errorMessage}` }
-  }
+   } catch (error) {
+     logger.error('Trade', 'Unexpected error', { error })
+     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+     return { data: null, error: `Trade calculation failed: ${errorMessage}` }
+   }
 }

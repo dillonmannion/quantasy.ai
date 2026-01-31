@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import { getCachedLeague, getCachedRosters } from '@/lib/sleeper/cache'
 import { getAllPlayers } from '@/lib/sleeper'
 import { recommendWaivers } from './waivers'
@@ -143,10 +144,10 @@ export async function calculateWaiversForLeague(
       .select('id, projected_points')
       .not('projected_points', 'is', null)
 
-    if (dbError) {
-      console.error('[Waivers] Error fetching projections:', dbError)
-      return { data: null, error: 'Failed to fetch projections' }
-    }
+     if (dbError) {
+       logger.error('Waivers', 'Error fetching projections', { dbError })
+       return { data: null, error: 'Failed to fetch projections' }
+     }
 
     if (!dbPlayers || dbPlayers.length === 0) {
       return { data: null, error: 'No projections available' }
@@ -259,9 +260,9 @@ export async function calculateWaiversForLeague(
     }
 
     return { data: result, error: null }
-  } catch (error) {
-    console.error('[Waivers] Unexpected error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return { data: null, error: `Waiver calculation failed: ${errorMessage}` }
-  }
+   } catch (error) {
+     logger.error('Waivers', 'Unexpected error', { error })
+     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+     return { data: null, error: `Waiver calculation failed: ${errorMessage}` }
+   }
 }

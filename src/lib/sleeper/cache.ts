@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 import type { Database } from '@/lib/supabase/types'
 import * as SleeperAPI from './client'
 import type { SleeperLeague, SleeperRoster, SleeperMatchup } from './types'
@@ -94,9 +95,9 @@ export async function getCachedLeague(leagueId: string): Promise<SleeperLeague> 
      .eq('id', leagueId)
      .single()
 
-   if (cacheError && cacheError.code !== 'PGRST116') {
-     console.error('[Cache] Error reading league cache:', cacheError)
-   }
+    if (cacheError && cacheError.code !== 'PGRST116') {
+      logger.error('Cache', 'Error reading league cache', { cacheError })
+    }
 
    const typedCached = cached as LeagueRow | null
    const status = getCacheStatus(typedCached?.cached_at ?? null, TTL.LEAGUE)
@@ -124,9 +125,9 @@ export async function getCachedLeague(leagueId: string): Promise<SleeperLeague> 
      .from('leagues')
      .upsert(leagueInsert as never)
 
-   if (upsertError) {
-     console.error('[Cache] Error updating league cache:', upsertError)
-   }
+    if (upsertError) {
+      logger.error('Cache', 'Error updating league cache', { upsertError })
+    }
 
    return fresh
  }
@@ -142,9 +143,9 @@ export async function getCachedRosters(
      .eq('league_id', leagueId)
      .order('roster_id')
 
-   if (cacheError) {
-     console.error('[Cache] Error reading rosters cache:', cacheError)
-   }
+    if (cacheError) {
+      logger.error('Cache', 'Error reading rosters cache', { cacheError })
+    }
 
    const typedCached = cached as RosterRow[] | null
    const status = getCacheStatus(typedCached?.[0]?.cached_at ?? null, TTL.ROSTERS)
@@ -161,9 +162,9 @@ export async function getCachedRosters(
      .delete()
      .eq('league_id', leagueId)
 
-   if (deleteError) {
-     console.error('[Cache] Error deleting old rosters:', deleteError)
-   }
+    if (deleteError) {
+      logger.error('Cache', 'Error deleting old rosters', { deleteError })
+    }
 
    if (fresh.length > 0) {
      const rostersInsert: RosterInsert[] = fresh.map((r) => ({
@@ -181,9 +182,9 @@ export async function getCachedRosters(
        .from('rosters')
        .insert(rostersInsert as never)
 
-     if (insertError) {
-       console.error('[Cache] Error inserting rosters:', insertError)
-     }
+      if (insertError) {
+        logger.error('Cache', 'Error inserting rosters', { insertError })
+      }
    }
 
    return fresh
@@ -202,9 +203,9 @@ export async function getCachedMatchups(
      .eq('week', week)
      .order('matchup_id')
 
-   if (cacheError) {
-     console.error('[Cache] Error reading matchups cache:', cacheError)
-   }
+    if (cacheError) {
+      logger.error('Cache', 'Error reading matchups cache', { cacheError })
+    }
 
    const typedCached = cached as MatchupRow[] | null
    const status = getCacheStatus(typedCached?.[0]?.cached_at ?? null, TTL.MATCHUPS)
@@ -222,9 +223,9 @@ export async function getCachedMatchups(
      .eq('league_id', leagueId)
      .eq('week', week)
 
-   if (deleteError) {
-     console.error('[Cache] Error deleting old matchups:', deleteError)
-   }
+    if (deleteError) {
+      logger.error('Cache', 'Error deleting old matchups', { deleteError })
+    }
 
    if (fresh.length > 0) {
      const matchupsInsert: MatchupInsert[] = fresh.map((m) => ({
@@ -240,13 +241,13 @@ export async function getCachedMatchups(
        cached_at: new Date().toISOString(),
      }))
 
-     const { error: insertError } = await writeClient
-       .from('matchups')
-       .insert(matchupsInsert as never)
+      const { error: insertError } = await writeClient
+        .from('matchups')
+        .insert(matchupsInsert as never)
 
-     if (insertError) {
-       console.error('[Cache] Error inserting matchups:', insertError)
-     }
+      if (insertError) {
+        logger.error('Cache', 'Error inserting matchups', { insertError })
+      }
    }
 
    return fresh
@@ -280,10 +281,10 @@ export async function syncAllPlayers(): Promise<number> {
      .from('players')
      .upsert(playersInsert as never, { onConflict: 'id' })
 
-   if (error) {
-     console.error('[Cache] Error syncing players:', error)
-     throw error
-   }
+    if (error) {
+      logger.error('Cache', 'Error syncing players', { error })
+      throw error
+    }
 
    return relevantPlayers.length
  }

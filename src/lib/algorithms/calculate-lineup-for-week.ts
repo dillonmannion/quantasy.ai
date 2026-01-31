@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import { getCachedLeague, getCachedRosters } from '@/lib/sleeper/cache'
 import { optimizeLineup } from './lineup'
 import type {
@@ -120,10 +121,10 @@ export async function calculateLineupForWeek(
       .select('id, full_name, team, position, sleeper_data, projected_points')
       .in('id', playerIds)
 
-    if (dbError) {
-      console.error('[Lineup] Error fetching players:', dbError)
-      return { data: null, error: 'Failed to fetch player data' }
-    }
+     if (dbError) {
+       logger.error('Lineup', 'Error fetching players', { dbError })
+       return { data: null, error: 'Failed to fetch player data' }
+     }
 
     if (!dbPlayers || dbPlayers.length === 0) {
       return { data: null, error: 'No player data available' }
@@ -152,9 +153,9 @@ export async function calculateLineupForWeek(
     const result = optimizeLineup(lineupInput)
 
     return { data: result, error: null }
-  } catch (error) {
-    console.error('[Lineup] Unexpected error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return { data: null, error: `Lineup calculation failed: ${errorMessage}` }
-  }
+   } catch (error) {
+     logger.error('Lineup', 'Unexpected error', { error })
+     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+     return { data: null, error: `Lineup calculation failed: ${errorMessage}` }
+   }
 }

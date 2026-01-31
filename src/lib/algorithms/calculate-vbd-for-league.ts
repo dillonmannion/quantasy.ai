@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import { getCachedLeague } from '@/lib/sleeper/cache'
 import { getAllPlayers } from '@/lib/sleeper'
 import type { SleeperPlayer, SleeperLeague } from '@/lib/sleeper'
@@ -114,10 +115,10 @@ export async function calculateVBDForLeague(
         .select('id, projected_points')
         .not('projected_points', 'is', null)
 
-      if (dbError) {
-        console.error('[VBD] Error fetching projections:', dbError)
-        throw new Error('Failed to fetch projections')
-      }
+       if (dbError) {
+         logger.error('VBD', 'Error fetching projections', { dbError })
+         throw new Error('Failed to fetch projections')
+       }
 
       if (!dbPlayers || dbPlayers.length === 0) {
         throw new Error('No projections available')
@@ -221,9 +222,9 @@ export async function calculateVBDForLeague(
     )
 
     return { data: result, error: null }
-  } catch (error) {
-    console.error('[VBD] Unexpected error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return { data: null, error: `VBD calculation failed: ${errorMessage}` }
-  }
+   } catch (error) {
+     logger.error('VBD', 'Unexpected error', { error })
+     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+     return { data: null, error: `VBD calculation failed: ${errorMessage}` }
+   }
 }

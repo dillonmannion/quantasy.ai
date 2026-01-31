@@ -1,14 +1,15 @@
 import type {
-  SleeperUser,
-  SleeperLeague,
-  SleeperRoster,
-  SleeperMatchup,
-  SleeperPlayer,
-  SleeperNFLState,
-  SleeperDraftPick,
-  SleeperAPIError,
-} from './types'
-import { isSleeperAPIError } from './types'
+   SleeperUser,
+   SleeperLeague,
+   SleeperRoster,
+   SleeperMatchup,
+   SleeperPlayer,
+   SleeperNFLState,
+   SleeperDraftPick,
+   SleeperAPIError,
+ } from './types'
+ import { isSleeperAPIError } from './types'
+ import { logger } from '@/lib/logger'
 
 const BASE_URL = 'https://api.sleeper.app/v1'
 const DEBUG = process.env.NODE_ENV === 'development'
@@ -30,13 +31,13 @@ class RateLimiter {
       (time) => now - time < this.windowMs
     )
 
-    if (this.requestTimes.length >= this.maxRequests) {
-      const oldestRequest = this.requestTimes[0]!
-      const waitTime = this.windowMs - (now - oldestRequest) + 10
+     if (this.requestTimes.length >= this.maxRequests) {
+       const oldestRequest = this.requestTimes[0]!
+       const waitTime = this.windowMs - (now - oldestRequest) + 10
 
-      if (DEBUG) {
-        console.log(`[Sleeper] Rate limited, waiting ${waitTime}ms`)
-      }
+       if (DEBUG) {
+         logger.debug('Sleeper', `Rate limited, waiting ${waitTime}ms`)
+       }
 
       await new Promise((resolve) => setTimeout(resolve, waitTime))
       return this.throttle()
@@ -57,10 +58,10 @@ export async function sleeperFetch<T>(
   const url = `${BASE_URL}${endpoint}`
   const startTime = Date.now()
 
-  try {
-    if (DEBUG) {
-      console.log(`[Sleeper] GET ${endpoint}`)
-    }
+   try {
+     if (DEBUG) {
+       logger.debug('Sleeper', `GET ${endpoint}`)
+     }
 
     const response = await fetch(url, {
       ...options,
@@ -80,28 +81,29 @@ export async function sleeperFetch<T>(
         statusCode: response.status,
       }
 
-      if (DEBUG) {
-        console.error(
-          `[Sleeper] Error ${response.status} for ${endpoint} (${duration}ms)`
-        )
-      }
+       if (DEBUG) {
+         logger.error(
+           'Sleeper',
+           `Error ${response.status} for ${endpoint} (${duration}ms)`
+         )
+       }
 
-      throw error
-    }
+       throw error
+     }
 
-    const data = await response.json()
+     const data = await response.json()
 
-    if (DEBUG) {
-      console.log(`[Sleeper] OK ${endpoint} (${duration}ms)`)
-    }
+     if (DEBUG) {
+       logger.info('Sleeper', `OK ${endpoint} (${duration}ms)`)
+     }
 
-    return data as T
-  } catch (error) {
-    if (isSleeperAPIError(error)) {
-      throw error
-    }
+     return data as T
+   } catch (error) {
+     if (isSleeperAPIError(error)) {
+       throw error
+     }
 
-    console.error(`[Sleeper] Network error for ${endpoint}:`, error)
+     logger.error('Sleeper', `Network error for ${endpoint}`, { error })
     throw {
       error: 'NetworkError',
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -119,10 +121,10 @@ export async function sleeperFetchNoCache<T>(
   const url = `${BASE_URL}${endpoint}`
   const startTime = Date.now()
 
-  try {
-    if (DEBUG) {
-      console.log(`[Sleeper] GET ${endpoint} (no-cache)`)
-    }
+   try {
+     if (DEBUG) {
+       logger.debug('Sleeper', `GET ${endpoint} (no-cache)`)
+     }
 
     const response = await fetch(url, {
       ...options,
@@ -136,44 +138,45 @@ export async function sleeperFetchNoCache<T>(
 
     const duration = Date.now() - startTime
 
-    if (!response.ok) {
-      const error: SleeperAPIError = {
-        error: 'SleeperAPIError',
-        message: `HTTP ${response.status}: ${response.statusText}`,
-        statusCode: response.status,
-      }
+     if (!response.ok) {
+       const error: SleeperAPIError = {
+         error: 'SleeperAPIError',
+         message: `HTTP ${response.status}: ${response.statusText}`,
+         statusCode: response.status,
+       }
 
-      if (DEBUG) {
-        console.error(
-          `[Sleeper] Error ${response.status} for ${endpoint} (${duration}ms)`
-        )
-      }
+       if (DEBUG) {
+         logger.error(
+           'Sleeper',
+           `Error ${response.status} for ${endpoint} (${duration}ms)`
+         )
+       }
 
-      throw error
-    }
+       throw error
+     }
 
-    const data = await response.json()
+     const data = await response.json()
 
-    if (DEBUG) {
-      console.log(`[Sleeper] OK ${endpoint} (${duration}ms)`)
-    }
+     if (DEBUG) {
+       logger.info('Sleeper', `OK ${endpoint} (${duration}ms)`)
+     }
 
-    return data as T
-  } catch (error) {
-    if (isSleeperAPIError(error)) {
-      throw error
-    }
+     return data as T
+   } catch (error) {
+     if (isSleeperAPIError(error)) {
+       throw error
+     }
 
-    console.error(`[Sleeper] Network error for ${endpoint}:`, error)
-    throw {
-      error: 'NetworkError',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      statusCode: 0,
-    } as SleeperAPIError
-  }
-}
-
-export async function getNFLState(): Promise<SleeperNFLState> {
+     logger.error('Sleeper', `Network error for ${endpoint}`, { error })
+     throw {
+       error: 'NetworkError',
+       message: error instanceof Error ? error.message : 'Unknown error',
+       statusCode: 0,
+     } as SleeperAPIError
+   }
+ }
+ 
+ export async function getNFLState(): Promise<SleeperNFLState> {
   return sleeperFetch<SleeperNFLState>('/state/nfl')
 }
 

@@ -1,5 +1,7 @@
 // Data from Fantasy Football Calculator (fantasyfootballcalculator.com)
 
+import { logger } from '@/lib/logger'
+
 const BASE_URL = 'https://fantasyfootballcalculator.com/api/v1/adp'
 const DEBUG = process.env.NODE_ENV === 'development'
 
@@ -27,30 +29,31 @@ export async function fetchADP(
 ): Promise<Record<string, number>> {
   const cacheKey = getCacheKey(format, teams, year)
 
-  if (adpCache.has(cacheKey)) {
-    if (DEBUG) {
-      console.log(`[ADP] Cache hit for ${cacheKey}`)
-    }
-    return adpCache.get(cacheKey)!
-  }
+   if (adpCache.has(cacheKey)) {
+     if (DEBUG) {
+       logger.debug('ADP', `Cache hit for ${cacheKey}`)
+     }
+     return adpCache.get(cacheKey)!
+   }
 
-  try {
-    const url = `${BASE_URL}/${format}?teams=${teams}&year=${year}`
+   try {
+     const url = `${BASE_URL}/${format}?teams=${teams}&year=${year}`
 
-    if (DEBUG) {
-      console.log(`[ADP] Fetching ${url}`)
-    }
+     if (DEBUG) {
+       logger.debug('ADP', `Fetching ${url}`)
+     }
 
     const response = await fetch(url)
 
-    if (!response.ok) {
-      if (DEBUG) {
-        console.error(
-          `[ADP] HTTP ${response.status} for ${format}/${teams}/${year}`
-        )
-      }
-      return {}
-    }
+     if (!response.ok) {
+       if (DEBUG) {
+         logger.error(
+           'ADP',
+           `HTTP ${response.status} for ${format}/${teams}/${year}`
+         )
+       }
+       return {}
+     }
 
     const data = (await response.json()) as FFCResponse[]
 
@@ -61,19 +64,19 @@ export async function fetchADP(
       }
     }
 
-    adpCache.set(cacheKey, result)
+     adpCache.set(cacheKey, result)
 
-    if (DEBUG) {
-      console.log(`[ADP] Cached ${Object.keys(result).length} players`)
-    }
+     if (DEBUG) {
+       logger.debug('ADP', `Cached ${Object.keys(result).length} players`)
+     }
 
     return result
-  } catch (error) {
-    if (DEBUG) {
-      console.error(`[ADP] Error fetching ADP:`, error)
-    }
-    return {}
-  }
+   } catch (error) {
+     if (DEBUG) {
+       logger.error('ADP', `Error fetching ADP`, { error })
+     }
+     return {}
+   }
 }
 
 export function clearADPCache(): void {

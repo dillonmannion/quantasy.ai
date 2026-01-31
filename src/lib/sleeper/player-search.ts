@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import type { Database } from '@/lib/supabase/types'
 
 type PlayerRow = Database['public']['Tables']['players']['Row']
@@ -46,10 +47,10 @@ export async function searchPlayers(
 
   const { data, error } = await queryBuilder.limit(limit).order('full_name')
 
-  if (error) {
-    console.error('[PlayerSearch] Error:', error)
-    throw error
-  }
+   if (error) {
+     logger.error('PlayerSearch', 'Error', { error })
+     throw error
+   }
 
   return (data as PlayerRow[]) ?? []
 }
@@ -63,11 +64,11 @@ export async function getPlayerById(playerId: string): Promise<PlayerRow | null>
     .eq('id', playerId)
     .single()
 
-  if (error) {
-    if (error.code === 'PGRST116') return null
-    console.error('[PlayerSearch] Error getting player:', error)
-    throw error
-  }
+   if (error) {
+     if (error.code === 'PGRST116') return null
+     logger.error('PlayerSearch', 'Error getting player', { error })
+     throw error
+   }
 
   return data as PlayerRow
 }
@@ -85,10 +86,10 @@ export async function getPlayersByIds(
     .select('*')
     .in('id', uniqueIds)
 
-  if (error) {
-    console.error('[PlayerSearch] Error getting players:', error)
-    throw error
-  }
+   if (error) {
+     logger.error('PlayerSearch', 'Error getting players', { error })
+     throw error
+   }
 
   const playerMap = new Map<string, PlayerRow>()
   for (const player of (data as PlayerRow[]) ?? []) {
@@ -114,10 +115,10 @@ export async function getPlayersByTeam(
     .order('position')
     .order('full_name')
 
-  if (error) {
-    console.error('[PlayerSearch] Error getting team players:', error)
-    throw error
-  }
+   if (error) {
+     logger.error('PlayerSearch', 'Error getting team players', { error })
+     throw error
+   }
 
   return (data as PlayerRow[]) ?? []
 }
@@ -129,10 +130,10 @@ export async function getPlayerCount(): Promise<number> {
     .from('players')
     .select('*', { count: 'exact', head: true })
 
-  if (error) {
-    console.error('[PlayerSearch] Error getting count:', error)
-    return 0
-  }
+   if (error) {
+     logger.error('PlayerSearch', 'Error getting count', { error })
+     return 0
+   }
 
   return count ?? 0
 }
