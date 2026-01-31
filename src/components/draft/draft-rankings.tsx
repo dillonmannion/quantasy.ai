@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import { RankingsList } from './rankings-list'
 import { RankingsControls } from './rankings-controls'
 import { useDraftState } from '@/lib/draft'
+import type { MonteCarloOutput } from '@/lib/algorithms/monte-carlo/types'
+import { SimulationProgress } from './simulation-overlay'
 
 type Position = 'All' | 'QB' | 'RB' | 'WR' | 'TE' | 'K' | 'DEF' | 'DL' | 'LB' | 'DB'
 type SortOption = 'vbd' | 'projected' | 'adp'
@@ -21,9 +23,21 @@ interface Player {
 
 interface DraftRankingsProps {
   players: Player[]
+  simulationResults?: MonteCarloOutput | null
+  riskTolerance?: number
+  onRiskChange?: (val: number) => void
+  simulationStatus?: 'idle' | 'loading' | 'running' | 'complete' | 'error'
+  simulationProgress?: number
 }
 
-export function DraftRankings({ players }: DraftRankingsProps) {
+export function DraftRankings({ 
+  players,
+  simulationResults,
+  riskTolerance,
+  onRiskChange,
+  simulationStatus,
+  simulationProgress
+}: DraftRankingsProps) {
   const { state } = useDraftState()
   const [selectedPosition, setSelectedPosition] = useState<Position>('All')
   const [hideDrafted, setHideDrafted] = useState(false)
@@ -72,6 +86,9 @@ export function DraftRankings({ players }: DraftRankingsProps) {
 
   return (
     <div className="space-y-4">
+      {simulationStatus && simulationProgress !== undefined && (
+         <SimulationProgress status={simulationStatus} progress={simulationProgress} />
+      )}
       <RankingsControls
         selectedPosition={selectedPosition}
         hideDrafted={hideDrafted}
@@ -80,8 +97,14 @@ export function DraftRankings({ players }: DraftRankingsProps) {
         onHideDraftedChange={setHideDrafted}
         onSearchChange={setSearchQuery}
         onSortChange={setSortBy}
+        riskTolerance={riskTolerance}
+        onRiskChange={onRiskChange}
       />
-      <RankingsList players={filteredAndSortedPlayers} />
+      <RankingsList 
+        players={filteredAndSortedPlayers} 
+        simulationResults={simulationResults}
+        simulationStatus={simulationStatus}
+      />
     </div>
   )
 }

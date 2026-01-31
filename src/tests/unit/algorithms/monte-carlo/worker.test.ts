@@ -26,7 +26,7 @@ describe('MonteCarloWorker', () => {
       removeEventListener: vi.fn(),
     }
 
-    global.Worker = vi.fn(() => mockWorkerInstance) as any
+    global.Worker = vi.fn(function() { return mockWorkerInstance }) as any
   })
 
   afterEach(() => {

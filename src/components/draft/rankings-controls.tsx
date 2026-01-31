@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react'
 
+import { RiskSlider } from './risk-slider'
+
 type Position = 'All' | 'QB' | 'RB' | 'WR' | 'TE' | 'K' | 'DEF' | 'DL' | 'LB' | 'DB'
 type SortOption = 'vbd' | 'projected' | 'adp'
 
@@ -13,9 +15,11 @@ interface RankingsControlsProps {
   onHideDraftedChange: (hide: boolean) => void
   onSearchChange: (search: string) => void
   onSortChange: (sort: SortOption) => void
+  onRiskChange?: (risk: number) => void
   selectedPosition: Position
   hideDrafted: boolean
   sortBy: SortOption
+  riskTolerance?: number
 }
 
 const positions: Position[] = ['All', 'QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'DL', 'LB', 'DB']
@@ -25,9 +29,11 @@ export function RankingsControls({
   onHideDraftedChange,
   onSearchChange,
   onSortChange,
+  onRiskChange,
   selectedPosition,
   hideDrafted,
   sortBy,
+  riskTolerance
 }: RankingsControlsProps) {
   const [searchInput, setSearchInput] = useState('')
 
@@ -42,16 +48,22 @@ export function RankingsControls({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search players..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="pl-9"
-            data-testid="search-input"
-          />
+        <div className="flex flex-col md:flex-row gap-4 flex-1">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search players..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-9"
+              data-testid="search-input"
+            />
+          </div>
+          
+          {riskTolerance !== undefined && onRiskChange && (
+            <RiskSlider value={riskTolerance} onChange={onRiskChange} />
+          )}
         </div>
 
         <div className="flex items-center gap-2">

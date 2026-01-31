@@ -12,7 +12,7 @@ export type WorkerResponse =
 export class MonteCarloWorker {
   private worker: Worker | null = null
   private resolvePromise: ((value: MonteCarloOutput) => void) | null = null
-  private rejectPromise: ((reason: any) => void) | null = null
+  private rejectPromise: ((reason: Error) => void) | null = null
   private onProgress: ((progress: number) => void) | null = null
 
   runSimulation(

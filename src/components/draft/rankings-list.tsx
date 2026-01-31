@@ -9,6 +9,8 @@ import { SwipeablePlayerRow } from './swipeable-player-row'
 import { useCelebration } from '@/hooks/use-celebration'
 import { Kaching } from '@/components/animation'
 import { useReducedMotion } from '@/hooks/use-reduced-motion'
+import { SimulationOverlay } from './simulation-overlay'
+import type { MonteCarloOutput } from '@/lib/algorithms/monte-carlo/types'
 
 interface Player {
   playerId: string
@@ -23,6 +25,8 @@ interface Player {
 
 interface RankingsListProps {
   players: Player[]
+  simulationResults?: MonteCarloOutput | null
+  simulationStatus?: 'idle' | 'loading' | 'running' | 'complete' | 'error'
 }
 
 function getVBDColor(vbd: number, top25: number, top75: number): string {
@@ -31,7 +35,7 @@ function getVBDColor(vbd: number, top25: number, top75: number): string {
   return 'text-red-500'
 }
 
-export function RankingsList({ players }: RankingsListProps) {
+export function RankingsList({ players, simulationResults, simulationStatus = 'idle' }: RankingsListProps) {
   const { state, dispatch } = useDraftState()
   const parentRef = useRef<HTMLDivElement>(null)
   const [isMobile, setIsMobile] = useState(false)
@@ -111,7 +115,7 @@ export function RankingsList({ players }: RankingsListProps) {
             const rowContent = (
               <div
                 className={cn(
-                  'flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-all duration-200',
+                  'relative flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-all duration-200',
                   isDraftable && !isMobile && 'cursor-pointer hover:scale-[1.01] hover:shadow-md origin-center',
                   isDrafted && 'opacity-50 bg-muted'
                 )}
@@ -158,6 +162,13 @@ export function RankingsList({ players }: RankingsListProps) {
                     </div>
                   )}
                  </div>
+
+                 <SimulationOverlay 
+                   status={simulationStatus}
+                   progress={0}
+                   results={simulationResults || null}
+                   playerId={player.playerId}
+                 />
               </div>
             )
             

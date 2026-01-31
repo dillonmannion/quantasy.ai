@@ -31,10 +31,10 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
         }
         self.postMessage(response)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const response: WorkerResponse = {
         type: 'ERROR',
-        error: error.message || 'Unknown error',
+        error: error instanceof Error ? error.message : String(error) || 'Unknown error',
       }
       self.postMessage(response)
     }
