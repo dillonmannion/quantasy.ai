@@ -9,6 +9,10 @@ export async function getDraftPicks(draftId: string): Promise<SleeperDraftPick[]
   return sleeperFetchNoCache<SleeperDraftPick[]>(`/draft/${draftId}/picks`)
 }
 
+export async function getDraftTradedPicks(draftId: string): Promise<SleeperDraftPick[]> {
+  return sleeperFetchNoCache<SleeperDraftPick[]>(`/draft/${draftId}/traded_picks`)
+}
+
 export async function getLeagueDrafts(leagueId: string): Promise<SleeperDraft[]> {
   return sleeperFetchNoCache<SleeperDraft[]>(`/league/${leagueId}/drafts`)
 }
