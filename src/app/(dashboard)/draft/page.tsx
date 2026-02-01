@@ -2,9 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
 import { DraftShell } from '@/components/draft/draft-shell'
-import { DraftRankings } from '@/components/draft/draft-rankings'
+import { DraftViewTabs } from '@/components/draft/draft-view-tabs'
 import { MockDraftControls } from '@/components/draft/mock-draft-controls'
-import { MyTeamSidebar } from '@/components/draft/my-team-sidebar'
 import { KeeperSection } from '@/components/draft/keeper-section'
 import { getActiveDraft } from '@/lib/sleeper/draft'
 import { getLeagueRosters, getDedupedPlayers, getDedupedLeague } from '@/lib/sleeper'
@@ -108,10 +107,7 @@ export default async function DraftPage() {
             )}
           
            {players.length > 0 ? (
-             <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
-               <DraftRankings players={players} />
-               <MyTeamSidebar />
-             </div>
+             <DraftViewTabs players={players} />
            ) : (
              <div className="card-balatro p-8 text-center">
                <p className="text-muted-foreground">
