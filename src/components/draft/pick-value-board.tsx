@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,6 +12,13 @@ import {
 import { useDraftState } from '@/lib/draft'
 import { cn } from '@/lib/utils'
 import { FadeIn } from '@/components/animation'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { PickExplanation } from './pick-explanation'
 import { getDraftMetadata, type DraftMetadata } from '@/app/(dashboard)/draft/actions'
 import type { PickValueOutput } from '@/lib/algorithms'
 
@@ -30,6 +37,10 @@ export function PickValueBoard({ className }: PickValueBoardProps) {
   const [selectedRound, setSelectedRound] = useState<number | 'all'>('all')
   const [selectedOwner, setSelectedOwner] = useState<string | 'all'>('all')
   const [showAvailableOnly, setShowAvailableOnly] = useState(false)
+  const [selectedPickInfo, setSelectedPickInfo] = useState<{
+    value: PickValueOutput
+    number: number
+  } | null>(null)
 
   // Fetch data
   useEffect(() => {
@@ -73,7 +84,7 @@ export function PickValueBoard({ className }: PickValueBoardProps) {
   const gridItems = useMemo(() => {
     if (!metadata || values.length === 0) return []
 
-    const { teams, rounds, rosters } = metadata
+    const { teams, rosters } = metadata
     const items = []
 
     for (let i = 0; i < values.length; i++) {
@@ -233,10 +244,16 @@ export function PickValueBoard({ className }: PickValueBoardProps) {
           >
             <Card 
               className={cn(
-                "h-full overflow-hidden transition-colors hover:bg-muted/50",
+                "h-full overflow-hidden transition-colors hover:bg-muted/50 cursor-pointer",
                 item.isPicked && "opacity-60"
               )}
-              data-testid="pick-card"
+              onClick={() => {
+                const val = values[item.pickNumber - 1]
+                if (val) {
+                  setSelectedPickInfo({ value: val, number: item.pickNumber })
+                }
+              }}
+              data-testid={`pick-card-${item.notation.replace('.', '-')}`}
             >
               <CardHeader className="p-3 pb-0">
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
@@ -261,6 +278,23 @@ export function PickValueBoard({ className }: PickValueBoardProps) {
           </FadeIn>
         ))}
       </div>
+
+      <Dialog
+        open={!!selectedPickInfo}
+        onOpenChange={(open) => !open && setSelectedPickInfo(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Pick Transparency</DialogTitle>
+          </DialogHeader>
+          {selectedPickInfo && (
+            <PickExplanation
+              pickValue={selectedPickInfo.value}
+              pickNumber={selectedPickInfo.number}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
