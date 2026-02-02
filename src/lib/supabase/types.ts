@@ -328,6 +328,42 @@ export type Database = {
          }
          Relationships: []
        }
+       waiver_bid_history: {
+         Row: {
+           id: string
+           user_id: string
+           league_id: string
+           week: number
+           player_id: string
+           recommended_bid: number
+           actual_bid: number
+           won: boolean
+           created_at: string
+         }
+         Insert: {
+           id?: string
+           user_id: string
+           league_id: string
+           week: number
+           player_id: string
+           recommended_bid: number
+           actual_bid: number
+           won?: boolean
+           created_at?: string
+         }
+         Update: {
+           id?: string
+           user_id?: string
+           league_id?: string
+           week?: number
+           player_id?: string
+           recommended_bid?: number
+           actual_bid?: number
+           won?: boolean
+           created_at?: string
+         }
+         Relationships: []
+       }
      }
      Views: Record<string, never>
      Functions: {
