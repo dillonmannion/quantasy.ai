@@ -7,6 +7,11 @@ export type AlgorithmType = 'vbd' | 'trade' | 'waivers' | 'lineup'
 
 const DEFAULT_TTL_MS = 60 * 60 * 1000
 
+// In-memory projection version cache
+let cachedProjectionVersion: number | null = null
+let projectionVersionCacheTime: number = 0
+const PROJECTION_VERSION_TTL_MS = 60 * 60 * 1000 // 1 hour
+
 export interface CacheOptions {
   skipCache?: boolean
   userId?: string
@@ -52,6 +57,11 @@ function hashObject(obj: Record<string, unknown>): string {
 }
 
 export async function getProjectionVersion(): Promise<number> {
+  const now = Date.now()
+  if (cachedProjectionVersion !== null && (now - projectionVersionCacheTime) < PROJECTION_VERSION_TTL_MS) {
+    return cachedProjectionVersion
+  }
+
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -66,7 +76,12 @@ export async function getProjectionVersion(): Promise<number> {
    }
 
   const value = data?.value as { version?: number } | null
-  return value?.version ?? 1
+  const version = value?.version ?? 1
+
+  cachedProjectionVersion = version
+  projectionVersionCacheTime = now
+
+  return version
 }
 
 export async function incrementProjectionVersion(): Promise<number> {
@@ -96,6 +111,11 @@ export async function incrementProjectionVersion(): Promise<number> {
 
    logger.info('AlgorithmCache', `Projection version incremented: ${currentVersion} -> ${newVersion}`)
    return newVersion
+}
+
+export function invalidateProjectionVersionCache(): void {
+  cachedProjectionVersion = null
+  projectionVersionCacheTime = 0
 }
 
 export async function generateVBDCacheKey(params: VBDCacheParams): Promise<string> {
