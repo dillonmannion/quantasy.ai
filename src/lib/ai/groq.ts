@@ -78,7 +78,6 @@ export async function generateTradeRecommendation(
   params: GenerateTradeRecommendationParams
 ): Promise<string> {
   const {
-    leagueId,
     myRosterId,
     myPlayers,
     targetRosterId,
