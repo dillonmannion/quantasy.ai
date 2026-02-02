@@ -4,6 +4,7 @@ import { getCachedLeague, getCachedRosters } from '@/lib/sleeper/cache'
 import { getAllPlayers } from '@/lib/sleeper'
 import { recommendWaivers } from './waivers'
 import { calculateBaseline } from './baselines'
+import { getOrComputeAlgorithm, generateWaiversCacheKey } from './cache'
 import type {
   AlgorithmPlayer,
   PositionBaseline,
@@ -114,25 +115,40 @@ function expandFlexPositions(position: Position): Position[] {
 export async function calculateWaiversForLeague(
   options: CalculateWaiversForLeagueOptions
 ): Promise<{ data: WaiverOutput | null; error: string | null }> {
-  const { leagueId, rosterId, week, faabBudget } = options
+  const { leagueId, rosterId, week, faabBudget, userId, skipCache } = options
 
   try {
+    const cacheKey = await generateWaiversCacheKey({
+      leagueId,
+      rosterId,
+      week,
+      faabBudget,
+    })
+
+    const inputParams = {
+      leagueId,
+      rosterId,
+      week,
+      faabBudget,
+    }
+
+    const computeWaivers = async (): Promise<WaiverOutput> => {
     let league
     try {
       league = await getCachedLeague(leagueId)
     } catch {
-      return { data: null, error: 'League not found' }
+      throw new Error('League not found')
     }
 
     if (!league) {
-      return { data: null, error: 'League not found' }
+      throw new Error('League not found')
     }
 
     const allRosters = await getCachedRosters(leagueId)
     const userRoster = allRosters.find((r) => r.roster_id === rosterId)
 
     if (!userRoster) {
-      return { data: null, error: 'Roster not found' }
+      throw new Error('Roster not found')
     }
 
     const supabase = await createClient()
@@ -146,11 +162,11 @@ export async function calculateWaiversForLeague(
 
      if (dbError) {
        logger.error('Waivers', 'Error fetching projections', { dbError })
-       return { data: null, error: 'Failed to fetch projections' }
+       throw new Error('Failed to fetch projections')
      }
 
     if (!dbPlayers || dbPlayers.length === 0) {
-      return { data: null, error: 'No projections available' }
+      throw new Error('No projections available')
     }
 
     const projectionsMap: Record<string, number> = {}
@@ -258,6 +274,18 @@ export async function calculateWaiversForLeague(
         `${Math.round(filteredPercentage)}% of free agents excluded due to missing projections`
       )
     }
+
+    return result
+    }
+
+    const result = await getOrComputeAlgorithm<WaiverOutput>(
+      'waivers',
+      cacheKey,
+      leagueId,
+      inputParams,
+      computeWaivers,
+      { skipCache, userId }
+    )
 
     return { data: result, error: null }
    } catch (error) {

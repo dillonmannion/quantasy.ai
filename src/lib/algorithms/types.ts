@@ -537,6 +537,12 @@ export interface CalculateWaiversForLeagueOptions {
     /** Remaining budget */
     remaining: number
   }
+
+  /** User ID for cache scoping */
+  userId?: string
+
+  /** Skip cache for live updates */
+  skipCache?: boolean
 }
 
 /**

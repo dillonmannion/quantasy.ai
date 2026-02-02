@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { getCachedLeague, getCachedRosters } from '@/lib/sleeper/cache'
 import { optimizeLineup } from './lineup'
+import { getOrComputeAlgorithm, generateLineupCacheKey } from './cache'
 import type {
   AlgorithmPlayer,
   LineupOutput,
@@ -24,6 +25,8 @@ export interface LineupForWeekOptions {
   leagueId: string
   rosterId: number
   week: number
+  userId?: string
+  skipCache?: boolean
 }
 
 function sleeperPlayerToAlgorithmPlayer(
@@ -80,7 +83,7 @@ function buildRosterSlots(rosterPositions: string[]): RosterSlot[] {
 export async function calculateLineupForWeek(
   options: LineupForWeekOptions
 ): Promise<{ data: LineupOutput | null; error: string | null }> {
-  const { leagueId, rosterId, week } = options
+  const { leagueId, rosterId, week, userId, skipCache } = options
 
   if (!leagueId || typeof rosterId !== 'number' || !week) {
     return { data: null, error: 'Invalid parameters: leagueId, rosterId, and week are required' }
@@ -91,29 +94,42 @@ export async function calculateLineupForWeek(
   }
 
   try {
+    const cacheKey = await generateLineupCacheKey({
+      leagueId,
+      rosterId,
+      week,
+    })
+
+    const inputParams = {
+      leagueId,
+      rosterId,
+      week,
+    }
+
+    const computeLineup = async (): Promise<LineupOutput> => {
     const supabase = await createClient()
 
     let league
     try {
       league = await getCachedLeague(leagueId)
     } catch {
-      return { data: null, error: 'League not found' }
+      throw new Error('League not found')
     }
 
     if (!league) {
-      return { data: null, error: 'League not found' }
+      throw new Error('League not found')
     }
 
     const rosters = await getCachedRosters(leagueId)
     const roster = rosters.find((r) => r.roster_id === rosterId)
 
     if (!roster) {
-      return { data: null, error: 'Roster not found' }
+      throw new Error('Roster not found')
     }
 
     const playerIds = roster.players || []
     if (playerIds.length === 0) {
-      return { data: null, error: 'Roster has no players' }
+      throw new Error('Roster has no players')
     }
 
     const { data: dbPlayers, error: dbError } = await supabase
@@ -123,11 +139,11 @@ export async function calculateLineupForWeek(
 
      if (dbError) {
        logger.error('Lineup', 'Error fetching players', { dbError })
-       return { data: null, error: 'Failed to fetch player data' }
+       throw new Error('Failed to fetch player data')
      }
 
     if (!dbPlayers || dbPlayers.length === 0) {
-      return { data: null, error: 'No player data available' }
+      throw new Error('No player data available')
     }
 
     const typedPlayers = dbPlayers as PlayerRow[]
@@ -151,6 +167,18 @@ export async function calculateLineupForWeek(
     }
 
     const result = optimizeLineup(lineupInput)
+
+    return result
+    }
+
+    const result = await getOrComputeAlgorithm<LineupOutput>(
+      'lineup',
+      cacheKey,
+      leagueId,
+      inputParams,
+      computeLineup,
+      { skipCache, userId }
+    )
 
     return { data: result, error: null }
    } catch (error) {

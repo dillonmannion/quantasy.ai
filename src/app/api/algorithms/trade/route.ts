@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { calculateTradeForLeague, type TradeOutput } from '@/lib/algorithms'
+import type { TradeableAsset } from '@/lib/algorithms/types'
 
 interface TradeRequest {
   leagueId: string
   rosterId: number
-  givingPlayerIds: string[]
-  receivingPlayerIds: string[]
+  givingPlayerIds?: string[] // Legacy
+  receivingPlayerIds?: string[] // Legacy
+  giving?: TradeableAsset[]
+  receiving?: TradeableAsset[]
   week: number
 }
 
@@ -23,7 +26,7 @@ export async function POST(
   }
 
   const body = (await request.json()) as TradeRequest
-  const { leagueId, rosterId, givingPlayerIds, receivingPlayerIds, week } = body
+  const { leagueId, rosterId, week } = body
 
   // Validate required parameters
   if (!leagueId || rosterId === undefined || !week) {
@@ -33,25 +36,28 @@ export async function POST(
     )
   }
 
-  // Validate player ID arrays
-  if (!givingPlayerIds || !receivingPlayerIds) {
+  // Normalize input to TradeableAsset[]
+  let giving: TradeableAsset[] = []
+  let receiving: TradeableAsset[] = []
+
+  if (body.giving && body.receiving) {
+    giving = body.giving
+    receiving = body.receiving
+  } else if (body.givingPlayerIds && body.receivingPlayerIds) {
+    // Backward compatibility - will be handled by calculateTradeForLeague if we pass legacy IDs
+    // But we prefer to normalize here if possible, or just pass everything to orchestrator
+  } else {
     return NextResponse.json(
-      { error: 'Missing required parameters: givingPlayerIds, receivingPlayerIds' },
+      { error: 'Missing required parameters: giving/receiving or givingPlayerIds/receivingPlayerIds' },
       { status: 400 }
     )
   }
 
-  if (!Array.isArray(givingPlayerIds) || !Array.isArray(receivingPlayerIds)) {
+  // Validate non-empty
+  if ((giving.length === 0 && (!body.givingPlayerIds || body.givingPlayerIds.length === 0)) ||
+      (receiving.length === 0 && (!body.receivingPlayerIds || body.receivingPlayerIds.length === 0))) {
     return NextResponse.json(
-      { error: 'givingPlayerIds and receivingPlayerIds must be arrays' },
-      { status: 400 }
-    )
-  }
-
-  // Validate non-empty arrays
-  if (givingPlayerIds.length === 0 || receivingPlayerIds.length === 0) {
-    return NextResponse.json(
-      { error: 'Trade must include at least one player on each side' },
+      { error: 'Trade must include at least one asset on each side' },
       { status: 400 }
     )
   }
@@ -60,9 +66,12 @@ export async function POST(
   const { data, error } = await calculateTradeForLeague({
     leagueId,
     rosterId,
-    givingPlayerIds,
-    receivingPlayerIds,
+    givingPlayerIds: body.givingPlayerIds || [],
+    receivingPlayerIds: body.receivingPlayerIds || [],
+    giving,
+    receiving,
     week,
+    userId: user.id,
   })
 
   // Return response

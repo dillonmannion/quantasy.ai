@@ -4,12 +4,15 @@ import { getCachedLeague, getCachedRosters } from '@/lib/sleeper/cache'
 import { getAllPlayers } from '@/lib/sleeper'
 import { evaluateTrade } from './trade'
 import { calculateBaseline } from './baselines'
+import { getOrComputeAlgorithm, generateTradeCacheKey } from './cache'
 import type {
   AlgorithmPlayer,
   PositionBaseline,
   Position,
   RosterSlot,
   TradeOutput,
+  TradeableAsset,
+  PlayerAsset,
 } from './types'
 import type { SleeperPlayer } from '@/lib/sleeper/types'
 
@@ -23,12 +26,13 @@ export interface CalculateTradeForLeagueOptions {
   rosterId: number
   givingPlayerIds: string[]
   receivingPlayerIds: string[]
+  giving?: TradeableAsset[]
+  receiving?: TradeableAsset[]
   week: number
+  userId?: string
+  skipCache?: boolean
 }
 
-/**
- * Converts a Sleeper player to platform-agnostic AlgorithmPlayer.
- */
 function sleeperPlayerToAlgorithmPlayer(
   player: SleeperPlayer,
   projectedPoints: number
@@ -42,7 +46,6 @@ function sleeperPlayerToAlgorithmPlayer(
     }
   }
 
-  // Fallback to primary position if no fantasy_positions
   if (eligiblePositions.length === 0 && isValidPosition(player.position)) {
     eligiblePositions.push(player.position as Position)
   }
@@ -56,13 +59,10 @@ function sleeperPlayerToAlgorithmPlayer(
     projectedPoints,
     injuryStatus: player.injury_status || null,
     status: player.status || null,
-    byeWeek: null, // No reliable bye week data source
+    byeWeek: null,
   }
 }
 
-/**
- * Type guard for valid Position values.
- */
 function isValidPosition(pos: string): boolean {
   const validPositions = [
     'QB',
@@ -83,23 +83,18 @@ function isValidPosition(pos: string): boolean {
   return validPositions.includes(pos)
 }
 
-/**
- * Converts roster_positions array to RosterSlot[] for lineup optimizer.
- */
 function rosterPositionsToSlots(rosterPositions: string[]): RosterSlot[] {
   const slots: RosterSlot[] = []
   let slotIndex = 0
 
   for (const pos of rosterPositions) {
     if (pos === 'BN') {
-      // Bench slot - allows all positions
       slots.push({
         slotId: `bench-${slotIndex}`,
         slotType: 'bench',
         allowedPositions: ['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'DL', 'LB', 'DB'],
       })
     } else if (isValidPosition(pos)) {
-      // Starter slot
       const allowedPositions = expandFlexPositions(pos as Position)
       slots.push({
         slotId: `starter-${slotIndex}`,
@@ -113,9 +108,6 @@ function rosterPositionsToSlots(rosterPositions: string[]): RosterSlot[] {
   return slots
 }
 
-/**
- * Expands FLEX positions to their eligible positions.
- */
 function expandFlexPositions(position: Position): Position[] {
   switch (position) {
     case 'FLEX':
@@ -133,37 +125,54 @@ function expandFlexPositions(position: Position): Position[] {
   }
 }
 
-/**
- * Orchestrates trade evaluation for a league.
- * Fetches league/roster/players, computes VBD baselines, normalizes data, and calls evaluateTrade().
- */
 export async function calculateTradeForLeague(
   options: CalculateTradeForLeagueOptions
 ): Promise<{ data: TradeOutput | null; error: string | null }> {
-  const { leagueId, rosterId, givingPlayerIds, receivingPlayerIds, week } = options
+  const { leagueId, rosterId, givingPlayerIds, receivingPlayerIds, week, giving, receiving, userId, skipCache } = options
 
   try {
-    // Step 1: Fetch league settings
+    const givingIds = giving && giving.length > 0
+      ? giving.filter(a => a.type === 'player').map(a => (a as PlayerAsset).playerId)
+      : givingPlayerIds
+    const receivingIds = receiving && receiving.length > 0
+      ? receiving.filter(a => a.type === 'player').map(a => (a as PlayerAsset).playerId)
+      : receivingPlayerIds
+
+    const cacheKey = await generateTradeCacheKey({
+      leagueId,
+      rosterId,
+      week,
+      givingIds,
+      receivingIds,
+    })
+
+    const inputParams = {
+      leagueId,
+      rosterId,
+      week,
+      givingIds,
+      receivingIds,
+    }
+
+    const computeTrade = async (): Promise<TradeOutput> => {
     let league
     try {
       league = await getCachedLeague(leagueId)
     } catch {
-      return { data: null, error: 'League not found' }
+      throw new Error('League not found')
     }
 
     if (!league) {
-      return { data: null, error: 'League not found' }
+      throw new Error('League not found')
     }
 
-    // Step 2: Fetch current roster
     const rosters = await getCachedRosters(leagueId)
     const currentRoster = rosters.find((r) => r.roster_id === rosterId)
 
     if (!currentRoster) {
-      return { data: null, error: 'Roster not found' }
+      throw new Error('Roster not found')
     }
 
-    // Step 3: Fetch ALL players with projections (needed for baseline calculation)
     const supabase = await createClient()
     const allPlayersObj = await getAllPlayers()
     const allPlayersArray = Object.values(allPlayersObj)
@@ -175,14 +184,13 @@ export async function calculateTradeForLeague(
 
      if (dbError) {
        logger.error('Trade', 'Error fetching projections', { dbError })
-       return { data: null, error: 'Failed to fetch projections' }
+       throw new Error('Failed to fetch projections')
      }
 
     if (!dbPlayers || dbPlayers.length === 0) {
-      return { data: null, error: 'No projections available' }
+      throw new Error('No projections available')
     }
 
-    // Build projections map
     const projectionsMap: Record<string, number> = {}
     dbPlayers.forEach((player: PlayerProjection) => {
       if (player.projected_points !== null) {
@@ -195,14 +203,12 @@ export async function calculateTradeForLeague(
     )
 
     if (playersWithProjections.length === 0) {
-      return { data: null, error: 'No projections available' }
+      throw new Error('No projections available')
     }
 
-    // Step 4: Compute VBD baselines from FULL player pool
     const rosterPositions = (league.roster_positions ?? []) as string[]
     const leagueSize = league.total_rosters || 12
 
-    // Count starters per position
     const starterCounts: Record<string, number> = {}
     for (const pos of rosterPositions) {
       if (pos !== 'BN' && isValidPosition(pos)) {
@@ -210,7 +216,6 @@ export async function calculateTradeForLeague(
       }
     }
 
-    // Calculate baselines for each position
     const baselines: Record<string, PositionBaseline> = {}
     const positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'DL', 'LB', 'DB'] as Position[]
 
@@ -218,10 +223,8 @@ export async function calculateTradeForLeague(
       const starters = starterCounts[position] || 0
       if (starters === 0) continue
 
-      // Filter players by position
       const positionPlayers = playersWithProjections.filter((p) => p.position === position)
 
-      // Add projected_points to metadata for calculateBaseline
       const playersWithMetadata = positionPlayers.map((p) => ({
         player_id: p.player_id,
         full_name: p.full_name,
@@ -243,26 +246,69 @@ export async function calculateTradeForLeague(
       }
     }
 
-    // Step 5: Normalize players to AlgorithmPlayer[]
-    const givingPlayers: AlgorithmPlayer[] = []
-    for (const playerId of givingPlayerIds) {
-      const player = allPlayersArray.find((p) => p.player_id === playerId)
-      const projectedPoints = projectionsMap[playerId]
-      if (player && projectedPoints !== undefined) {
-        givingPlayers.push(sleeperPlayerToAlgorithmPlayer(player, projectedPoints))
-      }
+    // Normalize giving/receiving assets
+    // If 'giving' is provided (TradeInputV2), assume it contains partial data that needs augmentation (e.g. projections)
+    // If not, assume legacy 'givingPlayerIds'
+    
+    let finalGiving: TradeableAsset[] = []
+    let finalReceiving: TradeableAsset[] = []
+
+    if (giving && giving.length > 0) {
+       // We have TradeInputV2 assets.
+       // For players, we need to ensure they have projected points from our DB source (overriding client if needed/safer)
+       // For picks, we pass them through (their value is calculated in evaluateTrade)
+       finalGiving = giving.map(asset => {
+          if (asset.type === 'player') {
+             const proj = projectionsMap[asset.playerId] || asset.projectedPoints
+             // Re-construct full player asset if possible or just update projection
+             return { ...asset, projectedPoints: proj }
+          }
+          return asset
+       })
+    } else {
+       // Legacy path
+       for (const playerId of givingPlayerIds) {
+         const player = allPlayersArray.find((p) => p.player_id === playerId)
+         const projectedPoints = projectionsMap[playerId]
+         if (player && projectedPoints !== undefined) {
+           const algoPlayer = sleeperPlayerToAlgorithmPlayer(player, projectedPoints)
+           finalGiving.push({
+             type: 'player',
+             playerId: algoPlayer.playerId,
+             fullName: algoPlayer.fullName,
+             position: algoPlayer.position,
+             projectedPoints: algoPlayer.projectedPoints
+           })
+         }
+       }
     }
 
-    const receivingPlayers: AlgorithmPlayer[] = []
-    for (const playerId of receivingPlayerIds) {
-      const player = allPlayersArray.find((p) => p.player_id === playerId)
-      const projectedPoints = projectionsMap[playerId]
-      if (player && projectedPoints !== undefined) {
-        receivingPlayers.push(sleeperPlayerToAlgorithmPlayer(player, projectedPoints))
-      }
+    if (receiving && receiving.length > 0) {
+       finalReceiving = receiving.map(asset => {
+          if (asset.type === 'player') {
+             const proj = projectionsMap[asset.playerId] || asset.projectedPoints
+             return { ...asset, projectedPoints: proj }
+          }
+          return asset
+       })
+    } else {
+       // Legacy path
+       for (const playerId of receivingPlayerIds) {
+         const player = allPlayersArray.find((p) => p.player_id === playerId)
+         const projectedPoints = projectionsMap[playerId]
+         if (player && projectedPoints !== undefined) {
+            const algoPlayer = sleeperPlayerToAlgorithmPlayer(player, projectedPoints)
+            finalReceiving.push({
+              type: 'player',
+              playerId: algoPlayer.playerId,
+              fullName: algoPlayer.fullName,
+              position: algoPlayer.position,
+              projectedPoints: algoPlayer.projectedPoints
+            })
+         }
+       }
     }
 
-    // Normalize current roster
     const currentRosterPlayers: AlgorithmPlayer[] = []
     const rosterPlayerIds = currentRoster.players || []
     for (const playerId of rosterPlayerIds) {
@@ -273,13 +319,11 @@ export async function calculateTradeForLeague(
       }
     }
 
-    // Convert roster_positions to RosterSlot[]
     const rosterSlots = rosterPositionsToSlots(rosterPositions)
 
-    // Step 6: Call pure algorithm
     const result = evaluateTrade({
-      giving: givingPlayers,
-      receiving: receivingPlayers,
+      giving: finalGiving,
+      receiving: finalReceiving,
       currentRoster: currentRosterPlayers,
       leagueSettings: {
         baselines: baselines as Record<Position, PositionBaseline>,
@@ -288,7 +332,18 @@ export async function calculateTradeForLeague(
       week,
     })
 
-    // Step 7: Return result
+    return result
+    }
+
+    const result = await getOrComputeAlgorithm<TradeOutput>(
+      'trade',
+      cacheKey,
+      leagueId,
+      inputParams,
+      computeTrade,
+      { skipCache, userId }
+    )
+
     return { data: result, error: null }
    } catch (error) {
      logger.error('Trade', 'Unexpected error', { error })

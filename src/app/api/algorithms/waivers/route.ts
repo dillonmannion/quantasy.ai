@@ -108,6 +108,7 @@ export async function POST(
     rosterId,
     week,
     faabBudget,
+    userId: user.id,
   })
 
   // Return response

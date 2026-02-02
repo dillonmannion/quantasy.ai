@@ -45,6 +45,7 @@ export async function POST(
     leagueId,
     rosterId,
     week,
+    userId: user.id,
   })
 
   if (error) {
