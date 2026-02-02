@@ -27,15 +27,15 @@ describe('Player ID Mapping', () => {
 
     vi.stubGlobal('fetch', vi.fn())
 
-    const module = await import('@/lib/external/player-id-mapping')
-    getKTCIdFromSleeper = module.getKTCIdFromSleeper
-    getSleeperIdFromKTC = module.getSleeperIdFromKTC
-    getFantasyProsIdFromSleeper = module.getFantasyProsIdFromSleeper
-    getESPNIdFromSleeper = module.getESPNIdFromSleeper
-    getPlayerIdMapping = module.getPlayerIdMapping
-    getPlayerIdMappingsBatch = module.getPlayerIdMappingsBatch
-    clearPlayerIdMappingCache = module.clearPlayerIdMappingCache
-    getPlayerIdMappingCacheStatus = module.getPlayerIdMappingCacheStatus
+    const mod = await import('@/lib/external/player-id-mapping')
+    getKTCIdFromSleeper = mod.getKTCIdFromSleeper
+    getSleeperIdFromKTC = mod.getSleeperIdFromKTC
+    getFantasyProsIdFromSleeper = mod.getFantasyProsIdFromSleeper
+    getESPNIdFromSleeper = mod.getESPNIdFromSleeper
+    getPlayerIdMapping = mod.getPlayerIdMapping
+    getPlayerIdMappingsBatch = mod.getPlayerIdMappingsBatch
+    clearPlayerIdMappingCache = mod.clearPlayerIdMappingCache
+    getPlayerIdMappingCacheStatus = mod.getPlayerIdMappingCacheStatus
 
     clearPlayerIdMappingCache()
   })

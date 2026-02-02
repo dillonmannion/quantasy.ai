@@ -41,10 +41,10 @@ describe('FantasyCalc Player Value Scraper', () => {
     // @ts-expect-error - Dynamic import of mocked module
     playwrightMock = await import('playwright')
 
-    const module = await import('@/lib/external/fantasy-calc-players')
-    fetchFantasyCalcPlayerValues = module.fetchFantasyCalcPlayerValues
-    clearFantasyCalcPlayerCache = module.clearFantasyCalcPlayerCache
-    getFantasyCalcPlayerCacheStatus = module.getFantasyCalcPlayerCacheStatus
+    const mod = await import('@/lib/external/fantasy-calc-players')
+    fetchFantasyCalcPlayerValues = mod.fetchFantasyCalcPlayerValues
+    clearFantasyCalcPlayerCache = mod.clearFantasyCalcPlayerCache
+    getFantasyCalcPlayerCacheStatus = mod.getFantasyCalcPlayerCacheStatus
 
     clearFantasyCalcPlayerCache()
   })
