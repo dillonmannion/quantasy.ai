@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { TradePartnerFinder } from '@/components/trade'
+import { TradePartnerFinder, TradeExplanation } from '@/components/trade'
 import { useAuth } from '@/components/providers/auth-provider'
 import { unlockAchievement } from '@/lib/gamification'
 import type { Database } from '@/lib/supabase/types'
@@ -169,6 +169,34 @@ export function TradeClient({
               </span>
             </div>
             
+            {tradeResult?.explanation?.playerBreakdown && (
+              <TradeExplanation
+                youGive={tradeResult.explanation.playerBreakdown
+                  .filter((p) => p.isGiving)
+                  .map(
+                    (p) =>
+                      ({
+                        id: p.playerId,
+                        full_name: p.name,
+                        position: p.position,
+                        projected_points: p.vbdValue,
+                      } as unknown as PlayerRow)
+                  )}
+                youReceive={tradeResult.explanation.playerBreakdown
+                  .filter((p) => !p.isGiving)
+                  .map(
+                    (p) =>
+                      ({
+                        id: p.playerId,
+                        full_name: p.name,
+                        position: p.position,
+                        projected_points: p.vbdValue,
+                      } as unknown as PlayerRow)
+                  )}
+                playerBreakdown={tradeResult.explanation.playerBreakdown}
+              />
+            )}
+
             <div className="space-y-2">
               <h4 className="text-sm font-semibold">Methodology</h4>
               <p className="text-xs text-muted-foreground whitespace-pre-wrap">
