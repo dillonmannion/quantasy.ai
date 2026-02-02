@@ -74,8 +74,11 @@ function mapFantasyCalcToInternal(pick: FantasyCalcPickRaw): FuturePickValue | n
   }
 }
 
+// @ts-expect-error - Playwright is optional devDependency for browser scraping
 async function getPlaywright(): Promise<typeof import('playwright') | null> {
   try {
+    // Playwright is an optional devDependency for browser scraping
+    // @ts-expect-error - Dynamic import of optional dependency
     const playwright = await import('playwright')
     return playwright
   } catch {

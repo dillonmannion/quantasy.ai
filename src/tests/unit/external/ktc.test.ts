@@ -26,20 +26,23 @@ vi.mock('playwright', () => ({
 }))
 
 describe('KTC Pick Value Scraper', () => {
-  let scrapeKTCPickValues: typeof import('@/lib/external/ktc').scrapeKTCPickValues
-  let clearKTCCache: typeof import('@/lib/external/ktc').clearKTCCache
-  let getKTCCacheStatus: typeof import('@/lib/external/ktc').getKTCCacheStatus
-  let playwrightMock: typeof import('playwright')
+   let scrapeKTCPickValues: typeof import('@/lib/external/ktc').scrapeKTCPickValues
+   let clearKTCCache: typeof import('@/lib/external/ktc').clearKTCCache
+   let getKTCCacheStatus: typeof import('@/lib/external/ktc').getKTCCacheStatus
+   // @ts-expect-error - Playwright is optional devDependency, mocked in tests
+   let playwrightMock: typeof import('playwright')
 
-  beforeEach(async () => {
-    vi.clearAllMocks()
-    vi.resetModules()
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-01-31T12:00:00Z'))
+   beforeEach(async () => {
+     vi.clearAllMocks()
+     vi.resetModules()
+     vi.useFakeTimers()
+     vi.setSystemTime(new Date('2026-01-31T12:00:00Z'))
 
-    playwrightMock = await import('playwright')
+      // Playwright is mocked via vi.mock() above
+      // @ts-expect-error - Dynamic import of mocked module
+      playwrightMock = await import('playwright')
 
-    const ktc = await import('@/lib/external/ktc')
+      const ktc = await import('@/lib/external/ktc')
     scrapeKTCPickValues = ktc.scrapeKTCPickValues
     clearKTCCache = ktc.clearKTCCache
     getKTCCacheStatus = ktc.getKTCCacheStatus
