@@ -7,10 +7,21 @@ export {
 } from './dynasty-process-players'
 export { scrapeKTCPickValues, clearKTCCache, getKTCCacheStatus } from './ktc'
 export {
+  fetchKTCPlayerValues,
+  clearKTCPlayerCache,
+  getKTCPlayerCacheStatus,
+  resetKTCPlayerRateLimiter,
+} from './ktc-players'
+export {
   scrapeFantasyCalcPickValues,
   clearFantasyCalcCache,
   getFantasyCalcCacheStatus,
 } from './fantasy-calc'
+export {
+  fetchFantasyCalcPlayerValues,
+  clearFantasyCalcPlayerCache,
+  getFantasyCalcPlayerCacheStatus,
+} from './fantasy-calc-players'
 export {
   getKTCIdFromSleeper,
   getSleeperIdFromKTC,
