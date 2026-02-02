@@ -83,3 +83,8 @@ export { AGE_CURVES, getAgeFactor, getYearsToCliff } from './age-curves'
 
 export type { DraftPick } from './draft-picks'
 export { getDraftPickValue, compareDraftPicks } from './draft-picks'
+
+export { calculateRosterStrength, calculateCompatibilityScore } from './roster-strength'
+
+export type { FindTradePartnersOptions, FindTradePartnersResult } from './trade-partners'
+export { findTradePartners } from './trade-partners'
