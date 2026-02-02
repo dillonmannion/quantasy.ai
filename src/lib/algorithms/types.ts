@@ -357,6 +357,11 @@ export interface TradePlayerBreakdown {
   position: Position
   vbdValue: number
   isGiving: boolean
+  valueBreakdown?: {
+    source: 'VBD' | 'KTC' | 'FantasyCalc'
+    value: number
+    methodology?: string
+  }
 }
 
 /**
@@ -411,6 +416,48 @@ export interface TradeOutput {
   receivingValue: number
   verdict: TradeVerdict
   explanation: TradeExplanation
+}
+
+/**
+ * Roster strength analysis for trade partner matching.
+ * Evaluates positional depth and value distribution.
+ */
+export interface RosterStrength {
+  /** Total VBD value across entire roster */
+  totalVBD: number
+
+  /** VBD value breakdown by position (QB, RB, WR, TE, FLEX) */
+  byPosition: Record<string, number>
+
+  /** Positions where VBD is above average (surplus) */
+  surplus: string[]
+
+  /** Positions where VBD is below average (needs) */
+  needs: string[]
+}
+
+/**
+ * Trade partner match result from finder algorithm.
+ * Identifies compatible trade partners based on roster strength.
+ */
+export interface TradePartnerMatch {
+  /** Sleeper roster ID of potential trade partner */
+  rosterId: string
+
+  /** Owner name of trade partner */
+  ownerName: string
+
+  /** Compatibility score (0-100) indicating trade fit */
+  compatibilityScore: number
+
+  /** Current user's roster strength analysis */
+  myStrength: RosterStrength
+
+  /** Trade partner's roster strength analysis */
+  theirStrength: RosterStrength
+
+  /** Suggested positions to trade with this partner */
+  suggestedPositions: string[]
 }
 
 /**
@@ -543,6 +590,39 @@ export interface CalculateWaiversForLeagueOptions {
 
   /** Skip cache for live updates */
   skipCache?: boolean
+}
+
+/**
+ * Waiver bid history tracking for bid recommendations.
+ * Records recommended vs actual bids and outcomes.
+ */
+export interface WaiverBidHistory {
+  /** Unique bid history record ID */
+  id: string
+
+  /** User ID who placed the bid */
+  userId: string
+
+  /** League ID where bid was placed */
+  leagueId: string
+
+  /** NFL week of the bid */
+  week: number
+
+  /** Sleeper player ID that was bid on */
+  playerId: string
+
+  /** Recommended bid amount from algorithm */
+  recommendedBid: number
+
+  /** Actual bid amount placed by user */
+  actualBid: number
+
+  /** Whether the bid won the waiver claim */
+  won: boolean
+
+  /** ISO timestamp when bid was created */
+  createdAt: string
 }
 
 /**
