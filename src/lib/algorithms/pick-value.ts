@@ -127,10 +127,31 @@ function buildEmptyOutput(): PickValueOutput {
   }
 }
 
+/**
+ * Calculate the expected value of a draft pick based on VBD of likely-available players.
+ * 
+ * Uses Monte Carlo estimation to weight players by selection probability at the pick position.
+ * Applies league format adjustments (Superflex, TE-Premium) and optional fairness bias.
+ * 
+ * @param input - Pick valuation parameters including draft state, players, projections
+ * @returns Pick value (0-100 scale) with breakdown of expected players and positional values
+ * 
+ * @example
+ * const output = calculatePickValue({
+ *   pickNumber: 5,
+ *   remainingPlayers: [...],
+ *   draftedPlayerIds: new Set([...]),
+ *   leagueSettings: { teams: 12, rosterPositions: [...] },
+ *   scoringFormat: 'ppr',
+ *   projections: { 'player_id': 280.5 },
+ *   biasFactor: 0.1
+ * })
+ * // Returns: { value: 75.3, breakdown: {...}, explanation: {...} }
+ */
 export function calculatePickValue(input: PickValueInput): PickValueOutput {
-  const remainingPlayers = input.remainingPlayers.filter(
-    (player) => !input.draftedPlayerIds.has(player.player_id)
-  )
+   const remainingPlayers = input.remainingPlayers.filter(
+     (player) => !input.draftedPlayerIds.has(player.player_id)
+   )
 
   const vbdOutput = calculateVBD({
     players: remainingPlayers,

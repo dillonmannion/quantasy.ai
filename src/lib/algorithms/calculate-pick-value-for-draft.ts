@@ -19,12 +19,31 @@ export interface CalculatePickValueForDraftOptions {
   allPicks?: boolean
 }
 
+/**
+ * Calculate pick values for a Sleeper draft, fetching all necessary data from Sleeper API and Supabase.
+ * 
+ * Orchestrates data collection (draft metadata, league settings, players, projections) and calls
+ * `calculatePickValue()` for one or all picks. Results are cached with 1-hour TTL.
+ * 
+ * @param draftId - Sleeper draft ID
+ * @param pickNumber - Specific pick number to calculate (required if allPicks is false)
+ * @param allPicks - If true, calculate values for all picks in the draft; if false, calculate single pick
+ * @returns Single PickValueOutput or array of PickValueOutput[] depending on allPicks parameter
+ * @throws Error if draft not found, league not found, or projections unavailable
+ * 
+ * @example
+ * // Calculate single pick
+ * const pickValue = await calculatePickValueForDraft('draft_123', 5, false)
+ * 
+ * // Calculate all picks
+ * const allValues = await calculatePickValueForDraft('draft_123', undefined, true)
+ */
 export async function calculatePickValueForDraft(
-  draftId: string,
-  pickNumber?: number,
-  allPicks?: boolean
+   draftId: string,
+   pickNumber?: number,
+   allPicks?: boolean
 ): Promise<PickValueOutput | PickValueOutput[]> {
-  try {
+   try {
     // Fetch draft metadata
     let draft: SleeperDraft
     try {
