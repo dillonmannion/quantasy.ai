@@ -17,6 +17,8 @@ class AIRateLimiter {
     this.timestamps = this.timestamps.filter(
       (t) => now - t < AI_RATE_LIMIT.windowMs
     )
+    // Cap array size to prevent memory leak
+    this.timestamps = this.timestamps.slice(-AI_RATE_LIMIT.maxPerMinute)
 
     if (this.timestamps.length >= AI_RATE_LIMIT.maxPerMinute) {
       const oldestInWindow = this.timestamps[0]
