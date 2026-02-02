@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useReducer, useEffect, useMemo, type ReactNode } from 'react'
 import type { DraftState, DraftAction, DraftPick } from './types'
 
 const DraftContext = createContext<{
@@ -118,28 +118,30 @@ export function DraftStateProvider({
     }
   }, [state.picks, state.draftedPlayerIds, state.currentPick, status])
 
-  useEffect(() => {
-    if (status === 'mock') {
-      const saved = localStorage.getItem('mock-draft-state')
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved)
-          dispatch({
-            type: 'SYNC_PICKS',
-            picks: parsed.picks || []
-          })
-        } catch (e) {
-          console.error('Failed to load mock draft state:', e)
-        }
-      }
-    }
-  }, [status])
+   useEffect(() => {
+     if (status === 'mock') {
+       const saved = localStorage.getItem('mock-draft-state')
+       if (saved) {
+         try {
+           const parsed = JSON.parse(saved)
+           dispatch({
+             type: 'SYNC_PICKS',
+             picks: parsed.picks || []
+           })
+         } catch (e) {
+           console.error('Failed to load mock draft state:', e)
+         }
+       }
+     }
+   }, [status])
 
-  return (
-    <DraftContext.Provider value={{ state, dispatch }}>
-      {children}
-    </DraftContext.Provider>
-  )
+   const contextValue = useMemo(() => ({ state, dispatch }), [state, dispatch])
+
+   return (
+     <DraftContext.Provider value={contextValue}>
+       {children}
+     </DraftContext.Provider>
+   )
 }
 
 export function useDraftState() {
