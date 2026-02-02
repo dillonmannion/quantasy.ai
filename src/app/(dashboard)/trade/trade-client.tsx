@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { TradePartnerFinder, TradeExplanation } from '@/components/trade'
+import { TradePartnerFinder, TradeExplanation, FormatToggle } from '@/components/trade'
 import { useAuth } from '@/components/providers/auth-provider'
 import { unlockAchievement } from '@/lib/gamification'
 import type { Database } from '@/lib/supabase/types'
@@ -30,16 +30,19 @@ interface TradeClientProps {
   rosterId: number
   defaultWeek: number
   initialPlayers: PlayerRow[]
+  initialFormat?: 'dynasty' | 'redraft'
 }
 
 export function TradeClient({
   leagueId,
   rosterId,
   defaultWeek,
-  initialPlayers
+  initialPlayers,
+  initialFormat = 'dynasty'
 }: TradeClientProps) {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('builder')
+  const [format, setFormat] = useState<'dynasty' | 'redraft'>(initialFormat)
   const [initialReceiveAssets, setInitialReceiveAssets] = useState<TradeableAsset[]>([])
   const [builderKey, setBuilderKey] = useState(0)
   
@@ -86,7 +89,8 @@ export function TradeClient({
           giving: youGive,
           receiving: youReceive,
           biasFactor,
-          week: defaultWeek
+          week: defaultWeek,
+          format
         })
       })
 
@@ -113,6 +117,11 @@ export function TradeClient({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Trade</h2>
+        <FormatToggle value={format} onChange={setFormat} />
+      </div>
+
       {error && (
         <Alert variant="destructive" aria-live="polite">
           <AlertCircle className="h-4 w-4" />

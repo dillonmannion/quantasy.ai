@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PageContainer } from '@/components/layout/page-container'
-import { getNFLState } from '@/lib/sleeper'
+import { getNFLState, getCachedLeague } from '@/lib/sleeper'
 import { TradeClient } from './trade-client'
 import type { Database } from '@/lib/supabase/types'
 
@@ -27,8 +27,13 @@ export default async function TradePage() {
   
   const { league_id: leagueId, roster_id: rosterId } = userLeagues[0]
   
-  const nflState = await getNFLState()
+  const [nflState, league] = await Promise.all([
+    getNFLState(),
+    getCachedLeague(leagueId)
+  ])
+
   const currentWeek = nflState.week || 1
+  const initialFormat = league?.settings?.type === 2 ? 'dynasty' : 'redraft'
   
   const { data: players } = await supabase
     .from('players')
@@ -43,6 +48,7 @@ export default async function TradePage() {
         rosterId={rosterId || 0}
         defaultWeek={currentWeek}
         initialPlayers={allPlayers}
+        initialFormat={initialFormat}
       />
     </PageContainer>
   )
