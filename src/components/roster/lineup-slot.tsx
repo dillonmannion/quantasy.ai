@@ -1,6 +1,7 @@
 'use client'
 
 import { Card } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import type { AlgorithmPlayer } from '@/lib/algorithms/types'
 
@@ -69,9 +70,11 @@ export function LineupSlot({
           )}
         </div>
       ) : (
-        <div className="text-xs text-muted-foreground italic py-2">
-          Empty slot
-        </div>
+        <EmptyState
+          variant="minimal"
+          title="Empty slot"
+          className="py-2"
+        />
       )}
     </Card>
   )

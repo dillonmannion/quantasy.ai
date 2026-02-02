@@ -4,6 +4,74 @@ This directory contains shadcn/ui components and custom wrappers for consistent 
 
 ## Canonical Components
 
+### EmptyState (Empty States)
+
+**EmptyState is the CANONICAL component for empty state display** across the application.
+
+#### Variants
+
+- **minimal**: Just text (for inline empty states like LineupSlot)
+- **card**: Card with optional icon + text + optional CTA (for contained sections)
+- **full-page**: Large icon + text + primary CTA (for full-page empty states)
+
+#### Usage
+
+For inline empty states:
+
+```tsx
+import { EmptyState } from '@/components/ui/empty-state'
+
+<EmptyState
+  variant="minimal"
+  title="Empty slot"
+/>
+```
+
+For card-based empty states:
+
+```tsx
+<EmptyState
+  variant="card"
+  icon={Trophy}
+  title="No leagues connected"
+  description="Connect your Sleeper fantasy league to get started"
+  action={{
+    label: "Connect League",
+    href: "/connect"
+  }}
+/>
+```
+
+For full-page empty states:
+
+```tsx
+<EmptyState
+  variant="full-page"
+  icon={Trophy}
+  title="No leagues connected"
+  description="Connect your Sleeper fantasy league to unlock powerful analysis tools"
+  action={{
+    label: "Connect Your League",
+    href: "/connect"
+  }}
+/>
+```
+
+#### Props
+
+- `variant`: 'minimal' | 'card' | 'full-page' (default: 'card')
+- `icon`: LucideIcon component (optional)
+- `title`: string (required)
+- `description`: string (optional)
+- `action`: { label: string; onClick?: () => void; href?: string } (optional)
+- `className`: string (optional, for additional styling)
+
+#### Styling
+
+- **Minimal**: Hidden icon, small text, minimal spacing
+- **Card**: Wrapped in Card component, medium icon, centered text
+- **Full-page**: Large icon, large text, primary button CTA
+
 ### Alert (Error Display)
 
 **Alert is the CANONICAL component for error display** across the application.
