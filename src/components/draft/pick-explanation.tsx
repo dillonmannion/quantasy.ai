@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { motion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -26,7 +26,7 @@ const positionColors: Record<string, string> = {
   DEF: 'text-orange-400 bg-orange-400/20',
 }
 
-export function PickExplanation({
+export const PickExplanation = memo(function PickExplanation({
   pickValue,
   pickNumber,
   className,
@@ -235,4 +235,4 @@ export function PickExplanation({
       </motion.div>
     </div>
   )
-}
+})

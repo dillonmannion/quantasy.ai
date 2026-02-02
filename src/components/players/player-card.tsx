@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { Database } from '@/lib/supabase/types'
 import { cn } from '@/lib/utils'
 
@@ -91,7 +92,7 @@ function PositionBadge({ position }: { position: string | null }) {
   )
 }
 
-export function PlayerCard({
+export const PlayerCard = memo(function PlayerCard({
   player,
   variant = 'default',
   showStats = false,
@@ -214,6 +215,6 @@ export function PlayerCard({
       )}
     </div>
   )
-}
+})
 
 export { PlayerAvatar, InjuryBadge, PositionBadge }
