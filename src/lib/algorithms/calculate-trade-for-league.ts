@@ -41,6 +41,7 @@ export interface CalculateTradeForLeagueOptions {
   week: number
   userId?: string
   skipCache?: boolean
+  format?: 'dynasty' | 'redraft'
 }
 
 function sleeperPlayerToAlgorithmPlayer(
@@ -185,7 +186,8 @@ async function fetchAllExternalValues(): Promise<{
 function buildExternalValuesBreakdown(
   playerId: string,
   normalizedByPlayer: Record<string, NormalizedValue[]>,
-  originalValuesByPlayer: Record<string, ExternalPlayerValue[]>
+  originalValuesByPlayer: Record<string, ExternalPlayerValue[]>,
+  format: 'dynasty' | 'redraft' = 'dynasty'
 ): {
   consensus?: number
   sources?: Array<{
@@ -206,7 +208,10 @@ function buildExternalValuesBreakdown(
   const sources = playerNormalized
     .map((nv) => {
       const originalValue = playerOriginals?.find((v) => v.source === nv.source)
-      const value = originalValue?.dynasty_value ?? originalValue?.redraft_value ?? 0
+      const value = format === 'redraft'
+        ? (originalValue?.redraft_value ?? 0)
+        : (originalValue?.dynasty_value ?? 0)
+
       return {
         source: nv.source,
         value,
@@ -224,7 +229,7 @@ function buildExternalValuesBreakdown(
 export async function calculateTradeForLeague(
   options: CalculateTradeForLeagueOptions
 ): Promise<{ data: TradeOutput | null; error: string | null }> {
-  const { leagueId, rosterId, givingPlayerIds, receivingPlayerIds, week, giving, receiving, userId, skipCache } = options
+  const { leagueId, rosterId, givingPlayerIds, receivingPlayerIds, week, giving, receiving, userId, skipCache, format = 'dynasty' } = options
 
   try {
     const givingIds = giving && giving.length > 0
@@ -240,6 +245,7 @@ export async function calculateTradeForLeague(
       week,
       givingIds,
       receivingIds,
+      format,
     })
 
     const inputParams = {
@@ -248,6 +254,7 @@ export async function calculateTradeForLeague(
       week,
       givingIds,
       receivingIds,
+      format,
     }
 
     const computeTrade = async (): Promise<TradeOutput> => {
@@ -343,7 +350,7 @@ export async function calculateTradeForLeague(
     }
 
     const { combinedValues, originalValuesByPlayer } = await fetchAllExternalValues()
-    const normalizedByPlayer = normalizeValues(combinedValues)
+    const normalizedByPlayer = normalizeValues(combinedValues, format)
 
     if (combinedValues.length > 0) {
       const dbInsertValues = combinedValues.map((v) => ({
@@ -447,7 +454,8 @@ export async function calculateTradeForLeague(
       const externalValues = buildExternalValuesBreakdown(
         breakdown.playerId,
         normalizedByPlayer,
-        originalValuesByPlayer
+        originalValuesByPlayer,
+        format
       )
       if (externalValues) {
         breakdown.externalValues = externalValues

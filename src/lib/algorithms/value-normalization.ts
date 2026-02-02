@@ -2,8 +2,8 @@ import type { ExternalPlayerValue, NormalizedValue, ExternalValueSource } from '
 
 type SourceStats = { mean: number; stddev: number }
 
-function getPreferredValue(value: ExternalPlayerValue): number | null {
-  const candidate = value.dynasty_value ?? value.redraft_value
+function getPreferredValue(value: ExternalPlayerValue, format: 'dynasty' | 'redraft'): number | null {
+  const candidate = format === 'redraft' ? value.redraft_value : value.dynasty_value
   if (typeof candidate !== 'number' || !Number.isFinite(candidate)) {
     return null
   }
@@ -32,7 +32,8 @@ export function calculateZScore(value: number, mean: number, stddev: number): nu
 }
 
 export function normalizeValues(
-  values: ExternalPlayerValue[]
+  values: ExternalPlayerValue[],
+  format: 'dynasty' | 'redraft' = 'dynasty'
 ): Record<string, NormalizedValue[]> {
   if (!values || values.length === 0) {
     return {}
@@ -47,7 +48,7 @@ export function normalizeValues(
     }
     valuesByPlayer[value.playerId].push(value)
 
-    const numericValue = getPreferredValue(value)
+    const numericValue = getPreferredValue(value, format)
     if (numericValue === null) continue
     if (!valuesBySource[value.source]) {
       valuesBySource[value.source] = []
@@ -66,7 +67,7 @@ export function normalizeValues(
   Object.entries(valuesByPlayer).forEach(([playerId, playerValues]) => {
     const normalizedValues: NormalizedValue[] = []
     for (const playerValue of playerValues) {
-      const numericValue = getPreferredValue(playerValue)
+      const numericValue = getPreferredValue(playerValue, format)
       if (numericValue === null) continue
       const stats = statsBySource[playerValue.source] as SourceStats
       const zScore = calculateZScore(numericValue, stats.mean, stats.stddev)

@@ -31,6 +31,7 @@ export interface TradeCacheParams {
   week: number
   givingIds: string[]
   receivingIds: string[]
+  format?: 'dynasty' | 'redraft'
 }
 
 export interface WaiversCacheParams {
@@ -136,8 +137,9 @@ export async function generateTradeCacheKey(params: TradeCacheParams): Promise<s
   const version = await getProjectionVersion()
   const sortedGivingIds = [...params.givingIds].sort().join(',')
   const sortedReceivingIds = [...params.receivingIds].sort().join(',')
+  const format = params.format || 'dynasty'
 
-  return `trade:${params.leagueId}:${params.rosterId}:${params.week}:${sortedGivingIds}:${sortedReceivingIds}:${version}`
+  return `trade:${params.leagueId}:${params.rosterId}:${params.week}:${sortedGivingIds}:${sortedReceivingIds}:${format}:${version}`
 }
 
 export async function generateWaiversCacheKey(params: WaiversCacheParams): Promise<string> {
