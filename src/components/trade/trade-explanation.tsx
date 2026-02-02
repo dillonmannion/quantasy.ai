@@ -4,6 +4,7 @@ import { memo, useState } from 'react'
 import { motion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
 import type { Database } from '@/lib/supabase/types'
+import type { TradePlayerBreakdown } from '@/lib/algorithms/types'
 import { cn } from '@/lib/utils'
 import {
   Collapsible,
@@ -18,6 +19,7 @@ interface TradeExplanationProps {
   youReceive: PlayerRow[]
   explanation?: string
   className?: string
+  playerBreakdown?: TradePlayerBreakdown[]
 }
 
 const positionColors: Record<string, string> = {
@@ -29,11 +31,130 @@ const positionColors: Record<string, string> = {
   DEF: 'text-orange-400 bg-orange-400/20',
 }
 
+const PlayerRowItem = ({
+  player,
+  breakdown,
+}: {
+  player: PlayerRow
+  breakdown?: TradePlayerBreakdown
+}) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="flex flex-col gap-1 py-1">
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={cn(
+              'px-1.5 py-0.5 rounded text-xs font-semibold shrink-0',
+              positionColors[player.position ?? ''] ??
+                'text-gray-400 bg-gray-400/20'
+            )}
+          >
+            {player.position}
+          </span>
+          <span className="truncate">{player.full_name}</span>
+        </div>
+        <div className="flex items-center gap-4 shrink-0">
+          {breakdown?.externalValues?.consensus !== undefined && (
+            <div className="flex flex-col items-end">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="text-blue-400 font-bold"
+                  data-testid={`consensus-value-${player.id}`}
+                >
+                  {breakdown.externalValues.consensus.toFixed(2)}
+                </span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                  Z-Score
+                </span>
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-accent font-semibold">
+              {player.projected_points?.toFixed(1) ?? '0'}
+            </span>
+            <span className="text-xs text-muted-foreground font-medium">
+              VBD
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {breakdown?.externalValues?.consensus !== undefined && (
+        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+          <CollapsibleTrigger asChild>
+            <button
+              className="text-[10px] text-muted-foreground hover:text-accent flex items-center gap-1 ml-auto"
+              data-testid={`value-dropdown-${player.id}`}
+            >
+              What is this?
+              <ChevronDown
+                className={cn(
+                  'h-3 w-3 transition-transform',
+                  isOpen && 'rotate-180'
+                )}
+              />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="mt-2 p-3 bg-muted/30 rounded text-xs space-y-3">
+              <p className="text-muted-foreground leading-relaxed">
+                We translate values from multiple sources to the same scale
+                using statistical normalization (Z-scores), then average them.
+                This consensus represents the market&apos;s collective opinion.
+              </p>
+
+              <div className="grid grid-cols-3 gap-2 border-t border-border/50 pt-2">
+                <div className="font-semibold text-muted-foreground">
+                  Source
+                </div>
+                <div className="font-semibold text-muted-foreground text-right">
+                  Value
+                </div>
+                <div className="font-semibold text-muted-foreground text-right">
+                  Scale
+                </div>
+
+                {breakdown.externalValues.sources?.map((source) => (
+                  <div key={source.source} className="contents group">
+                    <div
+                      className="text-foreground/90 group-hover:text-accent transition-colors"
+                      data-testid={`source-${source.source}-${player.id}`}
+                    >
+                      {source.source}
+                    </div>
+                    <div className="text-right font-mono">
+                      {source.value.toFixed(1)}
+                    </div>
+                    <div className="text-right text-muted-foreground italic">
+                      {source.originalScale || 'N/A'}
+                    </div>
+                  </div>
+                ))}
+
+                {(!breakdown.externalValues.sources ||
+                  breakdown.externalValues.sources.length === 0) && (
+                  <div className="col-span-3 text-center text-muted-foreground py-1">
+                    No individual sources available
+                  </div>
+                )}
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+    </div>
+  )
+}
+
 export const TradeExplanation = memo(function TradeExplanation({
   youGive,
   youReceive,
   explanation,
   className,
+  playerBreakdown,
 }: TradeExplanationProps) {
   const [isOpenCalculation, setIsOpenCalculation] = useState(false)
 
@@ -61,31 +182,13 @@ export const TradeExplanation = memo(function TradeExplanation({
               <p className="text-sm text-muted-foreground">No players</p>
             ) : (
                youGive.map((player) => (
-                 <div
+                 <PlayerRowItem
                    key={player.id}
-                   className="flex items-center justify-between text-sm"
-                 >
-                   <div className="flex items-center gap-2 min-w-0">
-                     <span
-                       className={cn(
-                         'px-1.5 py-0.5 rounded text-xs font-semibold shrink-0',
-                         positionColors[player.position ?? ''] ??
-                           'text-gray-400 bg-gray-400/20'
-                       )}
-                     >
-                       {player.position}
-                     </span>
-                     <span className="truncate">{player.full_name}</span>
-                   </div>
-                   <div className="flex items-center gap-2 shrink-0">
-                     <span className="text-accent font-semibold">
-                       {player.projected_points?.toFixed(1) ?? '0'}
-                     </span>
-                     <span className="text-xs text-muted-foreground font-medium">
-                       VBD
-                     </span>
-                   </div>
-                 </div>
+                   player={player}
+                   breakdown={playerBreakdown?.find(
+                     (p) => p.playerId === player.id
+                   )}
+                 />
                ))
             )}
           </div>
@@ -109,31 +212,13 @@ export const TradeExplanation = memo(function TradeExplanation({
               <p className="text-sm text-muted-foreground">No players</p>
             ) : (
                youReceive.map((player) => (
-                 <div
+                 <PlayerRowItem
                    key={player.id}
-                   className="flex items-center justify-between text-sm"
-                 >
-                   <div className="flex items-center gap-2 min-w-0">
-                     <span
-                       className={cn(
-                         'px-1.5 py-0.5 rounded text-xs font-semibold shrink-0',
-                         positionColors[player.position ?? ''] ??
-                           'text-gray-400 bg-gray-400/20'
-                       )}
-                     >
-                       {player.position}
-                     </span>
-                     <span className="truncate">{player.full_name}</span>
-                   </div>
-                   <div className="flex items-center gap-2 shrink-0">
-                     <span className="text-accent font-semibold">
-                       {player.projected_points?.toFixed(1) ?? '0'}
-                     </span>
-                     <span className="text-xs text-muted-foreground font-medium">
-                       VBD
-                     </span>
-                   </div>
-                 </div>
+                   player={player}
+                   breakdown={playerBreakdown?.find(
+                     (p) => p.playerId === player.id
+                   )}
+                 />
                ))
             )}
           </div>
@@ -209,7 +294,6 @@ export const TradeExplanation = memo(function TradeExplanation({
                <p className="text-xs text-muted-foreground">
                  Higher VBD = More valuable player relative to replacement level
                </p>
-               {/* TODO P2: Add multi-source values (KTC, FantasyCalc) */}
              </div>
            </CollapsibleContent>
          </Collapsible>
