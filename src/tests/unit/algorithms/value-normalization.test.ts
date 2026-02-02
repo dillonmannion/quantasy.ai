@@ -91,7 +91,7 @@ describe('normalizeValues', () => {
       createExternalValue('p3', 'KTC', 10),
       createExternalValue('p1', 'DynastyProcess', 50),
       createExternalValue('p2', 'DynastyProcess', 75),
-      createExternalValue('p4', 'FantasyCalc', undefined, 200),
+      createExternalValue('p4', 'FantasyCalc', 200, undefined),
       createExternalValue('p5', 'KTC', null, null),
       createExternalValue('p6', 'KTC', Number.NaN),
     ]
