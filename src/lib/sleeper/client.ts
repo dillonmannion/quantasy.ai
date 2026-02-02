@@ -30,6 +30,8 @@ class RateLimiter {
     this.requestTimes = this.requestTimes.filter(
       (time) => now - time < this.windowMs
     )
+    // Cap array size to prevent memory leak
+    this.requestTimes = this.requestTimes.slice(-this.maxRequests)
 
      if (this.requestTimes.length >= this.maxRequests) {
        const oldestRequest = this.requestTimes[0]!
@@ -57,6 +59,8 @@ export async function sleeperFetch<T>(
 
   const url = `${BASE_URL}${endpoint}`
   const startTime = Date.now()
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 10000)
 
    try {
      if (DEBUG) {
@@ -70,8 +74,10 @@ export async function sleeperFetch<T>(
         ...options?.headers,
       },
       next: { revalidate: 60 },
+      signal: controller.signal,
     })
 
+    clearTimeout(timeoutId)
     const duration = Date.now() - startTime
 
     if (!response.ok) {
@@ -99,6 +105,14 @@ export async function sleeperFetch<T>(
 
      return data as T
    } catch (error) {
+     clearTimeout(timeoutId)
+     if (error instanceof Error && error.name === 'AbortError') {
+       throw {
+         error: 'SleeperAPIError',
+         message: 'Request timeout',
+         statusCode: 408,
+       } as SleeperAPIError
+     }
      if (isSleeperAPIError(error)) {
        throw error
      }
@@ -120,6 +134,8 @@ export async function sleeperFetchNoCache<T>(
 
   const url = `${BASE_URL}${endpoint}`
   const startTime = Date.now()
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 10000)
 
    try {
      if (DEBUG) {
@@ -134,8 +150,10 @@ export async function sleeperFetchNoCache<T>(
       },
       cache: 'no-store',
       next: { revalidate: 0 },
+      signal: controller.signal,
     })
 
+    clearTimeout(timeoutId)
     const duration = Date.now() - startTime
 
      if (!response.ok) {
@@ -163,6 +181,14 @@ export async function sleeperFetchNoCache<T>(
 
      return data as T
    } catch (error) {
+     clearTimeout(timeoutId)
+     if (error instanceof Error && error.name === 'AbortError') {
+       throw {
+         error: 'SleeperAPIError',
+         message: 'Request timeout',
+         statusCode: 408,
+       } as SleeperAPIError
+     }
      if (isSleeperAPIError(error)) {
        throw error
      }
