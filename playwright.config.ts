@@ -1,5 +1,11 @@
 import { defineConfig, devices } from '@playwright/test'
 
+// Fix for WSL: chrome-launcher creates malformed temp dirs when LOCALAPPDATA is undefined
+// See: https://github.com/GoogleChrome/chrome-launcher/issues/334
+if (typeof process.env.LOCALAPPDATA === 'undefined') {
+  process.env.LOCALAPPDATA = '/tmp'
+}
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,

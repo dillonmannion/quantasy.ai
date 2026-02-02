@@ -154,6 +154,104 @@ export const tradeHandler = http.post('*/api/algorithms/trade', () => {
   })
 })
 
+export const tradePartnersHandler = http.get('*/api/algorithms/trade-partners', () => {
+  return HttpResponse.json({
+    matches: [
+      {
+        rosterId: 2,
+        ownerName: 'Trade Partner 1',
+        compatibilityScore: 85,
+        rosterPlayerIds: ['5012', '4034'],
+        theirStrength: {
+          excess: ['WR', 'TE'],
+          needs: ['QB', 'RB']
+        },
+        myStrength: {
+          excess: ['QB', 'RB'],
+          needs: ['WR', 'TE']
+        },
+        suggestedPositions: ['WR', 'TE']
+      },
+      {
+        rosterId: 3,
+        ownerName: 'Trade Partner 2',
+        compatibilityScore: 72,
+        rosterPlayerIds: ['6801', '5001'],
+        theirStrength: {
+          excess: ['RB'],
+          needs: ['QB']
+        },
+        myStrength: {
+          excess: ['QB'],
+          needs: ['RB']
+        },
+        suggestedPositions: ['RB']
+      }
+    ],
+    error: null
+  })
+})
+
+export const transactionsHandler = http.get('*/api/transactions', () => {
+  return HttpResponse.json({
+    transactions: [
+      {
+        transaction_id: 'txn-1',
+        type: 'trade',
+        status: 'complete',
+        roster_ids: [1, 2],
+        adds: { '4046': 1, '5012': 2 },
+        drops: { '4046': 2, '5012': 1 },
+        draft_picks: [],
+        waiver_budget: [],
+        settings: {},
+        created: Date.now() - 86400000,
+        resolved_adds: {
+          '4046': { player_id: '4046', full_name: 'Patrick Mahomes', position: 'QB', team: 'KC', rosterId: 1, name: 'Patrick Mahomes' }
+        },
+        resolved_drops: {
+          '5012': { player_id: '5012', full_name: 'Tyreek Hill', position: 'WR', team: 'MIA', rosterId: 1, name: 'Tyreek Hill' }
+        }
+      },
+      {
+        transaction_id: 'txn-2',
+        type: 'waiver',
+        status: 'complete',
+        roster_ids: [1],
+        adds: { '6801': 1 },
+        drops: { '5001': 1 },
+        draft_picks: [],
+        waiver_budget: [],
+        settings: { waiver_bid: 25 },
+        created: Date.now() - 172800000,
+        resolved_adds: {
+          '6801': { player_id: '6801', full_name: 'Justin Herbert', position: 'QB', team: 'LAC', rosterId: 1, name: 'Justin Herbert' }
+        },
+        resolved_drops: {
+          '5001': { player_id: '5001', full_name: 'Bench RB', position: 'RB', team: 'SF', rosterId: 1, name: 'Bench RB' }
+        }
+      },
+      {
+        transaction_id: 'txn-3',
+        type: 'free_agent',
+        status: 'complete',
+        roster_ids: [3],
+        adds: { '4034': 3 },
+        drops: null,
+        draft_picks: [],
+        waiver_budget: [],
+        settings: {},
+        created: Date.now() - 259200000,
+        resolved_adds: {
+          '4034': { player_id: '4034', full_name: 'Travis Kelce', position: 'TE', team: 'KC', rosterId: 3, name: 'Travis Kelce' }
+        },
+        resolved_drops: null
+      }
+    ],
+    week: 5
+  })
+})
+
 export const waiversHandler = http.post('*/api/algorithms/waivers', () => {
   return HttpResponse.json({
     recommendations: [
@@ -288,4 +386,4 @@ export const sleeperHandlers = [
   }),
 ]
 
-export const handlers = [vbdHandler, lineupHandler, tradeHandler, waiversHandler, ...sleeperHandlers]
+export const handlers = [vbdHandler, lineupHandler, tradeHandler, tradePartnersHandler, transactionsHandler, waiversHandler, ...sleeperHandlers]

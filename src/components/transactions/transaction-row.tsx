@@ -95,7 +95,12 @@ export function TransactionRow({ transaction, index }: TransactionRowProps) {
             </div>
 
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="shrink-0 w-8 h-8 p-0">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="shrink-0 w-8 h-8 p-0"
+                data-testid={`transaction-toggle-${index}`}
+              >
                 <ChevronDown
                   className={cn(
                     'h-4 w-4 transition-transform duration-200',

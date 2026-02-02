@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { LeagueCard } from './league-card'
+import { TransactionHistoryModal } from '@/components/transactions'
 
 const tools = [
   {
@@ -118,12 +119,15 @@ export default async function DashboardPage() {
               </p>
             </div>
             {hasLeagues && (
-              <Button asChild variant="outline" size="sm">
-                <Link href="/connect">
-                  <LinkIcon className="w-4 h-4 mr-2" />
-                  Add League
-                </Link>
-              </Button>
+              <div className="flex gap-2">
+                <TransactionHistoryModal leagueId={typedUserLeagues![0].league_id} />
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/connect">
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    Add League
+                  </Link>
+                </Button>
+              </div>
             )}
           </div>
         </FadeIn>

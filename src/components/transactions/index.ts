@@ -1,6 +1,7 @@
 export * from './transaction-list'
 export * from './transaction-row'
 export * from './transaction-details'
+export * from './transaction-history-modal'
 
 import type { SleeperTransaction, SleeperPlayer } from '@/lib/sleeper'
 
