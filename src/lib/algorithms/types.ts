@@ -458,6 +458,9 @@ export interface TradePartnerMatch {
 
   /** Suggested positions to trade with this partner */
   suggestedPositions: string[]
+
+  /** IDs of players on this roster (for pre-populating trade builder) */
+  rosterPlayerIds: string[]
 }
 
 /**

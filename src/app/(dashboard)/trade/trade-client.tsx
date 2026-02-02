@@ -6,10 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TradePartnerFinder } from '@/components/trade'
 import { useAuth } from '@/components/providers/auth-provider'
 import { unlockAchievement } from '@/lib/gamification'
 import type { Database } from '@/lib/supabase/types'
-import type { TradeOutput, TradeableAsset } from '@/lib/algorithms/types'
+import type { TradeOutput, TradeableAsset, Position } from '@/lib/algorithms/types'
 
 const TradeBuilder = dynamic(
   () => import('@/components/trade').then((mod) => mod.TradeBuilder),
@@ -37,10 +39,36 @@ export function TradeClient({
   initialPlayers
 }: TradeClientProps) {
   const { user } = useAuth()
+  const [activeTab, setActiveTab] = useState('builder')
+  const [initialReceiveAssets, setInitialReceiveAssets] = useState<TradeableAsset[]>([])
+  const [builderKey, setBuilderKey] = useState(0)
+  
   const [showKaching, setShowKaching] = useState(false)
   const [tradeResult, setTradeResult] = useState<TradeOutput | null>(null)
   const [showResultDialog, setShowResultDialog] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleSuggestTrade = (partnerRosterId: string, playerIds: string[]) => {
+    const assets: (TradeableAsset | null)[] = playerIds.map(id => {
+      const player = initialPlayers.find(p => p.id === id)
+      if (!player) return null
+      
+      const asset: TradeableAsset = {
+        type: 'player',
+        playerId: player.id,
+        fullName: player.full_name || 'Unknown',
+        position: (player.position as Position) || 'FLEX',
+        projectedPoints: player.projected_points || 0
+      }
+      return asset
+    })
+
+    const filteredAssets = assets.filter((a): a is TradeableAsset => a !== null)
+
+    setInitialReceiveAssets(filteredAssets)
+    setBuilderKey(prev => prev + 1)
+    setActiveTab('builder')
+  }
 
   const handleTradeSubmit = async (
     youGive: TradeableAsset[], 
@@ -93,11 +121,30 @@ export function TradeClient({
         </Alert>
       )}
 
-      <TradeBuilder
-        allPlayers={initialPlayers}
-        onTradeSubmit={handleTradeSubmit}
-        leagueId={leagueId}
-      />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="builder" data-testid="tab-builder">Build Trade</TabsTrigger>
+          <TabsTrigger value="partners" data-testid="tab-partners">Find Partners</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="builder" className="space-y-4">
+          <TradeBuilder
+            key={builderKey}
+            allPlayers={initialPlayers}
+            onTradeSubmit={handleTradeSubmit}
+            leagueId={leagueId}
+            initialReceive={initialReceiveAssets}
+          />
+        </TabsContent>
+        
+        <TabsContent value="partners" className="space-y-4">
+          <TradePartnerFinder 
+            leagueId={leagueId}
+            rosterId={rosterId}
+            onSuggestTrade={handleSuggestTrade}
+          />
+        </TabsContent>
+      </Tabs>
 
       <Kaching
         show={showKaching}

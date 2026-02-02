@@ -31,6 +31,7 @@ interface TradeBuilderProps {
   onTradeSubmit?: (youGive: TradeableAsset[], youReceive: TradeableAsset[], biasFactor: number) => void
   className?: string
   leagueId?: string
+  initialReceive?: TradeableAsset[]
 }
 
 export function TradeBuilder({
@@ -38,9 +39,10 @@ export function TradeBuilder({
   onTradeSubmit,
   className,
   leagueId,
+  initialReceive = []
 }: TradeBuilderProps) {
   const [youGive, setYouGive] = useState<TradeableAsset[]>([])
-  const [youReceive, setYouReceive] = useState<TradeableAsset[]>([])
+  const [youReceive, setYouReceive] = useState<TradeableAsset[]>(initialReceive)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [isPickSelectorOpen, setIsPickSelectorOpen] = useState(false)
   const [pickerMode, setPickerMode] = useState<'give' | 'receive'>('give')

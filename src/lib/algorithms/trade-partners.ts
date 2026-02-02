@@ -302,6 +302,7 @@ export async function findTradePartners(
         myStrength,
         theirStrength,
         suggestedPositions,
+        rosterPlayerIds: otherRoster.players || [],
       })
     }
 
