@@ -9,6 +9,7 @@ export type {
   SleeperNFLState,
   SleeperDraft,
   SleeperDraftPick,
+  SleeperTransaction,
   SleeperAPIError,
 } from './types'
 

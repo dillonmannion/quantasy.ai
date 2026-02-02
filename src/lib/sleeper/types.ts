@@ -131,6 +131,34 @@ export interface SleeperDraftPick {
   }
 }
 
+export interface SleeperTransaction {
+  type: 'trade' | 'free_agent' | 'waiver'
+  transaction_id: string
+  status: 'complete' | 'pending' | 'failed'
+  status_updated: number
+  roster_ids: number[]
+  adds: Record<string, number> | null
+  drops: Record<string, number> | null
+  draft_picks: Array<{
+    season: string
+    round: number
+    roster_id: number
+    previous_owner_id: number
+    owner_id: number
+  }>
+  waiver_budget: Array<{
+    sender: number
+    receiver: number
+    amount: number
+  }>
+  settings: { waiver_bid?: number } | null
+  leg: number
+  creator: string
+  created: number
+  consenter_ids: number[]
+  metadata: Record<string, unknown> | null
+}
+
 export interface SleeperAPIError {
   error: string
   message: string

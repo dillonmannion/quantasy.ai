@@ -7,6 +7,7 @@ import type {
   SleeperPlayer,
   SleeperNFLState,
   SleeperAPIError,
+  SleeperTransaction,
 } from '@/lib/sleeper/types'
 
 const mockFetch = vi.fn()
@@ -103,6 +104,41 @@ function createMockPlayer(overrides: Partial<SleeperPlayer> = {}): SleeperPlayer
   }
 }
 
+function createMockTransaction(overrides: Partial<SleeperTransaction> = {}): SleeperTransaction {
+  return {
+    type: 'trade',
+    transaction_id: 'txn-123',
+    status: 'complete',
+    status_updated: 1704067200000,
+    roster_ids: [1, 2],
+    adds: { '4046': 1, '6794': 2 },
+    drops: { '4034': 1, '5018': 2 },
+    draft_picks: [
+      {
+        season: '2025',
+        round: 3,
+        roster_id: 1,
+        previous_owner_id: 2,
+        owner_id: 1,
+      },
+    ],
+    waiver_budget: [
+      {
+        sender: 2,
+        receiver: 1,
+        amount: 50,
+      },
+    ],
+    settings: { waiver_bid: 50 },
+    leg: 1,
+    creator: 'user-123',
+    created: 1704067200000,
+    consenter_ids: [1, 2],
+    metadata: null,
+    ...overrides,
+  }
+}
+
 function createMockResponse(data: unknown, status = 200, ok = true): Response {
   return {
     ok,
@@ -122,6 +158,73 @@ function createMockResponse(data: unknown, status = 200, ok = true): Response {
     text: vi.fn(),
   } as unknown as Response
 }
+
+describe('SleeperTransaction Type', () => {
+  it('createMockTransaction returns valid SleeperTransaction', () => {
+    const transaction = createMockTransaction()
+    
+    expect(transaction).toMatchObject({
+      type: 'trade',
+      transaction_id: 'txn-123',
+      status: 'complete',
+      status_updated: expect.any(Number),
+      roster_ids: expect.any(Array),
+      adds: expect.any(Object),
+      drops: expect.any(Object),
+      draft_picks: expect.any(Array),
+      waiver_budget: expect.any(Array),
+      settings: expect.any(Object),
+      leg: expect.any(Number),
+      creator: expect.any(String),
+      created: expect.any(Number),
+      consenter_ids: expect.any(Array),
+      metadata: null,
+    })
+  })
+
+  it('createMockTransaction allows overrides', () => {
+    const transaction = createMockTransaction({
+      type: 'free_agent',
+      status: 'pending',
+      adds: { '5018': 3 },
+    })
+    
+    expect(transaction.type).toBe('free_agent')
+    expect(transaction.status).toBe('pending')
+    expect(transaction.adds).toEqual({ '5018': 3 })
+  })
+
+  it('SleeperTransaction type assertion for trade transaction', () => {
+    const transaction: SleeperTransaction = createMockTransaction({
+      type: 'trade',
+      roster_ids: [1, 2],
+    })
+    
+    expect(transaction.type).toBe('trade')
+    expect(transaction.roster_ids).toHaveLength(2)
+  })
+
+  it('SleeperTransaction type assertion for free_agent transaction', () => {
+    const transaction: SleeperTransaction = createMockTransaction({
+      type: 'free_agent',
+      adds: { '4046': 1 },
+      drops: null,
+    })
+    
+    expect(transaction.type).toBe('free_agent')
+    expect(transaction.adds).not.toBeNull()
+  })
+
+  it('SleeperTransaction type assertion for waiver transaction', () => {
+    const transaction: SleeperTransaction = createMockTransaction({
+      type: 'waiver',
+      status: 'pending',
+    })
+    
+    expect(transaction.type).toBe('waiver')
+    expect(transaction.status).toBe('pending')
+  })
+})
 
 describe('Sleeper API Client', () => {
   let getNFLState: typeof import('@/lib/sleeper/client').getNFLState
