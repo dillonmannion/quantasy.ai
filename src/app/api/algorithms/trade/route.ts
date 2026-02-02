@@ -11,6 +11,7 @@ interface TradeRequest {
   giving?: TradeableAsset[]
   receiving?: TradeableAsset[]
   week: number
+  format?: 'dynasty' | 'redraft'
 }
 
 export async function POST(
@@ -26,7 +27,7 @@ export async function POST(
   }
 
   const body = (await request.json()) as TradeRequest
-  const { leagueId, rosterId, week } = body
+  const { leagueId, rosterId, week, format } = body
 
   // Validate required parameters
   if (!leagueId || rosterId === undefined || !week) {
@@ -72,6 +73,7 @@ export async function POST(
     receiving,
     week,
     userId: user.id,
+    format: format || 'dynasty'
   })
 
   // Return response
