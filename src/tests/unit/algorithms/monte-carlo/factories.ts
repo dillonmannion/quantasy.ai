@@ -124,6 +124,7 @@ export function createMockDraftBoard(overrides?: {
     draftedPlayerIds,
     userRosterId: 1,
     currentPick,
+    userId: null,
   }
 }
 

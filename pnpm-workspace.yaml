@@ -2,6 +2,7 @@ packages:
   - .
 
 onlyBuiltDependencies:
+  - '@sentry/cli'
   - esbuild
   - msw
   - sharp

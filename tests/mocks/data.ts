@@ -36,9 +36,13 @@ export const TEST_DRAFT = {
   settings: {
     teams: 12,
     rounds: 15,
+    pick_timer: 120,
   },
   draft_order: null,
-  slot_to_roster_id: null,
+  slot_to_roster_id: {
+    1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6,
+    7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12
+  },
 }
 
 export const TEST_NFL_STATE = {

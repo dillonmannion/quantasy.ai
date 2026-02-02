@@ -50,3 +50,38 @@ import { TradeBuilder, FairnessMeter } from '@/components/trade'
 
 - **DO NOT** call trade algorithm from components - use API route
 - **DO NOT** hardcode player values - always use VBD
+
+## API CALL PATTERN
+
+```typescript
+// Evaluate trade
+const response = await fetch('/api/algorithms/trade', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    leagueId,
+    givingPlayerIds: ['4046', '6794'],
+    receivingPlayerIds: ['5012']
+  })
+})
+
+const { verdict, fairnessScore, givingValue, receivingValue } = await response.json()
+```
+
+## DATA-TESTID PATTERNS
+
+```tsx
+<div data-testid="trade-builder">...</div>
+<div data-testid="team-a-players">...</div>
+<div data-testid="team-b-players">...</div>
+<button data-testid="add-player-give">Add</button>
+<button data-testid="add-player-receive">Add</button>
+<div data-testid="fairness-meter">...</div>
+<div data-testid="trade-explanation">...</div>
+```
+
+## IMPORT PATTERNS
+
+```typescript
+import { TradeBuilder, FairnessMeter, TradeExplanation } from '@/components/trade'
+```

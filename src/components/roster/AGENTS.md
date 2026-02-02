@@ -48,3 +48,35 @@ import { LineupComparison, ApplyOptimizationButton } from '@/components/roster'
 
 - **DO NOT** call lineup algorithm from components - use API route
 - **DO NOT** auto-apply optimization without user confirmation
+
+## API CALL PATTERN
+
+```typescript
+// Fetch optimized lineup
+const response = await fetch('/api/algorithms/lineup', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    leagueId,
+    rosterId,
+    week
+  })
+})
+
+const { starters, bench, projectedPoints, explanation } = await response.json()
+```
+
+## DATA-TESTID PATTERNS
+
+```tsx
+<div data-testid="current-lineup">...</div>
+<div data-testid="optimal-lineup">...</div>
+<div data-testid={`slot-${position}`}>...</div>
+<button data-testid="apply-optimization">Apply</button>
+```
+
+## IMPORT PATTERNS
+
+```typescript
+import { LineupComparison, ApplyOptimizationButton } from '@/components/roster'
+```

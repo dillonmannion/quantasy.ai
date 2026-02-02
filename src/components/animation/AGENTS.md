@@ -67,3 +67,48 @@ import { FadeIn, StaggerList, StaggerItem, Kaching } from '@/components/animatio
 3. Import `motion` from `motion/react`
 4. Respect `useReducedMotion()` for accessibility
 5. Export from `index.ts`
+
+## IMPORT PATTERNS
+
+```typescript
+// CORRECT - use barrel export
+import { FadeIn, Kaching, StaggerList, StaggerItem } from '@/components/animation'
+
+// WRONG - deep import
+import { FadeIn } from '@/components/animation/fade-in'
+```
+
+## ANIMATION CODE PATTERN
+
+```typescript
+'use client'
+
+import { motion } from 'motion/react'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
+import { cn } from '@/lib/utils'
+
+export function MyAnimation({ children, className }: Props) {
+  const prefersReducedMotion = useReducedMotion()
+
+  if (prefersReducedMotion) {
+    return <div className={className}>{children}</div>
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn('base-styles', className)}
+    >
+      {children}
+    </motion.div>
+  )
+}
+```
+
+## PERFORMANCE NOTES
+
+- **AVOID** `motion.div` in virtualized lists (TanStack Virtual)
+- **AVOID** animations on LCP (Largest Contentful Paint) elements
+- **USE** `useReducedMotion()` to respect user preferences
+- **USE** `Skeleton` components for loading states instead of shimmer on critical paths

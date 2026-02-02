@@ -85,32 +85,35 @@ export async function getProjectionVersion(): Promise<number> {
 }
 
 export async function incrementProjectionVersion(): Promise<number> {
-  const serviceClient = createServiceClient()
+   const serviceClient = createServiceClient()
 
-  const { data: current } = await serviceClient
-    .from('app_settings')
-    .select('value')
-    .eq('key', 'projection_version')
-    .single()
+   const { data: current } = await serviceClient
+     .from('app_settings')
+     .select('value')
+     .eq('key', 'projection_version')
+     .single()
 
-  const currentVersion = (current?.value as { version?: number })?.version ?? 1
-  const newVersion = currentVersion + 1
+   const currentVersion = (current?.value as { version?: number })?.version ?? 1
+   const newVersion = currentVersion + 1
 
-  const { error } = await serviceClient
-    .from('app_settings')
-    .update({
-      value: { version: newVersion } as never,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('key', 'projection_version')
+   const { error } = await serviceClient
+     .from('app_settings')
+     .update({
+       value: { version: newVersion } as never,
+       updated_at: new Date().toISOString(),
+     })
+     .eq('key', 'projection_version')
 
-   if (error) {
-     logger.error('AlgorithmCache', 'Error incrementing projection_version', { error })
-     throw new Error('Failed to increment projection version')
-   }
+    if (error) {
+      logger.error('AlgorithmCache', 'Error incrementing projection_version', { error })
+      throw new Error('Failed to increment projection version')
+    }
 
-   logger.info('AlgorithmCache', `Projection version incremented: ${currentVersion} -> ${newVersion}`)
-   return newVersion
+    // Invalidate in-memory cache when version changes
+    invalidateProjectionVersionCache()
+
+    logger.info('AlgorithmCache', `Projection version incremented: ${currentVersion} -> ${newVersion}`)
+    return newVersion
 }
 
 export function invalidateProjectionVersionCache(): void {

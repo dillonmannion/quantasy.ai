@@ -79,3 +79,59 @@ useEffect(() => {
 3. Check SSR safety (`typeof window`)
 4. Use `useCallback`/`useRef` for cleanup
 5. Export single named function
+
+## IMPORT PATTERNS
+
+```typescript
+// Direct import (no barrel in hooks/)
+import { useCelebration } from '@/hooks/use-celebration'
+import { useDraftSync } from '@/hooks/use-draft-sync'
+import { useConnectionStatus } from '@/hooks/use-connection-status'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
+```
+
+## HOOK TEMPLATE
+
+```typescript
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+export function useMyHook(param: string) {
+  const [state, setState] = useState<MyState | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
+
+  // SSR safety check
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // Browser-only code here
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [param])
+
+  const action = useCallback(() => {
+    // Stable function reference
+  }, [])
+
+  return { state, action }
+}
+```
+
+## TESTING HOOKS
+
+```typescript
+import { renderHook, act } from '@testing-library/react'
+import { useCelebration } from '@/hooks/use-celebration'
+
+test('celebrate sets state', () => {
+  const { result } = renderHook(() => useCelebration())
+
+  act(() => {
+    result.current.celebrate(25, 'VBD Score', 'gold')
+  })
+
+  expect(result.current.celebration.isShowing).toBe(true)
+})
+```

@@ -6,11 +6,12 @@ import { motion } from 'motion/react'
 import { GripVertical, X } from 'lucide-react'
 import type { Database } from '@/lib/supabase/types'
 import { cn } from '@/lib/utils'
+import type { PlayerAsset } from '@/lib/algorithms/types'
 
 type PlayerRow = Database['public']['Tables']['players']['Row']
 
 interface PlayerChipProps {
-  player: PlayerRow
+  player: PlayerRow | PlayerAsset
   onRemove: (playerId: string) => void
   isDraggable?: boolean
   showVBD?: boolean
@@ -31,6 +32,33 @@ export function PlayerChip({
   isDraggable = true,
   showVBD = true,
 }: PlayerChipProps) {
+  let id: string
+  let fullName: string
+  let position: string | null
+  let team: string | null
+  let projectedPoints: number | null
+  let firstName: string | null
+  let lastName: string | null
+
+  if ('type' in player && player.type === 'player') {
+    id = player.playerId
+    fullName = player.fullName
+    position = player.position
+    team = null
+    projectedPoints = player.projectedPoints
+    firstName = fullName.split(' ')[0]
+    lastName = fullName.split(' ').slice(1).join(' ')
+  } else {
+    const p = player as PlayerRow
+    id = p.id
+    fullName = p.full_name
+    position = p.position
+    team = p.team
+    projectedPoints = p.projected_points
+    firstName = p.first_name
+    lastName = p.last_name
+  }
+
   const {
     attributes,
     listeners,
@@ -39,7 +67,7 @@ export function PlayerChip({
     transition,
     isDragging,
   } = useSortable({
-    id: player.id,
+    id,
     disabled: !isDraggable,
   })
 
@@ -50,9 +78,9 @@ export function PlayerChip({
   }
 
   const posColor =
-    positionColors[player.position ?? ''] ?? 'text-gray-400 bg-gray-400/20'
+    positionColors[position ?? ''] ?? 'text-gray-400 bg-gray-400/20'
 
-  const initials = `${player.first_name?.[0] ?? ''}${player.last_name?.[0] ?? ''}`
+  const initials = `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`
 
   return (
     <motion.div
@@ -86,12 +114,12 @@ export function PlayerChip({
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-sm truncate">{player.full_name}</div>
+        <div className="font-semibold text-sm truncate">{fullName}</div>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <span className={cn('px-1.5 py-0.5 rounded', posColor)}>
-            {player.position}
+            {position}
           </span>
-          {player.team && <span>{player.team}</span>}
+          {team && <span>{team}</span>}
         </div>
       </div>
 
@@ -102,19 +130,19 @@ export function PlayerChip({
         </div>
       )}
 
-      {player.projected_points !== null && (
+      {projectedPoints !== null && (
         <div className="shrink-0 text-right">
           <div className="text-xs font-bold">
-            {player.projected_points.toFixed(1)}
+            {projectedPoints.toFixed(1)}
           </div>
           <div className="text-xs text-muted-foreground">pts</div>
         </div>
       )}
 
       <button
-        onClick={() => onRemove(player.id)}
+        onClick={() => onRemove(id)}
         className="shrink-0 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
-        aria-label={`Remove ${player.full_name}`}
+        aria-label={`Remove ${fullName}`}
         data-testid="player-chip-remove"
       >
         <X className="w-4 h-4" />

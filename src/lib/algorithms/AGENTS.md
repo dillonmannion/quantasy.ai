@@ -75,6 +75,37 @@ const output: VBDOutput = calculateVBD({
 | Waiver Priority | Complete | `waivers.ts` | Waiver recommendations + FAAB bids |
 | Monte Carlo | Complete | `monte-carlo/` | Draft survival simulation (see AGENTS.md) |
 
+## TESTING
+
+```bash
+# Run algorithm tests only
+pnpm test src/tests/unit/algorithms
+
+# Run with coverage
+pnpm test:coverage
+
+# Watch mode for specific file
+pnpm test src/tests/unit/algorithms/vbd.test.ts
+```
+
+**Coverage requirements for VBD:**
+- 97% branch coverage
+- 100% function coverage
+- 100% line coverage
+- 100% statement coverage
+
+**Mock factory usage:**
+```typescript
+import { createMockPlayer, createMockVBDInput } from '@/tests/mocks'
+
+const input = createMockVBDInput(
+  [createMockPlayer('4046', 'Patrick Mahomes', 'QB')],
+  { '4046': 380.5 },
+  ['QB', 'RB', 'RB', 'WR', 'WR', 'TE', 'FLEX'],
+  12  // teams
+)
+```
+
 ## CONVENTIONS
 
 - All functions are pure (no side effects)
@@ -82,3 +113,13 @@ const output: VBDOutput = calculateVBD({
 - Use barrel export from `index.ts`
 - 100% test coverage required (97% branches, 100% functions/lines/statements)
 - Tests use `createMock*()` factory functions
+
+## IMPORT PATTERNS
+
+```typescript
+// CORRECT - use barrel export
+import { calculateVBD, type VBDInput } from '@/lib/algorithms'
+
+// WRONG - deep import bypasses barrel
+import { calculateVBD } from '@/lib/algorithms/vbd'
+```

@@ -36,14 +36,15 @@ describe('useMonteCarlo', () => {
   const mockInput: Omit<MonteCarloInput, 'riskTolerance' | 'preferences'> = {
     players: [],
     adpMap: {},
-    draftState: {
-        draftId: 'test-draft',
-        status: 'drafting',
-        picks: [],
-        draftedPlayerIds: new Set(),
-        userRosterId: 1,
-        currentPick: 1
-    },
+     draftState: {
+         draftId: 'test-draft',
+         status: 'drafting',
+         picks: [],
+         draftedPlayerIds: new Set(),
+         userRosterId: 1,
+         currentPick: 1,
+         userId: null
+     },
     userRosterId: 1,
     marketConfig: { noiseStdDev: 0.1, adpWeight: 0.5, tiebreaker: 0.5 },
     guardrailConfig: { 

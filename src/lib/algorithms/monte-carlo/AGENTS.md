@@ -101,3 +101,35 @@ const result = await runSimulation({ ..., signal: controller.signal })
 - **DO NOT** skip cancellation support for long operations
 - **DO NOT** mutate input objects (pure functions)
 - **DO NOT** import from parent types - use local `types.ts`
+
+## IMPORT PATTERNS
+
+```typescript
+// From within monte-carlo module
+import type { MonteCarloInput, SurvivalRates } from './types'
+
+// From outside (parent re-exports selectively)
+import { runSimulation, type MonteCarloInput } from '@/lib/algorithms/monte-carlo'
+
+// WRONG - don't import from parent types
+import type { Position } from '@/lib/algorithms/types'  // NO!
+```
+
+## TESTING
+
+```bash
+# Run Monte Carlo tests
+pnpm test src/tests/unit/algorithms/monte-carlo
+
+# Watch mode
+pnpm test src/tests/unit/algorithms/monte-carlo --watch
+```
+
+**Mock factories (in `src/tests/unit/algorithms/monte-carlo/factories.ts`):**
+```typescript
+import { createMockDraftBoard, createMockADPMap, createMockPreferences } from './factories'
+
+const board = createMockDraftBoard({ teams: 12, currentPick: 1 })
+const adpMap = createMockADPMap(['4046', '4040', '4041'])
+const prefs = createMockPreferences({ likes: ['6803'], dislikes: ['5018'] })
+```

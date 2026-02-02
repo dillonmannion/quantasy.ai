@@ -68,3 +68,41 @@ Rankings use VBD percentiles for color:
 - Respect `useReducedMotion()` for animations
 - Mobile swipe uses touch events, not drag libraries
 - ExplanationPanel fetches AI explanation on demand (rate limited)
+
+## DATA-TESTID PATTERNS
+
+```tsx
+// Rankings list
+<div data-testid="rankings-list">
+  {rankings.map(player => (
+    <div key={player.id} data-testid={`player-row-${player.id}`}>
+      ...
+    </div>
+  ))}
+</div>
+
+// Position filters
+<button data-testid="filter-QB">QB</button>
+<button data-testid="filter-RB">RB</button>
+
+// Search
+<input data-testid="player-search" />
+
+// Mock controls
+<button data-testid="start-mock-draft">Start</button>
+<button data-testid="undo-pick">Undo</button>
+<button data-testid="reset-draft">Reset</button>
+```
+
+## IMPORT PATTERNS
+
+```typescript
+// Draft state
+import { useDraftState, DraftStateProvider } from '@/lib/draft'
+
+// Draft components (selective exports)
+import { PickValueBoard, PickExplanation } from '@/components/draft'
+
+// Other components via direct import (no barrel)
+import { DraftRankings } from '@/components/draft/draft-rankings'
+```

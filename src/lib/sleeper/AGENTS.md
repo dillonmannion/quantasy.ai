@@ -100,3 +100,50 @@ try {
 - **DO NOT** fetch all players on every request - cache for 24h minimum
 - Player IDs are strings (e.g., "4046" for Patrick Mahomes)
 - Team abbreviations are uppercase (e.g., "KC", "SF")
+
+## IMPORT PATTERNS
+
+```typescript
+// CORRECT - use barrel export
+import { getUserByUsername, getCurrentSeason } from '@/lib/sleeper'
+import type { SleeperLeague, SleeperUser } from '@/lib/sleeper'
+
+// WRONG - deep import
+import { getUserByUsername } from '@/lib/sleeper/client'
+```
+
+## COMMON PATTERNS
+
+**Fetch user leagues:**
+```typescript
+import { getUserByUsername, getUserLeagues, getCurrentSeason } from '@/lib/sleeper'
+
+const user = await getUserByUsername('sleeper_username')
+if (!user) return null
+
+const season = await getCurrentSeason()
+const leagues = await getUserLeagues(user.user_id, season)
+```
+
+**Check if player exists:**
+```typescript
+import { getAllPlayers } from '@/lib/sleeper'
+
+const players = await getAllPlayers()
+const player = players['4046']  // Patrick Mahomes
+if (player) {
+  console.log(player.full_name, player.position)
+}
+```
+
+## TESTING
+
+MSW handlers mock Sleeper API in E2E tests:
+```typescript
+// tests/mocks/handlers.ts
+import { TEST_USER, TEST_LEAGUE } from './data'
+
+http.get('https://api.sleeper.app/v1/user/:username', () => {
+  return HttpResponse.json(TEST_USER)
+})
+```

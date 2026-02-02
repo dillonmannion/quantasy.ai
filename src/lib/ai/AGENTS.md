@@ -54,3 +54,42 @@ const explanation = await generateExplanation({
 - **DO NOT** call `generateExplanation()` from client components
 - **DO NOT** skip rate limit check before API calls
 - **DO NOT** expose `GROQ_API_KEY` via `NEXT_PUBLIC_` prefix
+
+## API ROUTE PATTERN
+
+The `/api/ai/explain` route wraps `generateExplanation()`:
+
+```typescript
+// In client component - call via API route
+const response = await fetch('/api/ai/explain', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    playerName: 'Patrick Mahomes',
+    position: 'QB',
+    vbd: 45.2,
+    projectedPoints: 380.5,
+    baselinePlayerName: 'Jared Goff',
+    baselinePoints: 335.3,
+    scoringFormat: 'ppr'
+  })
+})
+
+if (response.status === 429) {
+  // Rate limited - show retry message
+  const { retryAfterMs } = await response.json()
+}
+```
+
+## IMPORT PATTERNS
+
+```typescript
+// Server-side only
+import { generateExplanation, aiRateLimiter } from '@/lib/ai'
+
+// Check rate limit before expensive call
+const { allowed, retryAfterMs } = aiRateLimiter.checkLimit()
+if (!allowed) {
+  return NextResponse.json({ error: 'Rate limited', retryAfterMs }, { status: 429 })
+}
+```

@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useReducer, useEffect, useMemo, type ReactNode } from 'react'
+import { unlockAchievement } from '@/lib/gamification'
 import type { DraftState, DraftAction, DraftPick } from './types'
 
 const DraftContext = createContext<{
@@ -21,6 +22,11 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
       }
       const newDrafted = new Set(state.draftedPlayerIds)
       newDrafted.add(action.playerId)
+      
+      if (state.userId && state.currentPick === 0) {
+        unlockAchievement(state.userId, 'MADE_FIRST_DRAFT_PICK').catch(console.error)
+      }
+      
       return {
         ...state,
         picks: [...state.picks, newPick],
@@ -83,6 +89,7 @@ interface DraftStateProviderProps {
   draftId?: string | null
   status?: DraftState['status']
   userRosterId?: number | null
+  userId?: string | null
 }
 
 export function DraftStateProvider({
@@ -90,7 +97,8 @@ export function DraftStateProvider({
   initialKeepers = [],
   draftId = null,
   status = 'mock',
-  userRosterId = null
+  userRosterId = null,
+  userId = null
 }: DraftStateProviderProps) {
   const [state, dispatch] = useReducer(draftReducer, {
     draftId: draftId || null,
@@ -98,7 +106,8 @@ export function DraftStateProvider({
     picks: [],
     draftedPlayerIds: new Set<string>(),
     userRosterId: userRosterId || null,
-    currentPick: 0
+    currentPick: 0,
+    userId: userId || null
   } as DraftState)
 
   useEffect(() => {
@@ -106,6 +115,12 @@ export function DraftStateProvider({
       dispatch({ type: 'LOAD_KEEPERS', playerIds: initialKeepers })
     }
   }, [initialKeepers])
+
+  useEffect(() => {
+    if (state.userId && status === 'complete' && state.picks.length > 0) {
+      unlockAchievement(state.userId, 'COMPLETED_DRAFT').catch(console.error)
+    }
+  }, [status, state.userId, state.picks.length])
 
   useEffect(() => {
     if (status === 'mock') {

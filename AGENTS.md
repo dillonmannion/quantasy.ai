@@ -171,17 +171,54 @@ Migrations in `supabase/migrations/`. Types in `src/lib/supabase/types.ts`.
 
 ## COMMANDS
 
+### Development
 ```bash
-pnpm dev              # Dev server (Turbopack)
-pnpm build            # Production build
-pnpm lint             # ESLint
-pnpm type-check       # TypeScript check
-pnpm test             # Vitest unit tests (watch)
-pnpm test:run         # Vitest single run
-pnpm test:coverage    # Coverage report
-pnpm test:e2e         # Playwright E2E
-pnpm test:e2e:ui      # Playwright UI mode
-pnpm validate         # type-check + lint + test:run
+pnpm dev                    # Dev server (Turbopack) at localhost:3000
+pnpm build                  # Production build (standalone output)
+pnpm start                  # Start production server
+pnpm lint                   # ESLint check
+pnpm lint:fix               # Auto-fix ESLint issues
+pnpm type-check             # TypeScript strict mode check
+pnpm validate               # type-check + lint + test:run (CI pipeline)
+```
+
+### Testing
+```bash
+pnpm test                   # Vitest watch mode
+pnpm test:run               # Vitest single run
+pnpm test:coverage          # Coverage report (VBD: 97% branches, 100% func/lines)
+pnpm test:e2e               # Playwright (Chromium + Mobile Safari)
+pnpm test:e2e --project=chromium      # Chromium only
+pnpm test:e2e --project="Mobile Safari"  # Mobile only
+pnpm test:e2e --debug       # Debug mode with browser visible
+pnpm test:e2e:ui            # Playwright UI mode
+```
+
+### Database (Supabase)
+```bash
+pnpm db:start               # Start local Supabase (required before dev)
+pnpm db:stop                # Stop local Supabase
+pnpm db:reset               # Reset DB + apply migrations
+pnpm db:push                # Push migrations to remote
+pnpm db:diff                # Generate migration from schema changes
+pnpm types:generate         # Generate TypeScript types from schema
+```
+
+### UI Components (shadcn)
+```bash
+npx shadcn@latest add button     # Add shadcn component (New York style)
+npx shadcn@latest add card       # Components go to src/components/ui/
+npx shadcn@latest add dialog     # DO NOT modify generated files
+```
+
+### Environment Setup
+```bash
+# Required before first run:
+pnpm install                # Install dependencies (pnpm 10.28.1+ required)
+cp .env.example .env.local  # Create local env file
+pnpm db:start               # Start Supabase
+pnpm types:generate         # Generate DB types
+pnpm dev                    # Start dev server
 ```
 
 ## TESTING
@@ -192,8 +229,12 @@ pnpm validate         # type-check + lint + test:run
 | E2E | Playwright | `tests/e2e/` | `*.spec.ts` |
 
 - VBD algorithm: 100% coverage required
-- Mock factories: `createMock*()` pattern with partial overrides
-- E2E: MSW for Sleeper mocking, real local Supabase for RLS validation
+- Mock factories: `createMock*()` functions for test data
+- MSW for E2E API mocking (via `ENABLE_MSW=true`)
+- E2E browsers: Chromium + Mobile Safari (iPhone 13)
+- **E2E Pattern**: Use `data-testid` for all interactive elements and lists.
+- **Mobile E2E**: Use `dispatchEvent('click')` instead of `click()` in tests to avoid interception by fixed navigation elements.
+- **Wait Strategies**: Use 300-500ms waits after interactions that trigger debounced state changes.
 
 ## DEPLOYMENT
 

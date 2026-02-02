@@ -11,6 +11,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { AlertCircle, Zap } from 'lucide-react'
+import { useAuth } from '@/components/providers/auth-provider'
+import { unlockAchievement } from '@/lib/gamification'
 import type { LineupOutput } from '@/lib/algorithms/types'
 
 interface ApplyOptimizationButtonProps {
@@ -30,6 +32,7 @@ export function ApplyOptimizationButton({
   disabled = false,
   className,
 }: ApplyOptimizationButtonProps) {
+  const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
 
@@ -40,6 +43,9 @@ export function ApplyOptimizationButton({
     setIsApplying(true)
     try {
       await onApply()
+      if (user?.id) {
+        unlockAchievement(user.id, 'APPLIED_OPTIMAL_LINEUP').catch(console.error)
+      }
       setIsOpen(false)
     } finally {
       setIsApplying(false)

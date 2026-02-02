@@ -63,3 +63,39 @@ dispatch({ type: 'RESET' })
 - **DO NOT** mutate `state` directly - always use `dispatch()`
 - **DO NOT** use `useDraftState()` outside `DraftStateProvider`
 - **DO NOT** persist live draft state to localStorage
+
+## IMPORT PATTERNS
+
+```typescript
+// Use barrel export
+import { useDraftState, DraftStateProvider, type DraftState } from '@/lib/draft'
+
+// WRONG - deep import
+import { useDraftState } from '@/lib/draft/state'
+```
+
+## STATE CHECK PATTERN
+
+```typescript
+const { state, dispatch } = useDraftState()
+
+// Check if player is drafted
+const isDrafted = state.draftedPlayerIds.has(playerId)
+
+// Check current pick
+const currentPick = state.currentPick
+
+// Get pick history
+const picks = state.picks  // DraftPick[]
+```
+
+## LIVE SYNC INTEGRATION
+
+```typescript
+// In component using useDraftSync hook
+import { useDraftSync } from '@/hooks/use-draft-sync'
+
+const { syncStatus, error, lastSyncTime } = useDraftSync(draftId, status === 'live')
+
+// syncStatus: 'syncing' | 'synced' | 'error' | 'idle'
+```

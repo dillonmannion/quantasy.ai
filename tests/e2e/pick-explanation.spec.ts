@@ -55,6 +55,9 @@ test.describe('Pick Explanation', () => {
     // Verify player content
     await expect(page.locator('text=Patrick Mahomes')).toBeVisible()
     
+    // Open methodology section to see Bias Active
+    await page.click('text=Methodology & Adjustments')
+
     // Verify bias info
     await expect(page.locator('text=Bias Active')).toBeVisible()
     

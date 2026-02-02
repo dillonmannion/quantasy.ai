@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useAuth } from '@/components/providers/auth-provider'
+import { incrementCounter } from '@/lib/gamification'
 
 interface Player {
   playerId: string
@@ -43,6 +45,7 @@ export function ExplanationPanel({
   projectionSource,
   projectionUpdatedAt,
 }: ExplanationPanelProps) {
+  const { user } = useAuth()
   const [isExpanded, setIsExpanded] = useState(false)
   const [aiExplanation, setAiExplanation] = useState<string | null>(null)
   const [isLoadingAI, setIsLoadingAI] = useState(false)
@@ -86,6 +89,9 @@ export function ExplanationPanel({
 
       const data = await res.json()
       setAiExplanation(data.explanation)
+      if (user?.id) {
+        incrementCounter(user.id, 'explanation_views').catch(console.error)
+      }
     } catch {
       setAiExplanation('AI explanation unavailable')
     } finally {

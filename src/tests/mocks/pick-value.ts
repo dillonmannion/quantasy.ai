@@ -104,6 +104,7 @@ export function createMockDraftState(
     draftedPlayerIds,
     userRosterId: overrides?.userRosterId ?? 1,
     currentPick: overrides?.currentPick ?? draftedPlayerIds.size + 1,
+    userId: overrides?.userId ?? null,
   }
 }
 

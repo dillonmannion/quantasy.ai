@@ -256,28 +256,91 @@ export type Database = {
         }
         Relationships: []
       }
-      app_settings: {
-        Row: {
-          key: string
-          value: Record<string, unknown>
-          updated_at: string
-        }
-        Insert: {
-          key: string
-          value: Record<string, unknown>
-          updated_at?: string
-        }
-        Update: {
-          key?: string
-          value?: Record<string, unknown>
-          updated_at?: string
-        }
-        Relationships: []
-      }
-    }
-    Views: Record<string, never>
-    Functions: Record<string, never>
-    Enums: Record<string, never>
-    CompositeTypes: Record<string, never>
-  }
+       app_settings: {
+         Row: {
+           key: string
+           value: Record<string, unknown>
+           updated_at: string
+         }
+         Insert: {
+           key: string
+           value: Record<string, unknown>
+           updated_at?: string
+         }
+         Update: {
+           key?: string
+           value?: Record<string, unknown>
+           updated_at?: string
+         }
+         Relationships: []
+       }
+       achievements: {
+         Row: {
+           id: string
+           user_id: string
+           achievement_type: 'READ_10_EXPLANATIONS' | 'MADE_FIRST_DRAFT_PICK' | 'VERIFIED_5_VBD' | 'COMPLETED_DRAFT' | 'MADE_FIRST_TRADE' | 'APPLIED_OPTIMAL_LINEUP' | 'WEEK_1_REVIEW' | 'SEVEN_DAY_STREAK'
+           unlocked_at: string
+           metadata: Record<string, unknown>
+         }
+         Insert: {
+           id?: string
+           user_id: string
+           achievement_type: 'READ_10_EXPLANATIONS' | 'MADE_FIRST_DRAFT_PICK' | 'VERIFIED_5_VBD' | 'COMPLETED_DRAFT' | 'MADE_FIRST_TRADE' | 'APPLIED_OPTIMAL_LINEUP' | 'WEEK_1_REVIEW' | 'SEVEN_DAY_STREAK'
+           unlocked_at?: string
+           metadata?: Record<string, unknown>
+         }
+         Update: {
+           id?: string
+           user_id?: string
+           achievement_type?: 'READ_10_EXPLANATIONS' | 'MADE_FIRST_DRAFT_PICK' | 'VERIFIED_5_VBD' | 'COMPLETED_DRAFT' | 'MADE_FIRST_TRADE' | 'APPLIED_OPTIMAL_LINEUP' | 'WEEK_1_REVIEW' | 'SEVEN_DAY_STREAK'
+           unlocked_at?: string
+           metadata?: Record<string, unknown>
+         }
+         Relationships: []
+       }
+       user_streaks: {
+         Row: {
+           id: string
+           user_id: string
+           streak_type: 'DAILY_LOGIN' | 'WEEKLY_LINEUP_REVIEW' | 'DRAFT_RESEARCH' | 'WAIVER_WIRE_WEDNESDAY'
+           current_streak: number
+           longest_streak: number
+           last_activity_at: string | null
+           streak_start_date: string | null
+         }
+         Insert: {
+           id?: string
+           user_id: string
+           streak_type: 'DAILY_LOGIN' | 'WEEKLY_LINEUP_REVIEW' | 'DRAFT_RESEARCH' | 'WAIVER_WIRE_WEDNESDAY'
+           current_streak?: number
+           longest_streak?: number
+           last_activity_at?: string | null
+           streak_start_date?: string | null
+         }
+         Update: {
+           id?: string
+           user_id?: string
+           streak_type?: 'DAILY_LOGIN' | 'WEEKLY_LINEUP_REVIEW' | 'DRAFT_RESEARCH' | 'WAIVER_WIRE_WEDNESDAY'
+           current_streak?: number
+           longest_streak?: number
+           last_activity_at?: string | null
+           streak_start_date?: string | null
+         }
+         Relationships: []
+       }
+     }
+     Views: Record<string, never>
+     Functions: {
+       increment_gamification_counter: {
+         Args: {
+           target_user_id: string
+           counter_key: string
+           increment_by?: number
+         }
+         Returns: Record<string, unknown>
+       }
+     }
+     Enums: Record<string, never>
+     CompositeTypes: Record<string, never>
+   }
 }

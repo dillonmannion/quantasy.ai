@@ -6,8 +6,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
+import { useAuth } from '@/components/providers/auth-provider'
+import { unlockAchievement } from '@/lib/gamification'
 import type { Database } from '@/lib/supabase/types'
-import type { TradeOutput } from '@/lib/algorithms/types'
+import type { TradeOutput, TradeableAsset } from '@/lib/algorithms/types'
 
 const TradeBuilder = dynamic(
   () => import('@/components/trade').then((mod) => mod.TradeBuilder),
@@ -34,12 +36,17 @@ export function TradeClient({
   defaultWeek,
   initialPlayers
 }: TradeClientProps) {
+  const { user } = useAuth()
   const [showKaching, setShowKaching] = useState(false)
   const [tradeResult, setTradeResult] = useState<TradeOutput | null>(null)
   const [showResultDialog, setShowResultDialog] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleTradeSubmit = async (youGive: PlayerRow[], youReceive: PlayerRow[]) => {
+  const handleTradeSubmit = async (
+    youGive: TradeableAsset[], 
+    youReceive: TradeableAsset[], 
+    biasFactor: number
+  ) => {
     setError(null)
     try {
       const response = await fetch('/api/algorithms/trade', {
@@ -48,8 +55,9 @@ export function TradeClient({
         body: JSON.stringify({
           leagueId,
           rosterId,
-          givingPlayerIds: youGive.map(p => p.id),
-          receivingPlayerIds: youReceive.map(p => p.id),
+          giving: youGive,
+          receiving: youReceive,
+          biasFactor,
           week: defaultWeek
         })
       })
@@ -58,6 +66,10 @@ export function TradeClient({
 
       const result = await response.json() as TradeOutput
       setTradeResult(result)
+
+      if (user?.id) {
+        unlockAchievement(user.id, 'MADE_FIRST_TRADE').catch(console.error)
+      }
 
       if (result.verdict === 'great') {
         setShowKaching(true)
@@ -84,6 +96,7 @@ export function TradeClient({
       <TradeBuilder
         allPlayers={initialPlayers}
         onTradeSubmit={handleTradeSubmit}
+        leagueId={leagueId}
       />
 
       <Kaching

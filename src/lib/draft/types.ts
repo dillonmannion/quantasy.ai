@@ -5,6 +5,7 @@ export interface DraftState {
   draftedPlayerIds: Set<string>
   userRosterId: number | null
   currentPick: number
+  userId: string | null
 }
 
 export interface DraftPick {

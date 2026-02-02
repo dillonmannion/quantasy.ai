@@ -229,6 +229,28 @@ export const sleeperHandlers = [
     return HttpResponse.json([TEST_LEAGUE, RLS_TEST_LEAGUE])
   }),
 
+  // Specific handlers for test league (must come before generic handlers)
+  http.get(`${SLEEPER_BASE}/league/987654321/drafts`, () => {
+    return HttpResponse.json([TEST_DRAFT])
+  }),
+
+  http.get(`${SLEEPER_BASE}/league/987654321/rosters`, () => {
+    return HttpResponse.json(TEST_ROSTERS)
+  }),
+
+  http.get(`${SLEEPER_BASE}/league/987654321/users`, () => {
+    return HttpResponse.json([TEST_USER])
+  }),
+
+  http.get(`${SLEEPER_BASE}/draft/draft123`, () => {
+    return HttpResponse.json(TEST_DRAFT)
+  }),
+
+  http.get(`${SLEEPER_BASE}/draft/draft123/picks`, () => {
+    return HttpResponse.json([])
+  }),
+
+  // Generic handlers for other leagues/drafts
   http.get(`${SLEEPER_BASE}/league/:leagueId`, ({ params }) => {
     const { leagueId } = params
     if (leagueId === 'rls-test-league') {
@@ -237,16 +259,16 @@ export const sleeperHandlers = [
     return HttpResponse.json(TEST_LEAGUE)
   }),
 
+  http.get(`${SLEEPER_BASE}/league/:leagueId/drafts`, () => {
+    return HttpResponse.json([TEST_DRAFT])
+  }),
+
   http.get(`${SLEEPER_BASE}/league/:leagueId/rosters`, () => {
     return HttpResponse.json(TEST_ROSTERS)
   }),
 
   http.get(`${SLEEPER_BASE}/league/:leagueId/users`, () => {
     return HttpResponse.json([TEST_USER])
-  }),
-
-  http.get(`${SLEEPER_BASE}/league/:leagueId/drafts`, () => {
-    return HttpResponse.json([TEST_DRAFT])
   }),
 
   http.get(`${SLEEPER_BASE}/league/:leagueId/matchups/:week`, () => {

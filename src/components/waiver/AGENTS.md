@@ -50,3 +50,36 @@ import { RecommendationList, FaabBidDisplay } from '@/components/waiver'
 
 - **DO NOT** call waivers algorithm from components - use API route
 - **DO NOT** allow FAAB bids exceeding remaining budget
+
+## API CALL PATTERN
+
+```typescript
+// Get waiver recommendations
+const response = await fetch('/api/algorithms/waivers', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    leagueId,
+    rosterId,
+    faabBudget: 100
+  })
+})
+
+const { recommendations, droppable, explanation } = await response.json()
+```
+
+## DATA-TESTID PATTERNS
+
+```tsx
+<div data-testid="waiver-recommendations">...</div>
+<div data-testid={`waiver-card-${playerId}`}>...</div>
+<div data-testid="faab-bid">...</div>
+<select data-testid="drop-player-select">...</select>
+<button data-testid="add-claim">Add Claim</button>
+```
+
+## IMPORT PATTERNS
+
+```typescript
+import { RecommendationList, FaabBidDisplay, DroppablePlayerSelector } from '@/components/waiver'
+```
