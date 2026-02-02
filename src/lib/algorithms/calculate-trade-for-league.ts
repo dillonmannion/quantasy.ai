@@ -2,9 +2,16 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { getCachedLeague, getCachedRosters } from '@/lib/sleeper/cache'
 import { getAllPlayers } from '@/lib/sleeper'
+import {
+  fetchDynastyProcessPlayerValues,
+  fetchFantasyCalcPlayerValues,
+  fetchKTCPlayerValues,
+} from '@/lib/external'
+import { upsertExternalValues } from '@/lib/supabase/external-values'
 import { evaluateTrade } from './trade'
 import { calculateBaseline } from './baselines'
 import { getOrComputeAlgorithm, generateTradeCacheKey } from './cache'
+import { normalizeValues, calculateConsensus } from './value-normalization'
 import type {
   AlgorithmPlayer,
   PositionBaseline,
@@ -13,6 +20,9 @@ import type {
   TradeOutput,
   TradeableAsset,
   PlayerAsset,
+  ExternalPlayerValue,
+  ExternalValueSource,
+  NormalizedValue,
 } from './types'
 import type { SleeperPlayer } from '@/lib/sleeper/types'
 
@@ -122,6 +132,92 @@ function expandFlexPositions(position: Position): Position[] {
       return ['DL', 'LB', 'DB']
     default:
       return [position]
+  }
+}
+
+function getScaleForSource(source: ExternalValueSource): string {
+  switch (source) {
+    case 'DynastyProcess':
+      return '0-10000'
+    case 'KTC':
+      return '0-10000'
+    case 'FantasyCalc':
+      return '0-1000'
+  }
+}
+
+async function fetchAllExternalValues(): Promise<{
+  combinedValues: ExternalPlayerValue[]
+  originalValuesByPlayer: Record<string, ExternalPlayerValue[]>
+}> {
+  const [dpValues, fcValues, ktcValues] = await Promise.all([
+    fetchDynastyProcessPlayerValues().catch((err) => {
+      logger.warn('Trade', 'DynastyProcess fetch failed', { error: err })
+      return {} as Record<string, ExternalPlayerValue>
+    }),
+    fetchFantasyCalcPlayerValues('dynasty').catch((err) => {
+      logger.warn('Trade', 'FantasyCalc fetch failed', { error: err })
+      return {} as Record<string, ExternalPlayerValue>
+    }),
+    fetchKTCPlayerValues().catch((err) => {
+      logger.warn('Trade', 'KTC fetch failed', { error: err })
+      return {} as Record<string, ExternalPlayerValue>
+    }),
+  ])
+
+  const combinedValues: ExternalPlayerValue[] = [
+    ...Object.values(dpValues),
+    ...Object.values(fcValues),
+    ...Object.values(ktcValues),
+  ]
+
+  const originalValuesByPlayer: Record<string, ExternalPlayerValue[]> = {}
+  for (const value of combinedValues) {
+    if (!originalValuesByPlayer[value.playerId]) {
+      originalValuesByPlayer[value.playerId] = []
+    }
+    originalValuesByPlayer[value.playerId].push(value)
+  }
+
+  return { combinedValues, originalValuesByPlayer }
+}
+
+function buildExternalValuesBreakdown(
+  playerId: string,
+  normalizedByPlayer: Record<string, NormalizedValue[]>,
+  originalValuesByPlayer: Record<string, ExternalPlayerValue[]>
+): {
+  consensus?: number
+  sources?: Array<{
+    source: ExternalValueSource
+    value: number
+    originalScale?: string
+  }>
+} | undefined {
+  const playerNormalized = normalizedByPlayer[playerId]
+  const playerOriginals = originalValuesByPlayer[playerId]
+
+  if (!playerNormalized || playerNormalized.length === 0) {
+    return undefined
+  }
+
+  const consensus = calculateConsensus(playerNormalized)
+
+  const sources = playerNormalized
+    .map((nv) => {
+      const originalValue = playerOriginals?.find((v) => v.source === nv.source)
+      const value = originalValue?.dynasty_value ?? originalValue?.redraft_value ?? 0
+      return {
+        source: nv.source,
+        value,
+        originalScale: getScaleForSource(nv.source),
+      }
+    })
+    .filter((s) => s.value > 0)
+
+  return {
+    consensus: consensus ?? undefined,
+    sources: sources.length > 0 ? sources : undefined,
   }
 }
 
@@ -246,6 +342,21 @@ export async function calculateTradeForLeague(
       }
     }
 
+    const { combinedValues, originalValuesByPlayer } = await fetchAllExternalValues()
+    const normalizedByPlayer = normalizeValues(combinedValues)
+
+    if (combinedValues.length > 0) {
+      const dbInsertValues = combinedValues.map((v) => ({
+        sleeper_id: v.playerId,
+        source: v.source,
+        dynasty_value: v.dynasty_value ?? null,
+        redraft_value: v.redraft_value ?? null,
+      }))
+      upsertExternalValues(dbInsertValues).catch((err) => {
+        logger.warn('Trade', 'Failed to upsert external values', { error: err })
+      })
+    }
+
     // Normalize giving/receiving assets
     // If 'giving' is provided (TradeInputV2), assume it contains partial data that needs augmentation (e.g. projections)
     // If not, assume legacy 'givingPlayerIds'
@@ -331,6 +442,17 @@ export async function calculateTradeForLeague(
       },
       week,
     })
+
+    for (const breakdown of result.explanation.playerBreakdown) {
+      const externalValues = buildExternalValuesBreakdown(
+        breakdown.playerId,
+        normalizedByPlayer,
+        originalValuesByPlayer
+      )
+      if (externalValues) {
+        breakdown.externalValues = externalValues
+      }
+    }
 
     return result
     }
