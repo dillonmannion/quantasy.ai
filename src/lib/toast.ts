@@ -19,3 +19,5 @@ export function showWarning(message: string, description?: string) {
 export function showLoading(message: string, description?: string) {
   return toast.loading(message, { description })
 }
+
+export { showAchievementToast } from '@/components/gamification/achievement-toast'
