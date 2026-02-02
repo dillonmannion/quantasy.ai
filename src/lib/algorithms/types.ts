@@ -344,6 +344,69 @@ export interface LineupOutput {
 }
 
 /**
+ * External value sources for multi-source player value integration.
+ * Supports DynastyProcess, FantasyCalc, and KeepTradeCut.
+ */
+export type ExternalValueSource = 'DynastyProcess' | 'FantasyCalc' | 'KTC'
+
+/**
+ * Player value from an external source (DynastyProcess, FantasyCalc, KTC).
+ * Stores both dynasty and redraft values when available.
+ */
+export interface ExternalPlayerValue {
+  /** Sleeper player ID */
+  playerId: string
+
+  /** Source of the value (DynastyProcess, FantasyCalc, or KTC) */
+  source: ExternalValueSource
+
+  /** Dynasty format value (optional, not all sources provide this) */
+  dynasty_value?: number | null
+
+  /** Redraft format value (optional, not all sources provide this) */
+  redraft_value?: number | null
+
+  /** ISO timestamp when value was last updated */
+  updated_at: string
+}
+
+/**
+ * Player ID mapping across different platforms.
+ * Maps Sleeper IDs to external platform IDs for cross-source lookups.
+ */
+export interface PlayerIdMapping {
+  /** Sleeper player ID (primary identifier) */
+  sleeper_id: string
+
+  /** KeepTradeCut internal player ID */
+  ktc_id?: string | null
+
+  /** FantasyPros player ID */
+  fantasypros_id?: string | null
+
+  /** DynastyProcess player ID */
+  dynasty_process_id?: string | null
+}
+
+/**
+ * Normalized player value from Z-score calculation.
+ * Used for consensus calculation across multiple sources.
+ */
+export interface NormalizedValue {
+  /** Sleeper player ID */
+  player_id: string
+
+  /** Z-score normalized value (0 = mean, positive = above average, negative = below average) */
+  normalized_value: number
+
+  /** Z-score for this player's value */
+  z_score: number
+
+  /** Source this normalized value came from */
+  source: ExternalValueSource
+}
+
+/**
  * Verdict classification for trade evaluation.
  */
 export type TradeVerdict = 'great' | 'fair' | 'bad' | 'veto-worthy'
@@ -361,6 +424,17 @@ export interface TradePlayerBreakdown {
     source: 'VBD' | 'KTC' | 'FantasyCalc'
     value: number
     methodology?: string
+  }
+  /** Multi-source external values with consensus Z-score */
+  externalValues?: {
+    /** Consensus Z-score across all available sources */
+    consensus?: number
+    /** Individual source values in original scales */
+    sources?: Array<{
+      source: ExternalValueSource
+      value: number
+      originalScale?: string
+    }>
   }
 }
 
