@@ -103,20 +103,14 @@ export async function POST(
       projectionUpdatedAt,
     })
 
-    const { data: cacheResults } = await supabase
+    const { data: existingCache } = await supabase
       .from('algorithm_outputs')
-      .select('explanation, input_params')
+      .select('explanation')
       .eq('user_id', user.id)
       .eq('league_id', leagueId)
       .eq('algorithm_type', 'vbd_explanation')
-
-    const existingCache = cacheResults?.find(
-      (row) =>
-        row.input_params &&
-        typeof row.input_params === 'object' &&
-        'player_id' in row.input_params &&
-        row.input_params.player_id === playerId
-    )
+      .eq('input_params->>player_id', playerId)
+      .maybeSingle()
 
     if (existingCache?.explanation) {
       const explanation = existingCache.explanation as {
