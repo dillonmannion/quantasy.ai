@@ -21,6 +21,17 @@ export interface GenerateExplanationParams {
   scoringFormat: string
 }
 
+export interface GenerateTradeRecommendationParams {
+  leagueId: string
+  myRosterId: number
+  myPlayers: Array<{ name: string; position: string; value: number }>
+  targetRosterId: number
+  targetPlayers: Array<{ name: string; position: string; value: number }>
+  myNeeds: string[]
+  theirNeeds: string[]
+  scoringFormat: string
+}
+
 export async function generateExplanation(
   params: GenerateExplanationParams
 ): Promise<string> {
@@ -53,6 +64,64 @@ Provide a 2-3 sentence explanation focusing on why this player is valuable relat
     ],
     temperature: 0.7,
     max_tokens: 300,
+  })
+
+  const content = completion.choices[0]?.message?.content
+  if (!content) {
+    throw new Error('No response from Groq API')
+  }
+
+  return content.trim()
+}
+
+export async function generateTradeRecommendation(
+  params: GenerateTradeRecommendationParams
+): Promise<string> {
+  const {
+    leagueId,
+    myRosterId,
+    myPlayers,
+    targetRosterId,
+    targetPlayers,
+    myNeeds,
+    theirNeeds,
+    scoringFormat,
+  } = params
+
+  const myPlayersStr = myPlayers
+    .map((p) => `${p.name} (${p.position}, value: ${p.value})`)
+    .join(', ')
+  const theirPlayersStr = targetPlayers
+    .map((p) => `${p.name} (${p.position}, value: ${p.value})`)
+    .join(', ')
+
+  const prompt = `You are a fantasy football expert. Analyze this potential trade and provide specific recommendations.
+
+My Roster (ID: ${myRosterId}):
+- Players: ${myPlayersStr}
+- Needs: ${myNeeds.join(', ')}
+
+Their Roster (ID: ${targetRosterId}):
+- Players: ${theirPlayersStr}
+- Needs: ${theirNeeds.join(', ')}
+
+Scoring Format: ${scoringFormat}
+
+Provide 2-3 specific trade proposals that would benefit both teams. For each proposal, explain:
+1. Which players would be exchanged
+2. Why it helps both rosters
+3. The value balance of the trade`
+
+  const completion = await getClient().chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+    temperature: 0.7,
+    max_tokens: 500,
   })
 
   const content = completion.choices[0]?.message?.content
