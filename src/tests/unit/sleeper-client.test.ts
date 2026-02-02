@@ -227,16 +227,17 @@ describe('SleeperTransaction Type', () => {
 })
 
 describe('Sleeper API Client', () => {
-  let getNFLState: typeof import('@/lib/sleeper/client').getNFLState
-  let getUserByUsername: typeof import('@/lib/sleeper/client').getUserByUsername
-  let getUserById: typeof import('@/lib/sleeper/client').getUserById
-  let getUserLeagues: typeof import('@/lib/sleeper/client').getUserLeagues
-  let getLeague: typeof import('@/lib/sleeper/client').getLeague
-  let getLeagueRosters: typeof import('@/lib/sleeper/client').getLeagueRosters
-  let getLeagueUsers: typeof import('@/lib/sleeper/client').getLeagueUsers
-  let getMatchups: typeof import('@/lib/sleeper/client').getMatchups
-  let getAllPlayers: typeof import('@/lib/sleeper/client').getAllPlayers
-  let getCurrentSeason: typeof import('@/lib/sleeper/client').getCurrentSeason
+   let getNFLState: typeof import('@/lib/sleeper/client').getNFLState
+   let getUserByUsername: typeof import('@/lib/sleeper/client').getUserByUsername
+   let getUserById: typeof import('@/lib/sleeper/client').getUserById
+   let getUserLeagues: typeof import('@/lib/sleeper/client').getUserLeagues
+   let getLeague: typeof import('@/lib/sleeper/client').getLeague
+   let getLeagueRosters: typeof import('@/lib/sleeper/client').getLeagueRosters
+   let getLeagueUsers: typeof import('@/lib/sleeper/client').getLeagueUsers
+   let getMatchups: typeof import('@/lib/sleeper/client').getMatchups
+   let getLeagueTransactions: typeof import('@/lib/sleeper/client').getLeagueTransactions
+   let getAllPlayers: typeof import('@/lib/sleeper/client').getAllPlayers
+   let getCurrentSeason: typeof import('@/lib/sleeper/client').getCurrentSeason
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -248,12 +249,13 @@ describe('Sleeper API Client', () => {
     getUserByUsername = client.getUserByUsername
     getUserById = client.getUserById
     getUserLeagues = client.getUserLeagues
-    getLeague = client.getLeague
-    getLeagueRosters = client.getLeagueRosters
-    getLeagueUsers = client.getLeagueUsers
-    getMatchups = client.getMatchups
-    getAllPlayers = client.getAllPlayers
-    getCurrentSeason = client.getCurrentSeason
+     getLeague = client.getLeague
+     getLeagueRosters = client.getLeagueRosters
+     getLeagueUsers = client.getLeagueUsers
+     getMatchups = client.getMatchups
+     getLeagueTransactions = client.getLeagueTransactions
+     getAllPlayers = client.getAllPlayers
+     getCurrentSeason = client.getCurrentSeason
   })
 
   describe('Request Headers and URL Construction', () => {
@@ -660,8 +662,61 @@ describe('Sleeper API Client', () => {
     })
   })
 
-  describe('getAllPlayers', () => {
-    it('fetches all NFL players', async () => {
+   describe('getLeagueTransactions', () => {
+     it('returns transactions for valid league and week', async () => {
+       const mockTransactions = [
+         createMockTransaction({ transaction_id: 'txn-1', type: 'trade' }),
+         createMockTransaction({ transaction_id: 'txn-2', type: 'free_agent' }),
+       ]
+       mockFetch.mockResolvedValueOnce(createMockResponse(mockTransactions))
+
+       const result = await getLeagueTransactions('league-123', 5)
+
+       expect(mockFetch).toHaveBeenCalledWith(
+         'https://api.sleeper.app/v1/league/league-123/transactions/5',
+         expect.any(Object)
+       )
+       expect(result).toHaveLength(2)
+       expect(result[0].transaction_id).toBe('txn-1')
+       expect(result[1].transaction_id).toBe('txn-2')
+     })
+
+     it('returns empty array for week with no transactions', async () => {
+       mockFetch.mockResolvedValueOnce(createMockResponse([]))
+
+       const result = await getLeagueTransactions('league-123', 8)
+
+       expect(mockFetch).toHaveBeenCalledWith(
+         'https://api.sleeper.app/v1/league/league-123/transactions/8',
+         expect.any(Object)
+       )
+       expect(result).toEqual([])
+     })
+
+     it('uses sleeperFetch for rate limiting', async () => {
+       const mockTransaction = createMockTransaction({ type: 'waiver' })
+       mockFetch.mockResolvedValueOnce(createMockResponse([mockTransaction]))
+
+       await getLeagueTransactions('league-456', 10)
+
+       expect(mockFetch).toHaveBeenCalled()
+       expect(mockFetch).toHaveBeenCalledWith(
+         expect.stringContaining('https://api.sleeper.app/v1/league/league-456/transactions/10'),
+         expect.any(Object)
+       )
+     })
+
+     it('throws for HTTP errors', async () => {
+       mockFetch.mockResolvedValueOnce(createMockResponse(null, 500, false))
+
+       await expect(getLeagueTransactions('league-123', 1)).rejects.toMatchObject({
+         statusCode: 500,
+       })
+     })
+   })
+
+   describe('getAllPlayers', () => {
+     it('fetches all NFL players', async () => {
       const mockPlayers: Record<string, SleeperPlayer> = {
         '4046': createMockPlayer({ player_id: '4046', full_name: 'Patrick Mahomes' }),
         '6794': createMockPlayer({ player_id: '6794', full_name: 'Justin Jefferson' }),

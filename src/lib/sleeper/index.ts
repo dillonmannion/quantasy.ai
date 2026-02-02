@@ -24,6 +24,7 @@ export {
   getLeagueRosters,
   getLeagueUsers,
   getMatchups,
+  getLeagueTransactions,
   getAllPlayers,
   getCurrentSeason,
   sleeperFetch,

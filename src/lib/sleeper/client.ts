@@ -6,6 +6,7 @@ import type {
    SleeperPlayer,
    SleeperNFLState,
    SleeperDraftPick,
+   SleeperTransaction,
    SleeperAPIError,
  } from './types'
  import { isSleeperAPIError } from './types'
@@ -264,6 +265,15 @@ export async function getMatchups(
 ): Promise<SleeperMatchup[]> {
   return sleeperFetch<SleeperMatchup[]>(
     `/league/${leagueId}/matchups/${week}`
+  )
+}
+
+export async function getLeagueTransactions(
+  leagueId: string,
+  week: number
+): Promise<SleeperTransaction[]> {
+  return sleeperFetch<SleeperTransaction[]>(
+    `/league/${leagueId}/transactions/${week}`
   )
 }
 
