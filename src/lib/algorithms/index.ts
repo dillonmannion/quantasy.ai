@@ -13,6 +13,9 @@ export type {
   LineupInput,
   LineupOutput,
   LineupExplanation,
+  ExternalValueSource,
+  ExternalPlayerValue,
+  NormalizedValue,
   TradeVerdict,
   TradePlayerBreakdown,
   TradeLineupImpact,
@@ -52,6 +55,8 @@ export { calculateIDPScarcityMultiplier, getIDPGroup } from './idp'
 export { getFlexBaseline } from './flex'
 
 export { calculateVBD } from './vbd'
+
+export { calculateZScore, normalizeValues, calculateConsensus } from './value-normalization'
 
 export { calculatePickValue } from './pick-value'
 
