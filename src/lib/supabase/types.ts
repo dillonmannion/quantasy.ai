@@ -217,6 +217,36 @@ export type Database = {
         }
         Relationships: []
       }
+      player_external_values: {
+        Row: {
+          id: string
+          sleeper_id: string
+          source: string
+          dynasty_value: number | null
+          redraft_value: number | null
+          raw_value: Record<string, unknown> | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          sleeper_id: string
+          source: string
+          dynasty_value?: number | null
+          redraft_value?: number | null
+          raw_value?: Record<string, unknown> | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          sleeper_id?: string
+          source?: string
+          dynasty_value?: number | null
+          redraft_value?: number | null
+          raw_value?: Record<string, unknown> | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       algorithm_outputs: {
         Row: {
           id: string
