@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import { getDraft, getDraftPicks, getDraftTradedPicks } from '@/lib/sleeper/draft'
+import { getDraft, getDraftPicks } from '@/lib/sleeper/draft'
 import { getAllPlayers, getLeague } from '@/lib/sleeper'
-import type { SleeperPlayer, SleeperDraft, SleeperLeague } from '@/lib/sleeper'
+import type { SleeperDraft, SleeperLeague } from '@/lib/sleeper'
 import { calculatePickValue } from './pick-value'
 import { detectScoringFormat } from './scoring'
 import { getOrComputeAlgorithm, getProjectionVersion } from './cache'
@@ -70,9 +70,6 @@ export async function calculatePickValueForDraft(
 
     // Fetch all draft picks
     const picks = await getDraftPicks(draftId)
-
-    // Fetch traded picks (not used yet, but fetched for future use)
-    const tradedPicks = await getDraftTradedPicks(draftId)
 
     // Calculate draftedPlayerIds Set
     const draftedPlayerIds = new Set(

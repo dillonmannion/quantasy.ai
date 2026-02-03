@@ -10,12 +10,6 @@ interface BiasSliderProps {
 }
 
 export function BiasSlider({ value, onChange, className }: BiasSliderProps) {
-  const getLabel = (bias: number) => {
-    if (bias === 0) return 'Fair'
-    if (bias <= 0.1) return 'Slight Edge'
-    return 'Advantage'
-  }
-
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex justify-between items-center">

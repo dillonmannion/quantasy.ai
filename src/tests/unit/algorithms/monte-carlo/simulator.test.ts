@@ -10,7 +10,6 @@ import {
 import {
   createMockSimulationInput,
   createMockDraftBoard,
-  createMockADPMap,
   createMockPreferences,
 } from '@/tests/unit/algorithms/monte-carlo/factories'
 import type { MonteCarloInput, MarketConfig } from '@/lib/algorithms/monte-carlo/types'
@@ -32,45 +31,45 @@ describe('Monte Carlo Simulator', () => {
   describe('calculatePickOrder', () => {
     describe('Standard snake draft', () => {
       it('should return forward order [1-12] for round 1', () => {
-        const order = calculatePickOrder(1, 12, 16)
+        const order = calculatePickOrder(1, 12)
         expect(order).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
       })
 
       it('should return reverse order [12-1] for round 2', () => {
-        const order = calculatePickOrder(2, 12, 16)
+        const order = calculatePickOrder(2, 12)
         expect(order).toEqual([12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
       })
 
       it('should return forward order [1-12] for round 5 (odd)', () => {
-        const order = calculatePickOrder(5, 12, 16)
+        const order = calculatePickOrder(5, 12)
         expect(order).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
       })
 
       it('should return reverse order [12-1] for round 6 (even)', () => {
-        const order = calculatePickOrder(6, 12, 16)
+        const order = calculatePickOrder(6, 12)
         expect(order).toEqual([12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
       })
     })
 
     describe('Third Round Reversal (3RR)', () => {
       it('should return forward order [1-12] for round 3 (3RR breaks snake)', () => {
-        const order = calculatePickOrder(3, 12, 16)
+        const order = calculatePickOrder(3, 12)
         expect(order).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
       })
 
       it('should return reverse order [12-1] for round 4 (resume snake after 3RR)', () => {
-        const order = calculatePickOrder(4, 12, 16)
+        const order = calculatePickOrder(4, 12)
         expect(order).toEqual([12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
       })
 
       it('should handle 10-team league with 3RR', () => {
-        const order = calculatePickOrder(3, 10, 16)
+        const order = calculatePickOrder(3, 10)
         expect(order).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
       })
 
       it('should handle 8-team league with 3RR', () => {
-        const round3 = calculatePickOrder(3, 8, 16)
-        const round4 = calculatePickOrder(4, 8, 16)
+        const round3 = calculatePickOrder(3, 8)
+        const round4 = calculatePickOrder(4, 8)
 
         expect(round3).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
         expect(round4).toEqual([8, 7, 6, 5, 4, 3, 2, 1])
@@ -79,21 +78,21 @@ describe('Monte Carlo Simulator', () => {
 
     describe('Edge cases', () => {
       it('should handle single team league', () => {
-        const order = calculatePickOrder(1, 1, 16)
+        const order = calculatePickOrder(1, 1)
         expect(order).toEqual([1])
       })
 
       it('should handle round 1 of any league size', () => {
-        const order4 = calculatePickOrder(1, 4, 16)
-        const order14 = calculatePickOrder(1, 14, 16)
+        const order4 = calculatePickOrder(1, 4)
+        const order14 = calculatePickOrder(1, 14)
 
         expect(order4).toEqual([1, 2, 3, 4])
         expect(order14).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
       })
 
       it('should handle late rounds correctly', () => {
-        const round15 = calculatePickOrder(15, 12, 16) // Odd = forward
-        const round16 = calculatePickOrder(16, 12, 16) // Even = reverse
+        const round15 = calculatePickOrder(15, 12) // Odd = forward
+        const round16 = calculatePickOrder(16, 12) // Even = reverse
 
         expect(round15).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
         expect(round16).toEqual([12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1])

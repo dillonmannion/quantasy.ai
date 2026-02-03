@@ -73,18 +73,20 @@ export function AchievementBadge({
   const name = achievementNames[achievement.achievement_type]
   const isLocked = !achievement.unlocked_at
   
-  // Check if unlocked within last 24 hours
-  const [showCelebration, setShowCelebration] = useState(false)
-  const isRecent = achievement.unlocked_at && 
-    Date.now() - new Date(achievement.unlocked_at).getTime() < 24 * 60 * 60 * 1000
+  const computeIsRecent = () => {
+    if (!achievement.unlocked_at) return false
+    return Date.now() - new Date(achievement.unlocked_at).getTime() < 24 * 60 * 60 * 1000
+  }
+  
+  const [isRecent] = useState(computeIsRecent)
+  const [showCelebration, setShowCelebration] = useState(computeIsRecent)
 
   useEffect(() => {
-    if (isRecent) {
-      setShowCelebration(true)
+    if (showCelebration) {
       const timer = setTimeout(() => setShowCelebration(false), 2000)
       return () => clearTimeout(timer)
     }
-  }, [isRecent])
+  }, [showCelebration])
 
   return (
     <div className={cn('flex flex-col items-center gap-2', className)}>

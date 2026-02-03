@@ -104,16 +104,6 @@ interface DraftState {
   allPlayers: Record<string, SleeperPlayer>
 }
 
-interface TradeResult {
-  giving: Asset[]
-  receiving: Asset[]
-  givingTotal: number
-  receivingTotal: number
-  netValue: number
-  fairness: number
-  verdict: string
-}
-
 // ============================================================================
 // VALUE CALCULATION FUNCTIONS
 // ============================================================================
@@ -267,34 +257,6 @@ function normalizePlayerName(name: string): string {
 }
 
 /**
- * Match ranked players to Sleeper player IDs
- */
-function matchPlayersToSleeper(rankings: RankedPlayer[], sleeperPlayers: Record<string, SleeperPlayer>): RankedPlayer[] {
-  const sleeperByNamePos: Record<string, string> = {}
-  const sleeperByName: Record<string, string> = {}
-
-  for (const [id, p] of Object.entries(sleeperPlayers)) {
-    if (p.full_name) {
-      const norm = normalizePlayerName(p.full_name)
-      const key = `${norm}_${p.position}`
-      if (!sleeperByNamePos[key] || p.team) {
-        sleeperByNamePos[key] = id
-      }
-      if (!sleeperByName[norm] || p.team) {
-        sleeperByName[norm] = id
-      }
-    }
-  }
-
-  return rankings.map((r) => {
-    const normalized = normalizePlayerName(r.name)
-    const keyWithPos = `${normalized}_${r.position}`
-    const playerId = sleeperByNamePos[keyWithPos] || sleeperByName[normalized]
-    return { ...r, playerId }
-  })
-}
-
-/**
  * Find player by fuzzy matching
  */
 function findPlayer(query: string, players: RankedPlayer[]): RankedPlayer | null {
@@ -331,45 +293,6 @@ function findPlayer(query: string, players: RankedPlayer[]): RankedPlayer | null
 // ============================================================================
 // ASSET PARSING
 // ============================================================================
-
-/**
- * Parse a player name asset
- * Checks drafted players first, then falls back to FantasyPros rankings
- */
-function parsePlayerAsset(
-  input: string,
-  rankings: RankedPlayer[],
-  draftedPlayers: Map<string, { name: string; position: string; pickNo: number; rank: number | null }>
-): Asset | null {
-  const normalized = normalizePlayerName(input)
-
-  for (const [, player] of Array.from(draftedPlayers)) {
-    if (normalizePlayerName(player.name) === normalized) {
-      const fpPlayer = rankings.find(r => normalizePlayerName(r.name) === normalized)
-      const value = fpPlayer?.value || getPlayerValue(player.rank ?? 200)
-      return {
-        type: 'player',
-        name: player.name,
-        value,
-        rank: fpPlayer ? `#${fpPlayer.rank}` : `Draft #${player.pickNo}`,
-        position: player.position,
-      }
-    }
-  }
-
-  const player = findPlayer(input, rankings)
-  if (player) {
-    return {
-      type: 'player',
-      name: player.name,
-      value: player.value || getPlayerValue(player.rank),
-      rank: `#${player.rank}`,
-      position: player.position,
-    }
-  }
-
-  return null
-}
 
 /**
  * Parse a live draft pick reference
@@ -487,24 +410,6 @@ function parseFuturePickAsset(input: string): Asset | null {
     round,
     year,
   }
-}
-
-/**
- * Parse any asset type - tries future pick, then live pick, then player
- */
-function parseAsset(
-  input: string,
-  rankings: RankedPlayer[],
-  draftState: DraftState,
-  draftedPlayers: Map<string, { name: string; position: string; pickNo: number; rank: number | null }>
-): Asset | null {
-  const futurePick = parseFuturePickAsset(input)
-  if (futurePick) return futurePick
-
-  const livePick = parseLivePickAsset(input, draftState)
-  if (livePick) return livePick
-
-  return parsePlayerAsset(input, rankings, draftedPlayers)
 }
 
 // ============================================================================

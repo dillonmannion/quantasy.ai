@@ -2,9 +2,8 @@
 
 import { motion } from 'motion/react'
 import { ArrowRight, Coins } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { PlayerCard } from '@/components/players/player-card'
-import type { TransactionWithPlayers, TransactionPlayer } from '.'
+import type { TransactionWithPlayers } from '.'
 import type { Database } from '@/lib/supabase/types'
 
 type PlayerRow = Database['public']['Tables']['players']['Row']

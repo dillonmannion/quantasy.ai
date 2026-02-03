@@ -1,6 +1,6 @@
 import type { MonteCarloInput, SimulationResult } from './types'
 import type { Position } from '@/lib/algorithms/types'
-import { simulateMarketPickDeterministic, simulateMarketPick } from './market-model'
+import { simulateMarketPickDeterministic } from './market-model'
 
 export interface CancellationToken {
   cancelled: boolean
@@ -14,7 +14,7 @@ export interface SurvivalProbabilityResult {
   }
 }
 
-export function calculatePickOrder(round: number, teams: number, _totalRounds: number): number[] {
+export function calculatePickOrder(round: number, teams: number): number[] {
   const isReverse = round === 3 ? false : round % 2 === 0
 
   if (isReverse) {
@@ -32,10 +32,10 @@ function getPickWithinRound(overallPick: number, teams: number): number {
   return remainder === 0 ? teams : remainder
 }
 
-function getRosterIdForPick(overallPick: number, teams: number, totalRounds: number): number {
+function getRosterIdForPick(overallPick: number, teams: number): number {
   const round = getPickRound(overallPick, teams)
   const pickWithinRound = getPickWithinRound(overallPick, teams)
-  const pickOrder = calculatePickOrder(round, teams, totalRounds)
+  const pickOrder = calculatePickOrder(round, teams)
   return pickOrder[pickWithinRound - 1]
 }
 
@@ -66,7 +66,7 @@ export function runSimulationDeterministic(
   let userPickCount = 0
 
   while (userPickCount < 2 && currentPick <= maxPicks) {
-    const rosterId = getRosterIdForPick(currentPick, teams, totalRounds)
+    const rosterId = getRosterIdForPick(currentPick, teams)
 
     if (rosterId === input.userRosterId) {
       if (userPickCount === 0) {

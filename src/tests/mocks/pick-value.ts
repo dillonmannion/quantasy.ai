@@ -1,40 +1,5 @@
 import type { DraftPick as DraftPickType } from '@/lib/algorithms/draft-picks'
-import type { DraftState, DraftPick } from '@/lib/draft/types'
-
-/**
- * Realistic test data for pick valuation tests.
- * Uses deterministic IDs and values for reproducible test scenarios.
- */
-const REALISTIC_PICKS: Array<{
-  id: string
-  year: number
-  round: number
-  position: 'early' | 'mid' | 'late'
-}> = [
-  // 2025 picks
-  { id: 'pick_2025_1_early', year: 2025, round: 1, position: 'early' },
-  { id: 'pick_2025_1_mid', year: 2025, round: 1, position: 'mid' },
-  { id: 'pick_2025_1_late', year: 2025, round: 1, position: 'late' },
-  { id: 'pick_2025_2_early', year: 2025, round: 2, position: 'early' },
-  { id: 'pick_2025_2_mid', year: 2025, round: 2, position: 'mid' },
-  { id: 'pick_2025_2_late', year: 2025, round: 2, position: 'late' },
-  { id: 'pick_2025_3_early', year: 2025, round: 3, position: 'early' },
-  { id: 'pick_2025_3_mid', year: 2025, round: 3, position: 'mid' },
-  { id: 'pick_2025_3_late', year: 2025, round: 3, position: 'late' },
-
-  // 2026 picks
-  { id: 'pick_2026_1_early', year: 2026, round: 1, position: 'early' },
-  { id: 'pick_2026_1_mid', year: 2026, round: 1, position: 'mid' },
-  { id: 'pick_2026_1_late', year: 2026, round: 1, position: 'late' },
-  { id: 'pick_2026_2_early', year: 2026, round: 2, position: 'early' },
-  { id: 'pick_2026_2_mid', year: 2026, round: 2, position: 'mid' },
-  { id: 'pick_2026_2_late', year: 2026, round: 2, position: 'late' },
-
-  // 2027 picks
-  { id: 'pick_2027_1_early', year: 2027, round: 1, position: 'early' },
-  { id: 'pick_2027_1_mid', year: 2027, round: 1, position: 'mid' },
-  { id: 'pick_2027_1_late', year: 2027, round: 1, position: 'late' },
-]
+import type { DraftState } from '@/lib/draft/types'
 
 /**
  * Create a mock PickValueInput for testing.

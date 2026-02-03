@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card'
 import { FadeIn } from '@/components/animation'
 import { LineupSlot } from './lineup-slot'
-import type { AlgorithmPlayer, LineupOutput } from '@/lib/algorithms/types'
+import type { LineupOutput } from '@/lib/algorithms/types'
 import { cn } from '@/lib/utils'
 
 interface LineupComparisonProps {
@@ -22,11 +22,6 @@ export function LineupComparison({
     current.projectedPoints > 0
       ? ((pointsDelta / current.projectedPoints) * 100).toFixed(1)
       : '0'
-
-  // Create a mapping of player IDs to their optimized status
-  const optimizedPlayerIds = new Set(
-    optimized.starters.map((p) => p.playerId)
-  )
 
   return (
     <div className={cn('space-y-6', className)}>

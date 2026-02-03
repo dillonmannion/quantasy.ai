@@ -1,5 +1,5 @@
 import type { VBDInput, VBDOutput, Position, PositionBaseline, PlayerRanking } from './types'
-import { calculateBaseline, type BaselineInput } from './baselines'
+import { calculateBaseline } from './baselines'
 import { getFlexBaseline } from './flex'
 import { calculateIDPScarcityMultiplier, getIDPGroup } from './idp'
 

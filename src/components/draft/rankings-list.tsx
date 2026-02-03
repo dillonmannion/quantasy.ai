@@ -2,7 +2,6 @@
 
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef, useState, useEffect, useMemo } from 'react'
-import { motion } from 'motion/react'
 import { useDraftState } from '@/lib/draft'
 import { cn } from '@/lib/utils'
 import { SwipeablePlayerRow } from './swipeable-player-row'
@@ -92,8 +91,6 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
             const vbdColor = getVBDColor(player.vbd, top25, top75)
             const isDraftable = state.status === 'mock' && !isDrafted
             
-            const visibleIndex = virtualRow.index - (rowVirtualizer.range?.startIndex ?? 0)
-            
             const handleDraft = () => {
               if (isDraftable) {
                 dispatch({
@@ -141,7 +138,7 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2 md:gap-6 text-sm">
                   <div className="text-center">
                     <div className="text-xs text-muted-foreground">VBD</div>
                     <div className={cn('font-mono font-bold', vbdColor)}>

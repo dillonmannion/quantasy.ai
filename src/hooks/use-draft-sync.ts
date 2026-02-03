@@ -77,8 +77,6 @@ export function useDraftSync({
       }
 
       if (response.status === 429) {
-        const data = await response.json()
-        const retryAfterMs = data.retryAfterMs || 5000
         backoffRef.current = Math.min(backoffRef.current * 2, MAX_BACKOFF_MS)
         setError(`Rate limited - retrying in ${Math.round(backoffRef.current / 1000)}s`)
 
@@ -115,7 +113,7 @@ export function useDraftSync({
       backoffRef.current = pollIntervalMs
       setError(null)
       setLastSyncAt(Date.now())
-    } catch (err) {
+    } catch {
       errorCountRef.current++
       if (errorCountRef.current >= MAX_ERROR_RETRIES) {
         setError('Network error - stopped polling')

@@ -106,7 +106,6 @@ export function createMockDraftBoard(overrides?: {
   currentPick?: number
   draftedPlayers?: string[]
 }): DraftState {
-  const teams = overrides?.teams ?? 12
   const currentPick = overrides?.currentPick ?? 1
   const draftedPlayerIds = new Set(overrides?.draftedPlayers ?? [])
 

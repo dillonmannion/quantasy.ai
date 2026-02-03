@@ -43,12 +43,12 @@ describe('FairnessBarSVG', () => {
   })
 
   it('renders explain callout when showExplain is true', () => {
-    const { container } = render(<FairnessBarSVG {...defaultProps} showExplain={true} />)
+    render(<FairnessBarSVG {...defaultProps} showExplain={true} />)
     expect(screen.getByText('?')).toBeInTheDocument()
   })
 
   it('does not render explain callout by default', () => {
-    const { container } = render(<FairnessBarSVG {...defaultProps} />)
+    render(<FairnessBarSVG {...defaultProps} />)
     expect(screen.queryByText('?')).not.toBeInTheDocument()
   })
 

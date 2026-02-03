@@ -154,7 +154,6 @@ test.describe('Roster Optimizer', () => {
 
   test('week navigation buttons work', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
-    const prevButton = page.locator('button').filter({ has: page.locator('svg.lucide-chevron-left') })
     const nextButton = page.locator('button').filter({ has: page.locator('svg.lucide-chevron-right') })
     await expect(nextButton).toBeVisible()
     await nextButton.click()

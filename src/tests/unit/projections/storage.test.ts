@@ -14,8 +14,6 @@ vi.mock('@/lib/supabase/admin', () => ({
   createServiceClient: vi.fn(() => mockSupabase),
 }));
 
-import { createClient } from '@/lib/supabase/server';
-
 describe('Projections Storage', () => {
   beforeEach(() => {
     vi.clearAllMocks();

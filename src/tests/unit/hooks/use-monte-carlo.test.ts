@@ -12,8 +12,8 @@ if (typeof document === 'undefined') {
   global.navigator = dom.window.navigator
 }
 
-import { renderHook, act, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderHook, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useMonteCarlo } from '@/hooks/use-monte-carlo'
 import type { MonteCarloInput, MonteCarloOutput } from '@/lib/algorithms/monte-carlo/types'
 
@@ -126,7 +126,7 @@ describe('useMonteCarlo', () => {
 
   it('should debounce auto-runs when input changes', async () => {
     vi.useFakeTimers()
-    const { result, rerender } = renderHook(
+    const { rerender } = renderHook(
       ({ input }) => useMonteCarlo(input, { enabled: true, debounceMs: 300 }), 
       { initialProps: { input: mockInput } }
     )

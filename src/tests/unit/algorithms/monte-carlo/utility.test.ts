@@ -9,9 +9,6 @@ import { createMockSimulationInput } from './factories'
 describe('Utility Calculations', () => {
   describe('calculateUtility', () => {
     it('should calculate utility for take now scenario', () => {
-      const input = createMockSimulationInput()
-      const targetPlayer = input.players[0]
-      const bestAtWrapAround = 150 // Expected best available at wrap-around
       const lambda = 1.0 // Balanced risk tolerance
 
       const utility = calculateUtility({

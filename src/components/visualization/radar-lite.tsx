@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { SVGVisualizationProps } from './types'
 import { cn } from '@/lib/utils'
 
@@ -47,7 +47,7 @@ export function RadarLite({
   const anglePerAxis = (Math.PI * 2) / data.length
   
   // Helper to calculate coordinates for a value on an axis
-  const getCoordinates = (value: number, max: number, index: number) => {
+  const getCoordinates = useCallback((value: number, max: number, index: number) => {
     // Start at -90deg (top)
     const angle = index * anglePerAxis - Math.PI / 2
     // Clamp value between 0 and max
@@ -58,14 +58,14 @@ export function RadarLite({
       x: cx + radius * Math.cos(angle),
       y: cy + radius * Math.sin(angle)
     }
-  }
+  }, [anglePerAxis, maxRadius, cx, cy])
 
-  const generatePoints = (dataset: RadarLiteDataPoint[]) => {
+  const generatePoints = useCallback((dataset: RadarLiteDataPoint[]) => {
     return dataset.map((d, i) => {
       const { x, y } = getCoordinates(d.value, d.max, i)
       return `${x},${y}`
     }).join(' ')
-  }
+  }, [getCoordinates])
 
   const { axes, mainPolygon, comparisonPolygon } = useMemo(() => {
     const axesLines = data.map((d, i) => {
@@ -88,7 +88,7 @@ export function RadarLite({
     const compPoly = comparisonData ? generatePoints(comparisonData) : null
 
     return { axes: axesLines, mainPolygon: mainPoly, comparisonPolygon: compPoly }
-  }, [data, comparisonData, cx, cy, maxRadius, anglePerAxis])
+  }, [data, comparisonData, cx, cy, getCoordinates, generatePoints])
 
   return (
     <svg

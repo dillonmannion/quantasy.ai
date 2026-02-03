@@ -119,7 +119,7 @@ export default async function DashboardPage() {
               </p>
             </div>
             {hasLeagues && (
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <TransactionHistoryModal leagueId={typedUserLeagues![0].league_id} />
                 <Button asChild variant="outline" size="sm">
                   <Link href="/connect">

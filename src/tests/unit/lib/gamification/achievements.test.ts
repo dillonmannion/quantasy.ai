@@ -5,7 +5,7 @@ import {
   getUserAchievements,
   incrementCounter,
 } from '@/lib/gamification/achievements'
-import { incrementCounterValue, COUNTER_THRESHOLDS } from '@/lib/gamification/counters'
+import { incrementCounterValue } from '@/lib/gamification/counters'
 import { createClient } from '@/lib/supabase/client'
 import type { AchievementRecord, AchievementType, CounterType, GamificationCounters } from '@/lib/gamification/types'
 

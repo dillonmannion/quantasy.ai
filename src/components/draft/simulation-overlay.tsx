@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import type { MonteCarloOutput } from '@/lib/algorithms/monte-carlo/types'
-import { Activity, Clock, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react'
+import { Activity, Clock, AlertCircle } from 'lucide-react'
 
 interface SimulationOverlayProps {
   status: 'idle' | 'loading' | 'running' | 'complete' | 'error'
@@ -17,7 +17,6 @@ interface SimulationOverlayProps {
 
 export function SimulationOverlay({
   status,
-  progress,
   results,
   playerId,
   className
@@ -64,7 +63,6 @@ export function SimulationOverlay({
   const Icon = config.icon
   const evSign = expectedValue > 0 ? '+' : ''
   const evColor = expectedValue > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-  const EvIcon = expectedValue > 0 ? TrendingUp : TrendingDown
 
   return (
     <div 

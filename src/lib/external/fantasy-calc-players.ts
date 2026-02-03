@@ -67,12 +67,6 @@ function buildUrl(format: Format): string {
   return `${FANTASYCALC_URL}?isDynasty=${isDynasty}&numQbs=1`
 }
 
-const PICK_PATTERN = /^\d{4}\s+(early|mid|late)?\s*(1st|2nd|3rd|4th|pick)/i
-
-function isPickEntry(name: string): boolean {
-  return PICK_PATTERN.test(name)
-}
-
 async function scrapePlayersFromPage(format: Format): Promise<FantasyCalcPlayerRaw[]> {
   const playwright = await getPlaywright()
   if (!playwright) {

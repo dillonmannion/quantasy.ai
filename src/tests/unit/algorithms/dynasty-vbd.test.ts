@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { calculateDynastyVBD } from '@/lib/algorithms/dynasty-vbd'
 import { getAgeFactor } from '@/lib/algorithms/age-curves'
-import type { PlayerRanking, Position } from '@/lib/algorithms/types'
+import type { PlayerRanking } from '@/lib/algorithms/types'
 
 function createMockPlayer(overrides: Partial<PlayerRanking> = {}): PlayerRanking {
   return {

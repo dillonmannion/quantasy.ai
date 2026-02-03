@@ -5,7 +5,6 @@ import type {
    SleeperMatchup,
    SleeperPlayer,
    SleeperNFLState,
-   SleeperDraftPick,
    SleeperTransaction,
    SleeperAPIError,
  } from './types'

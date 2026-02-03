@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
-import type { Database } from '@/lib/supabase/types';
 import type { PlayerProjection, ProjectionSource } from './types';
 
 export interface SaveProjectionsResult {

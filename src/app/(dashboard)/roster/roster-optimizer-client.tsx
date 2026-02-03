@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { FadeIn, Shimmer } from '@/components/animation'
 import { Button } from '@/components/ui/button'
@@ -43,18 +43,9 @@ export function RosterOptimizerClient({
   const [currentLineup, setCurrentLineup] = useState<LineupOutput | null>(null)
   const [optimizedLineup, setOptimizedLineup] = useState<LineupOutput | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [hasFetchedInitial, setHasFetchedInitial] = useState(false)
 
-  const handleWeekChange = (week: number) => {
-    if (week >= 1 && week <= 18) {
-      setSelectedWeek(week)
-      setCurrentLineup(null)
-      setOptimizedLineup(null)
-      setError(null)
-      fetchLineups(week)
-    }
-  }
-
-  const fetchLineups = async (week: number) => {
+  const fetchLineups = useCallback(async (week: number) => {
     setIsLoading(true)
     setError(null)
     
@@ -81,6 +72,23 @@ export function RosterOptimizerClient({
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsLoading(false)
+    }
+  }, [leagueId, rosterId])
+
+  useEffect(() => {
+    if (!hasFetchedInitial) {
+      setHasFetchedInitial(true)
+      fetchLineups(currentWeek)
+    }
+  }, [hasFetchedInitial, currentWeek, fetchLineups])
+
+  const handleWeekChange = (week: number) => {
+    if (week >= 1 && week <= 18) {
+      setSelectedWeek(week)
+      setCurrentLineup(null)
+      setOptimizedLineup(null)
+      setError(null)
+      fetchLineups(week)
     }
   }
 
