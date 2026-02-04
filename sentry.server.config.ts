@@ -6,7 +6,7 @@ Sentry.init({
   dsn: SENTRY_DSN,
   environment: process.env.NODE_ENV,
   enabled: !!SENTRY_DSN && process.env.NODE_ENV === 'production',
-  tracesSampleRate: 0, // Disable performance monitoring
+  tracesSampleRate: 0.5, // 50% sampling for alpha testing
   // Prevent PII from being sent
   beforeSend(event) {
     // Remove user context if present

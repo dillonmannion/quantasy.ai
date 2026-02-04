@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@/lib/supabase/server'
 import { calculateVBDForLeague, type VBDForLeagueResult } from '@/lib/algorithms'
 
@@ -28,17 +29,22 @@ export async function POST(
     return NextResponse.json({ error: 'leagueId is required' }, { status: 400 })
   }
 
-  const { data, error } = await calculateVBDForLeague({
-    leagueId,
-    limit,
-    offset,
-    positions,
-  })
+   return Sentry.startSpan(
+     { op: 'algorithm.vbd', name: 'Calculate VBD Rankings' },
+     async () => {
+       const { data, error } = await calculateVBDForLeague({
+         leagueId,
+         limit,
+         offset,
+         positions,
+       })
 
-  if (error) {
-    const status = error.includes('not found') ? 404 : error.includes('No projections') ? 400 : 500
-    return NextResponse.json({ error }, { status })
-  }
+       if (error) {
+         const status = error.includes('not found') ? 404 : error.includes('No projections') ? 400 : 500
+         return NextResponse.json({ error }, { status })
+       }
 
-  return NextResponse.json(data!)
+       return NextResponse.json(data!)
+     }
+   )
 }

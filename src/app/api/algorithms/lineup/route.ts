@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@/lib/supabase/server'
 import { calculateLineupForWeek, type LineupOutput } from '@/lib/algorithms'
 
@@ -41,17 +42,22 @@ export async function POST(
     )
   }
 
-  const { data, error } = await calculateLineupForWeek({
-    leagueId,
-    rosterId,
-    week,
-    userId: user.id,
-  })
+   return Sentry.startSpan(
+     { op: 'algorithm.lineup', name: 'Optimize Lineup' },
+     async () => {
+       const { data, error } = await calculateLineupForWeek({
+         leagueId,
+         rosterId,
+         week,
+         userId: user.id,
+       })
 
-  if (error) {
-    const status = error.includes('not found') ? 404 : 500
-    return NextResponse.json({ error }, { status })
-  }
+       if (error) {
+         const status = error.includes('not found') ? 404 : 500
+         return NextResponse.json({ error }, { status })
+       }
 
-  return NextResponse.json(data!)
+       return NextResponse.json(data!)
+     }
+   )
 }
