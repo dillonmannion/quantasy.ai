@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, BarChart3, ArrowLeftRight, TrendingUp, Users } from 'lucide-react'
+import { Home, BarChart3, ArrowLeftRight, TrendingUp, Users, MessageSquare } from 'lucide-react'
 import { motion } from 'motion/react'
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/roster', label: 'Roster', icon: Users },
   { href: '/trade', label: 'Trade', icon: ArrowLeftRight },
   { href: '/waivers', label: 'Waivers', icon: TrendingUp },
+  { href: '/feedback', label: 'Feedback', icon: MessageSquare },
 ]
 
 export function MobileNavAnimated() {
@@ -19,7 +20,7 @@ export function MobileNavAnimated() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
       <div className="bg-card/80 backdrop-blur-md border-t border-border">
-        <div className="grid grid-cols-5 h-16">
+        <div className="grid grid-cols-6 h-16">
           {navItems.map((item) => {
             const isActive = pathname === item.href
             const Icon = item.icon

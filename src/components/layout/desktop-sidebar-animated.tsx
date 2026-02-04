@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, BarChart3, ArrowLeftRight, TrendingUp, Users } from 'lucide-react'
+import { Home, BarChart3, ArrowLeftRight, TrendingUp, Users, MessageSquare } from 'lucide-react'
 import { motion } from 'motion/react'
 import { UserMenu } from './user-menu'
 
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/roster', label: 'Roster Optimizer', icon: Users },
   { href: '/trade', label: 'Trade Calculator', icon: ArrowLeftRight },
   { href: '/waivers', label: 'Waiver Wire', icon: TrendingUp },
+  { href: '/feedback', label: 'Feedback', icon: MessageSquare },
 ]
 
 export function DesktopSidebarAnimated() {
