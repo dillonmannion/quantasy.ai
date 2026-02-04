@@ -1,7 +1,7 @@
 # QUANTASY - PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-30
-**Commit:** afc0534
+**Generated:** 2026-02-03
+**Commit:** eab3bc13
 **Branch:** dev
 
 ## OVERVIEW
@@ -241,7 +241,7 @@ pnpm dev                    # Start dev server
 - **Platform:** Fly.io (not Vercel)
 - **Output:** Standalone Next.js
 - **CI:** GitHub Actions - type-check → lint → test → build → E2E
-- **Deploy:** Push to `main` triggers `fly deploy`
+- **Deploy:** Push to `prod` triggers `fly deploy`
 - **Region:** San Jose (sjc), shared-cpu-1x, 256MB
 - **PWA:** Enabled with Workbox runtime caching
 
