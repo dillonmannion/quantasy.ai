@@ -7,7 +7,7 @@
 -- =============================================================================
 
 -- Insert test league (matches global-setup.ts league ID)
-INSERT INTO public.leagues (id, name, season, status, total_rosters, settings, scoring_settings, roster_positions)
+INSERT INTO public.leagues (id, name, season, status, total_rosters, settings, scoring_settings, roster_positions, cached_at)
 VALUES (
   '987654321',
   'Test Fantasy League',
@@ -16,12 +16,14 @@ VALUES (
   12,
   '{"type": 0, "playoff_week_start": 15, "num_teams": 12, "playoff_teams": 6, "leg": 1}',
   '{"rec": 1, "pass_yd": 0.04, "pass_td": 4, "rush_yd": 0.1, "rush_td": 6, "rec_yd": 0.1, "rec_td": 6}',
-  '["QB", "RB", "RB", "WR", "WR", "TE", "FLEX", "K", "DEF", "BN", "BN", "BN", "BN", "BN", "BN"]'
+  '["QB", "RB", "RB", "WR", "WR", "TE", "FLEX", "K", "DEF", "BN", "BN", "BN", "BN", "BN", "BN"]',
+  NOW()
 )
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   season = EXCLUDED.season,
-  status = EXCLUDED.status;
+  status = EXCLUDED.status,
+  cached_at = NOW();
 
 -- =============================================================================
 -- TEST PLAYER DATA
@@ -69,7 +71,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- =============================================================================
 
 -- Insert test roster for the test league
-INSERT INTO public.rosters (league_id, roster_id, owner_id, players, starters, reserve, settings)
+INSERT INTO public.rosters (league_id, roster_id, owner_id, players, starters, reserve, settings, cached_at)
 VALUES (
   '987654321',
   1,
@@ -77,23 +79,26 @@ VALUES (
   ARRAY['4046', '5850', '4866', '6797', '6786', '4035', '4034', '4029', 'SF'],
   ARRAY['4046', '4866', '6797', '6786', '4035', '4034', '4866', '4029', 'SF'],
   ARRAY[]::TEXT[],
-  '{"wins": 5, "losses": 3, "ties": 0, "fpts": 850.5}'
+  '{"wins": 5, "losses": 3, "ties": 0, "fpts": 850.5}',
+  NOW()
 )
 ON CONFLICT (league_id, roster_id) DO UPDATE SET
   players = EXCLUDED.players,
   starters = EXCLUDED.starters,
-  settings = EXCLUDED.settings;
+  settings = EXCLUDED.settings,
+  cached_at = NOW();
 
 -- =============================================================================
 -- TEST MATCHUP DATA
 -- =============================================================================
 
 -- Insert test matchups for week 1
-INSERT INTO public.matchups (league_id, week, matchup_id, roster_id, points, starters, starters_points)
+INSERT INTO public.matchups (league_id, week, matchup_id, roster_id, points, starters, starters_points, cached_at)
 VALUES 
-  ('987654321', 1, 1, 1, 125.50, ARRAY['4046', '4866', '6797', '6786', '4035', '4034', '4866', '4029', 'SF'], ARRAY[28.5, 22.0, 18.5, 15.0, 14.5, 12.0, 8.0, 5.0, 2.0]),
-  ('987654321', 1, 1, 2, 118.25, ARRAY['5850', '7564', '5892', '4199', '7553', '6801', '7564', '4029', 'SF'], ARRAY[26.0, 20.0, 19.0, 16.5, 13.0, 10.0, 7.75, 4.0, 2.0])
+  ('987654321', 1, 1, 1, 125.50, ARRAY['4046', '4866', '6797', '6786', '4035', '4034', '4866', '4029', 'SF'], ARRAY[28.5, 22.0, 18.5, 15.0, 14.5, 12.0, 8.0, 5.0, 2.0], NOW()),
+  ('987654321', 1, 1, 2, 118.25, ARRAY['5850', '7564', '5892', '4199', '7553', '6801', '7564', '4029', 'SF'], ARRAY[26.0, 20.0, 19.0, 16.5, 13.0, 10.0, 7.75, 4.0, 2.0], NOW())
 ON CONFLICT (league_id, week, roster_id) DO UPDATE SET
   points = EXCLUDED.points,
   starters = EXCLUDED.starters,
-  starters_points = EXCLUDED.starters_points;
+  starters_points = EXCLUDED.starters_points,
+  cached_at = NOW();

@@ -7,17 +7,16 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Generated PWA files:
     "public/sw.js",
     "public/workbox-*.js",
     "coverage/**",
-    // Orchestration scripts:
     ".sisyphus/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
   // Relaxed rules for test files - allow `any` for mocking and edge case testing
   {

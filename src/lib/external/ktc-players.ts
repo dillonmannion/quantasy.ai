@@ -57,11 +57,13 @@ async function throttle(): Promise<void> {
 /**
  * Dynamically import Playwright (optional devDependency)
  */
-// @ts-expect-error - Playwright is optional devDependency for browser scraping
-async function getPlaywright(): Promise<typeof import('playwright') | null> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getPlaywright(): Promise<any | null> {
   try {
-    // @ts-expect-error - Dynamic import of optional dependency
-    const playwright = await import('playwright')
+    // Use variable to completely hide import from bundler static analysis
+    // Playwright is an optional devDependency for browser scraping
+    const moduleName = 'playwright'
+    const playwright = await import(moduleName)
     return playwright
   } catch {
     logger.warn('KTC-Players', 'Playwright not available - browser scraping disabled')
