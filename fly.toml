@@ -8,10 +8,8 @@ primary_region = 'sjc'
 
 [build]
   dockerfile = 'Dockerfile'
-
-[build.args]
-  NEXT_PUBLIC_SUPABASE_URL = "https://pmsjxdiiknpkfrcwpqyf.supabase.co"
-  NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2p4ZGlpa25wa2ZyY3dwcXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjEwNDMsImV4cCI6MjA4NDczNzA0M30.crx6jYVu3_jlE3rLoe99YsfgauNVdtUlmmZyaYg-jzI"
+  # Build args passed via CI workflow from GitHub secrets
+  # NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 [env]
   PORT = '3000'
