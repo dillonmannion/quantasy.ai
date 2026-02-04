@@ -1,4 +1,4 @@
-# Phase 5: Alpha Testing & Iteration (Weeks 11-12)
+# Phase 5: Alpha Testing & Iteration (1-3 Weeks)
 
 > **Source:** Extracted from PLAN-v2.md
 > **Purpose:** Complete implementation guide for Phase 5
@@ -8,7 +8,7 @@
 ## Objectives
 
 - Deploy production environment
-- Onboard 5-10 alpha testers
+- Onboard 25-50 alpha testers
 - Collect structured feedback
 - Fix critical bugs
 - Iterate based on feedback
@@ -46,22 +46,21 @@
   - [ ] Look at Waiver recommendations
   
   ## How to Give Feedback
-  - Use this form: [Google Form link]
+  - Use the in-app form: [/feedback]
   - Or text me directly
   
   ## Known Issues
   - [List any known bugs]
   ```
-- [ ] Create feedback form (Google Forms or Typeform):
-  - What feature did you use?
-  - Did it work as expected?
-  - What was confusing?
-  - What would make it better?
-  - Rate 1-5: Usefulness, Speed, Fun factor
+- [ ] Ensure in-app feedback form is active (/feedback):
+  - Category selection (Bug, Feature, UX, Other)
+  - Rating (1-5)
+  - Comments field
+  - Automatic league/user context capture
 
 ### Day 3-4: Invite Testers
 
-- [ ] Send personalized invites to 5-10 friends/family
+- [ ] Send personalized invites to 25-50 dynasty enthusiasts
 - [ ] Offer to screenshare onboarding if needed
 - [ ] Be available for questions (set response time expectation)
 - [ ] Track who has:
@@ -71,7 +70,9 @@
 
 ### Day 5: Monitor & Support
 
-- [ ] Watch error monitoring for issues
+- [ ] Watch error monitoring for issues (Sentry)
+- [ ] Check Posthog for feature heatmaps and engagement
+- [ ] Ensure Posthog respects DNT and collects no PII
 - [ ] Check Supabase logs for failed queries
 - [ ] Respond to tester questions same-day
 - [ ] Start bug/feedback tracking list
@@ -128,7 +129,7 @@
 
 | Metric | Target | How to Measure |
 |--------|--------|----------------|
-| Testers onboarded | 5-10 | Count of accounts with connected leagues |
+| Testers onboarded | 25-50 | Count of accounts with connected leagues |
 | Features used per tester | 3+ | Analytics or feedback form |
 | Critical bugs in production | 0 by end of Week 12 | Error monitoring |
 | Tester satisfaction (1-5) | 4+ average | Feedback form |
@@ -139,7 +140,7 @@
 ## Deliverables Checklist
 
 - [ ] Production app deployed and stable
-- [ ] 5-10 testers actively using the app
+- [ ] 25-50 testers actively using the app
 - [ ] Feedback collected and categorized
 - [ ] Critical bugs fixed
 - [ ] Stage 1 retrospective written
