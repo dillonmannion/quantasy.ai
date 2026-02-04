@@ -358,44 +358,74 @@ export type Database = {
          }
          Relationships: []
        }
-       waiver_bid_history: {
-         Row: {
-           id: string
-           user_id: string
-           league_id: string
-           week: number
-           player_id: string
-           recommended_bid: number
-           actual_bid: number
-           won: boolean
-           created_at: string
-         }
-         Insert: {
-           id?: string
-           user_id: string
-           league_id: string
-           week: number
-           player_id: string
-           recommended_bid: number
-           actual_bid: number
-           won?: boolean
-           created_at?: string
-         }
-         Update: {
-           id?: string
-           user_id?: string
-           league_id?: string
-           week?: number
-           player_id?: string
-           recommended_bid?: number
-           actual_bid?: number
-           won?: boolean
-           created_at?: string
-         }
-         Relationships: []
-       }
-     }
-     Views: Record<string, never>
+        waiver_bid_history: {
+          Row: {
+            id: string
+            user_id: string
+            league_id: string
+            week: number
+            player_id: string
+            recommended_bid: number
+            actual_bid: number
+            won: boolean
+            created_at: string
+          }
+          Insert: {
+            id?: string
+            user_id: string
+            league_id: string
+            week: number
+            player_id: string
+            recommended_bid: number
+            actual_bid: number
+            won?: boolean
+            created_at?: string
+          }
+          Update: {
+            id?: string
+            user_id?: string
+            league_id?: string
+            week?: number
+            player_id?: string
+            recommended_bid?: number
+            actual_bid?: number
+            won?: boolean
+            created_at?: string
+          }
+          Relationships: []
+        }
+        feedback: {
+          Row: {
+            id: string
+            user_id: string
+            feature: string
+            rating: number
+            text: string | null
+            metadata: Record<string, unknown> | null
+            created_at: string | null
+          }
+          Insert: {
+            id?: string
+            user_id: string
+            feature: string
+            rating: number
+            text?: string | null
+            metadata?: Record<string, unknown> | null
+            created_at?: string | null
+          }
+          Update: {
+            id?: string
+            user_id?: string
+            feature?: string
+            rating?: number
+            text?: string | null
+            metadata?: Record<string, unknown> | null
+            created_at?: string | null
+          }
+          Relationships: []
+        }
+      }
+      Views: Record<string, never>
      Functions: {
        increment_gamification_counter: {
          Args: {
