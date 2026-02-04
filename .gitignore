@@ -84,3 +84,6 @@ undefined:*
 
 # CLI config (user-specific)
 .qai.json
+
+# Sentry Config File
+.env.sentry-build-plugin
