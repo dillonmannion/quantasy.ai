@@ -156,6 +156,78 @@ AI Explanations: Cached indefinitely (SHA256 of inputs)
 - Server-only secrets: No `NEXT_PUBLIC_` prefix (e.g., `GROQ_API_KEY`)
 - Client-safe values: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
+## SENTRY MONITORING
+
+Error tracking and performance monitoring via Sentry. Use these patterns when instrumenting code.
+
+### Config Files
+| File | Purpose |
+|------|---------|
+| `src/instrumentation.ts` | Loads server + edge configs |
+| `src/instrumentation-client.ts` | Client-side initialization |
+| `sentry.server.config.ts` | Server-side config |
+| `sentry.edge.config.ts` | Edge runtime config |
+
+**DO NOT** repeat initialization in other files. Import Sentry functionality with `import * as Sentry from "@sentry/nextjs"`.
+
+### Exception Catching
+
+Use `Sentry.captureException(error)` in try/catch blocks or areas where exceptions are expected.
+
+### Tracing
+
+Create spans for meaningful actions: button clicks, API calls, function calls. Child spans can exist within a parent span.
+
+**Component actions:**
+```typescript
+function TestComponent() {
+  const handleClick = () => {
+    Sentry.startSpan(
+      { op: "ui.click", name: "Test Button Click" },
+      (span) => {
+        span.setAttribute("config", value)
+        span.setAttribute("metric", metric)
+        doSomething()
+      }
+    )
+  }
+  return <button onClick={handleClick}>Test</button>
+}
+```
+
+**API calls:**
+```typescript
+async function fetchUserData(userId: string) {
+  return Sentry.startSpan(
+    { op: "http.client", name: `GET /api/users/${userId}` },
+    async () => {
+      const response = await fetch(`/api/users/${userId}`)
+      return response.json()
+    }
+  )
+}
+```
+
+### Logging
+
+Reference logger with `const { logger } = Sentry`. Use `logger.fmt` for structured logs with variables.
+
+```typescript
+logger.trace("Starting database connection", { database: "users" })
+logger.debug(logger.fmt`Cache miss for user: ${userId}`)
+logger.info("Updated profile", { profileId: 345 })
+logger.warn("Rate limit reached", { endpoint: "/api/results/", isEnterprise: false })
+logger.error("Failed to process payment", { orderId: "order_123", amount: 99.99 })
+logger.fatal("Database connection pool exhausted", { database: "users", activeConnections: 100 })
+```
+
+### Privacy Requirements
+- DSN via env var `NEXT_PUBLIC_SENTRY_DSN` (never hardcode)
+- Production-only: `enabled: !!DSN && NODE_ENV === 'production'`
+- PII stripped in `beforeSend` (email, username, IP)
+- Replay masks all text, blocks media
+- Tracing disabled by default (`tracesSampleRate: 0`)
+
 ## DATABASE
 
 Tables (Supabase Postgres):
