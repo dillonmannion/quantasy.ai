@@ -84,7 +84,7 @@ describe('generateTradeRecommendation', () => {
     await generateTradeRecommendation(params)
 
     const callArgs = mockCreate.mock.calls[0][0]
-    expect(callArgs.model).toBe('llama-3.3-70b-versatile')
+    expect(callArgs.model).toBe('llama-3.1-8b-instant')
     expect(callArgs.messages).toHaveLength(1)
     expect(callArgs.messages[0].role).toBe('user')
     expect(callArgs.messages[0].content).toContain('Patrick Mahomes')

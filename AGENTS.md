@@ -32,7 +32,7 @@ qai/
 │   │   ├── supabase/           # Auth + DB (see ./supabase/AGENTS.md)
 │   │   ├── draft/              # Draft state (Context + reducer)
 │   │   ├── projections/        # Projection data layer (CSV upload)
-│   │   ├── ai/                 # Groq AI (llama-3.3-70b-versatile, 30 req/min)
+│   │   ├── ai/                 # Groq AI (llama-3.1-8b-instant, 30 req/min)
 │   │   └── adp/                # ADP from FantasyFootballCalculator
 │   ├── hooks/                  # Custom hooks (see ./hooks/AGENTS.md)
 │   └── tests/                  # Vitest setup + unit tests
@@ -341,5 +341,5 @@ pnpm dev                    # Start dev server
 - Turbopack in dev
 - Player sync: 60s timeout
 - Sleeper: 16 req/sec rate limit
-- AI: llama-3.3-70b-versatile via Groq
+- AI: llama-3.1-8b-instant via Groq
 - PWA: offline support with route-specific caching strategies

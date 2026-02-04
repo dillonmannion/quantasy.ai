@@ -55,7 +55,7 @@ Context:
 Provide a 2-3 sentence explanation focusing on why this player is valuable relative to replacement level.`
 
   const completion = await getClient().chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'llama-3.1-8b-instant',
     messages: [
       {
         role: 'user',
@@ -112,7 +112,7 @@ Provide 2-3 specific trade proposals that would benefit both teams. For each pro
 3. The value balance of the trade`
 
   const completion = await getClient().chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'llama-3.1-8b-instant',
     messages: [
       {
         role: 'user',
@@ -131,4 +131,4 @@ Provide 2-3 specific trade proposals that would benefit both teams. For each pro
   return content.trim()
 }
 
-export const GROQ_MODEL = 'llama-3.3-70b-versatile'
+export const GROQ_MODEL = 'llama-3.1-8b-instant'

@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Groq AI (llama-3.3-70b-versatile) for VBD explanations. Rate-limited, cached responses.
+Groq AI (llama-3.1-8b-instant) for VBD explanations. Rate-limited, cached responses.
 
 ## FILES
 
