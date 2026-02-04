@@ -386,4 +386,8 @@ export const sleeperHandlers = [
   }),
 ]
 
-export const handlers = [vbdHandler, lineupHandler, tradeHandler, tradePartnersHandler, transactionsHandler, waiversHandler, ...sleeperHandlers]
+export const posthogHandler = http.post('https://app.posthog.com/e/', () => {
+  return HttpResponse.json({ status: 'ok' })
+})
+
+export const handlers = [vbdHandler, lineupHandler, tradeHandler, tradePartnersHandler, transactionsHandler, waiversHandler, posthogHandler, ...sleeperHandlers]
