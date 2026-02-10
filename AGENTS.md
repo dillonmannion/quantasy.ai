@@ -1,7 +1,7 @@
 # QUANTASY - PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-02-03
-**Commit:** eab3bc13
+**Generated:** 2026-02-04
+**Commit:** b98ff7a2
 **Branch:** dev
 
 ## OVERVIEW
@@ -15,7 +15,7 @@ qai/
 ├── src/
 │   ├── app/                    # Next.js 16 App Router
 │   │   ├── (auth)/             # Public routes (login, callback)
-│   │   ├── (dashboard)/        # Protected routes (dashboard, draft, roster, trade, waivers, connect)
+│   │   ├── (dashboard)/        # Protected routes (dashboard, draft, roster, trade, waivers, connect, feedback)
 │   │   ├── (sandbox)/          # Public sandbox (draft-sandbox)
 │   │   └── api/                # API routes (algorithms, ai, players, projections, draft)
 │   ├── components/

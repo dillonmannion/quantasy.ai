@@ -30,6 +30,30 @@ Supabase Client --> Local Supabase (real)
 | `helpers/supabase-mcp.ts` | MCP SQL patterns |
 | `.auth/user.json` | Stored auth state (generated) |
 
+## Test Suites
+
+| Suite | Coverage |
+|-------|----------|
+| `auth.spec.ts` | Login, logout, session handling |
+| `connect-league.spec.ts` | Sleeper league connection |
+| `draft-assistant.spec.ts` | Draft rankings, filters, mock draft |
+| `roster-optimizer.spec.ts` | Lineup optimization |
+| `trade-calculator.spec.ts` | Trade evaluation |
+| `trade-with-picks.spec.ts` | Trade with draft picks |
+| `waivers.spec.ts` | Waiver recommendations |
+| `pick-value-board.spec.ts` | Draft pick value display |
+| `pick-valuation.spec.ts` | Pick value algorithm |
+| `pick-explanation.spec.ts` | Pick value explanations |
+| `multi-source-values.spec.ts` | KTC/DP/FC value sources |
+| `format-toggle.spec.ts` | Dynasty/redraft toggle |
+| `p1-features.spec.ts` | Phase 1 feature smoke tests |
+| `analytics.spec.ts` | PostHog analytics verification |
+| `feedback.spec.ts` | Feedback form submission |
+| `a11y.spec.ts` | Accessibility checks |
+| `performance.spec.ts` | Core Web Vitals |
+| `rls-policies.spec.ts` | Supabase RLS validation |
+| `pwa-offline.spec.ts` | Offline/caching behavior |
+
 ## Test Data
 
 Test data comes from two sources:
