@@ -85,5 +85,9 @@ undefined:*
 # CLI config (user-specific)
 .qai.json
 
+# Personal dev environment docs (not project-specific)
+docs/nix-dev-environment-setup.md
+docs/wsl-dev-environment-guide.md
+
 # Sentry Config File
 .env.sentry-build-plugin
