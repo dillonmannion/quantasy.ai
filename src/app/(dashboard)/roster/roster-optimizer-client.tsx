@@ -139,6 +139,7 @@ export function RosterOptimizerClient({
               size="sm"
               onClick={() => handleWeekChange(selectedWeek - 1)}
               disabled={selectedWeek <= 1}
+              aria-label="Previous week"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -151,6 +152,7 @@ export function RosterOptimizerClient({
                   size="sm"
                   onClick={() => handleWeekChange(week)}
                   className="w-10"
+                  aria-label={`Select Week ${week}`}
                 >
                   {week}
                 </Button>
@@ -162,6 +164,7 @@ export function RosterOptimizerClient({
               size="sm"
               onClick={() => handleWeekChange(selectedWeek + 1)}
               disabled={selectedWeek >= 18}
+              aria-label="Next week"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

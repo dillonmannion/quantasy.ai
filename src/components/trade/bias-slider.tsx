@@ -20,6 +20,7 @@ export function BiasSlider({ value, onChange, className }: BiasSliderProps) {
       </div>
       <Slider
         data-testid="bias-slider"
+        aria-label="Fairness Bias"
         value={[value * 100]}
         onValueChange={([v]) => onChange(v / 100)}
         max={20}

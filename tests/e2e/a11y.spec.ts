@@ -73,8 +73,14 @@ test.describe('Accessibility', () => {
     await page.waitForLoadState('networkidle')
 
     // Tab through first several interactive elements (5 is enough to verify order)
-    await page.keyboard.press('Tab')
-    const firstFocused = await page.evaluate(() => document.activeElement?.tagName)
+    let firstFocused = ''
+    for (let i = 0; i < 3; i++) {
+      await page.keyboard.press('Tab')
+      firstFocused = await page.evaluate(() => document.activeElement?.tagName || '')
+      if (firstFocused && firstFocused !== 'BODY' && firstFocused !== 'NEXTJS-PORTAL') {
+        break
+      }
+    }
     expect(['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA']).toContain(firstFocused)
 
     // Verify we can tab through at least 5 elements without getting stuck
