@@ -176,7 +176,7 @@ Use `Sentry.captureException(error)` in try/catch blocks or areas where exceptio
 
 ### Tracing
 
-Create spans for meaningful actions: button clicks, API calls, function calls. Child spans can exist within a parent span.
+Create spans for meaningful actions: button clicks, API calls, function calls. Child spans can exist within a parent span. The `name` and `op` properties should be meaningful for the activities in the call. Attach attributes based on relevant information and metrics.
 
 **Component actions:**
 ```typescript
@@ -226,7 +226,7 @@ logger.fatal("Database connection pool exhausted", { database: "users", activeCo
 - Production-only: `enabled: !!DSN && NODE_ENV === 'production'`
 - PII stripped in `beforeSend` (email, username, IP)
 - Replay masks all text, blocks media
-- Tracing disabled by default (`tracesSampleRate: 0`)
+- Tracing disabled on client (`tracesSampleRate: 0`), 50% on server/edge
 
 ## DATABASE
 
