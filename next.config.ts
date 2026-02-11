@@ -40,8 +40,8 @@ const withPWA = withPWAInit({
 const isDev = process.env.NODE_ENV === 'development'
 
 const connectSrc = isDev
-  ? "connect-src 'self' http://localhost:54321 http://127.0.0.1:54321 https://*.supabase.co https://api.sleeper.app https://api.groq.com"
-  : "connect-src 'self' https://*.supabase.co https://api.sleeper.app https://api.groq.com"
+  ? "connect-src 'self' http://localhost:54321 http://127.0.0.1:54321 https://*.supabase.co https://api.sleeper.app https://api.groq.com https://us.i.posthog.com https://app.posthog.com"
+  : "connect-src 'self' https://*.supabase.co https://api.sleeper.app https://api.groq.com https://us.i.posthog.com https://app.posthog.com"
 
 const scriptSrc = isDev
   ? "'self' 'unsafe-inline' 'unsafe-eval'"
@@ -103,8 +103,15 @@ const withAnalyzer = withBundleAnalyzer({
 })
 
 export default withSentryConfig(withAnalyzer(withPWA(nextConfig)), {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+  org: 'quantasy-es',
+  project: 'dev',
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: true,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring',
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 })
