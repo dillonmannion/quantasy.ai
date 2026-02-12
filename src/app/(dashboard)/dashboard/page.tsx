@@ -170,7 +170,7 @@ export default async function DashboardPage() {
               return (
                 <StaggerItem key={tool.href}>
                   {isLocked ? (
-                    <div className="cursor-not-allowed opacity-60">
+                    <div className="cursor-not-allowed">
                       <Card
                         className={`
                         card-balatro p-6 h-full relative
@@ -182,16 +182,17 @@ export default async function DashboardPage() {
                             w-12 h-12 rounded-lg shrink-0
                             ${tool.bgColor} 
                             flex items-center justify-center
+                            opacity-50
                           `}
                           >
                             <Icon className={`w-6 h-6 ${tool.color}`} />
                           </div>
                            <div className="flex-1 min-w-0">
-                              <h3 className={`text-lg font-bold mb-1 text-muted-foreground`}>{tool.title}</h3>
-                              <p className={`text-sm text-muted-foreground`}>
+                              <h3 className={`text-lg font-bold mb-1 text-foreground/90`}>{tool.title}</h3>
+                              <p className={`text-sm text-foreground/80`}>
                                 {tool.description}
                               </p>
-                              <p className="text-xs text-muted-foreground mt-2">
+                              <p className="text-xs text-foreground/80 mt-2">
                                 {!hasLeagues
                                   ? 'Connect a league first'
                                   : `Coming in Phase ${tool.phase}`}
