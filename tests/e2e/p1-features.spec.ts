@@ -236,7 +236,7 @@ test.describe('P1 Features', () => {
   test.describe('FAAB Slider', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/waivers')
-      await expect(page.locator('h2:has-text("Top Waiver Picks")')).toBeVisible({ timeout: 15000 })
+      await expect(page.locator('h2:has-text("Top Waiver Picks")').first()).toBeVisible({ timeout: 15000 })
     })
 
     test('displays FAAB bid recommendations', async ({ page }) => {
@@ -250,18 +250,18 @@ test.describe('P1 Features', () => {
       await expect(page.locator('label:has-text("FAAB Total")')).toBeVisible()
       await expect(page.locator('label:has-text("Remaining")')).toBeVisible()
 
-      await page.fill('input[id="faab-total"]', '200')
-      await page.fill('input[id="faab-remaining"]', '150')
+      await page.locator('input[id="faab-total"]').first().fill('200')
+      await page.locator('input[id="faab-remaining"]').first().fill('150')
 
-      await page.click('button:has-text("Refresh Recommendations")')
+      await page.locator('button:has-text("Refresh Recommendations")').first().click()
       await page.waitForTimeout(500)
 
-      await expect(page.locator('h2:has-text("Top Waiver Picks")')).toBeVisible({ timeout: 15000 })
+      await expect(page.locator('h2:has-text("Top Waiver Picks")').first()).toBeVisible({ timeout: 15000 })
     })
 
     test('caps remaining at total budget', async ({ page }) => {
-      await page.fill('input[id="faab-total"]', '50')
-      await page.fill('input[id="faab-remaining"]', '100')
+      await page.locator('input[id="faab-total"]').first().fill('50')
+      await page.locator('input[id="faab-remaining"]').first().fill('100')
 
       await page.click('button:has-text("Refresh Recommendations")')
       await page.waitForTimeout(500)
@@ -270,8 +270,8 @@ test.describe('P1 Features', () => {
     })
 
     test('validates positive budget values', async ({ page }) => {
-      await page.fill('input[id="faab-total"]', '-10')
-      await page.fill('input[id="faab-remaining"]', '-20')
+      await page.locator('input[id="faab-total"]').first().fill('-10')
+      await page.locator('input[id="faab-remaining"]').first().fill('-20')
 
       await page.click('button:has-text("Refresh Recommendations")')
       await page.waitForTimeout(500)
