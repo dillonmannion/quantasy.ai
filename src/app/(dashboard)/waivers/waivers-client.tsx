@@ -158,6 +158,7 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommen
         <Button 
           onClick={fetchRecommendations} 
           disabled={state.loading}
+          variant="outline"
           className="w-full md:w-auto"
         >
           {state.loading ? (
