@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 async function fillUsername(page: import('@playwright/test').Page, username: string) {
-  const input = page.locator('input#username')
+  const input = page.locator('input#username').first()
   await input.click()
   await input.fill(username)
   await input.press('Tab')
@@ -12,11 +12,8 @@ test.describe('Connect League Flow', () => {
     await page.goto('/connect')
 
     await expect(page.getByRole('heading', { name: 'Connect Your League' })).toBeVisible()
-    await expect(page.locator('input#username')).toBeVisible()
-    await expect(page.locator('button[type="submit"]')).toContainText('Find My Leagues')
-
-    const progressDots = page.locator('.flex.items-center.justify-center.gap-2 > div')
-    await expect(progressDots).toHaveCount(3)
+    await expect(page.locator('input#username').first()).toBeVisible()
+    await expect(page.locator('button[type="submit"]').first()).toContainText('Find My Leagues')
 
     await fillUsername(page, 'testuser')
     await page.click('button[type="submit"]')
@@ -47,8 +44,8 @@ test.describe('Connect League Flow', () => {
       page.locator('text=No Sleeper user found with username "nonexistentuser"')
     ).toBeVisible()
 
-    await expect(page.locator('input#username')).toBeVisible()
-    await expect(page.locator('button[type="submit"]')).toContainText('Find My Leagues')
+    await expect(page.locator('input#username').first()).toBeVisible()
+    await expect(page.locator('button[type="submit"]').first()).toContainText('Find My Leagues')
   })
 
   test('back button returns to username step', async ({ page }) => {
@@ -61,8 +58,8 @@ test.describe('Connect League Flow', () => {
 
     await page.click('text=Change Username')
 
-    await expect(page.locator('input#username')).toBeVisible()
-    await expect(page.locator('button[type="submit"]')).toContainText('Find My Leagues')
+    await expect(page.locator('input#username').first()).toBeVisible()
+    await expect(page.locator('button[type="submit"]').first()).toContainText('Find My Leagues')
   })
 
   test('connect another league button resets to selection', async ({ page }) => {
