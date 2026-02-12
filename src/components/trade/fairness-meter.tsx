@@ -76,7 +76,7 @@ export function FairnessMeter({
         />
       </div>
 
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="flex items-center justify-between text-xs text-[#a1a1aa]">
         <span>-100 (Loss)</span>
         <span>0 (Fair)</span>
         <span>+100 (Win)</span>

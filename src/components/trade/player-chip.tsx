@@ -98,7 +98,7 @@ export function PlayerChip({
         <div
           {...attributes}
           {...listeners}
-          className="shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+          className="shrink-0 text-[#a1a1aa] opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <GripVertical className="w-4 h-4" />
         </div>
@@ -115,7 +115,7 @@ export function PlayerChip({
 
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-sm truncate">{fullName}</div>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1 text-xs text-[#a1a1aa]">
           <span className={cn('px-1.5 py-0.5 rounded', posColor)}>
             {position}
           </span>
@@ -126,7 +126,7 @@ export function PlayerChip({
       {showVBD && (
         <div className="shrink-0 text-right">
           <div className="text-xs font-bold text-accent">★</div>
-          <div className="text-xs text-muted-foreground">VBD</div>
+          <div className="text-xs text-[#a1a1aa]">VBD</div>
         </div>
       )}
 
@@ -135,13 +135,13 @@ export function PlayerChip({
           <div className="text-xs font-bold">
             {projectedPoints.toFixed(1)}
           </div>
-          <div className="text-xs text-muted-foreground">pts</div>
+          <div className="text-xs text-[#a1a1aa]">pts</div>
         </div>
       )}
 
       <button
         onClick={() => onRemove(id)}
-        className="shrink-0 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+        className="shrink-0 text-[#a1a1aa] hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
         aria-label={`Remove ${fullName}`}
         data-testid="player-chip-remove"
       >
