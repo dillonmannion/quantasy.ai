@@ -43,6 +43,8 @@ export default defineConfig({
     timeout: 120000,
     env: {
       ENABLE_MSW: 'true',
+      NEXT_PUBLIC_POSTHOG_KEY: 'phc_test_key_for_e2e',
+      NEXT_PUBLIC_POSTHOG_HOST: 'https://us.i.posthog.com',
     },
   },
 })

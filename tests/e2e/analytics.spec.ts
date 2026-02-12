@@ -5,7 +5,7 @@ test.describe('Posthog Analytics', () => {
     // Intercept Posthog API calls
     const pageviewRequests: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       if (postData?.event === '$pageview') {
         pageviewRequests.push(postData)
@@ -26,7 +26,7 @@ test.describe('Posthog Analytics', () => {
   test('page view event includes correct URL properties', async ({ page }) => {
     const pageviewRequests: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       if (postData?.event === '$pageview') {
         pageviewRequests.push(postData)
@@ -45,7 +45,7 @@ test.describe('Posthog Analytics', () => {
   test('no PII in event payloads - no email addresses', async ({ page }) => {
     const events: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       events.push(postData)
       route.fulfill({ status: 200, body: '{"status":"ok"}' })
@@ -65,7 +65,7 @@ test.describe('Posthog Analytics', () => {
   test('no PII in event payloads - no username fields', async ({ page }) => {
     const events: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       events.push(postData)
       route.fulfill({ status: 200, body: '{"status":"ok"}' })
@@ -88,7 +88,7 @@ test.describe('Posthog Analytics', () => {
   test('page view event fires on navigation to trade page', async ({ page }) => {
     const pageviewRequests: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       if (postData?.event === '$pageview') {
         pageviewRequests.push(postData)
@@ -111,7 +111,7 @@ test.describe('Posthog Analytics', () => {
   test('page view event fires on navigation to waivers page', async ({ page }) => {
     const pageviewRequests: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       if (postData?.event === '$pageview') {
         pageviewRequests.push(postData)
@@ -134,7 +134,7 @@ test.describe('Posthog Analytics', () => {
   test('page view event fires on navigation to roster page', async ({ page }) => {
     const pageviewRequests: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       if (postData?.event === '$pageview') {
         pageviewRequests.push(postData)
@@ -157,7 +157,7 @@ test.describe('Posthog Analytics', () => {
   test('event payload has required structure', async ({ page }) => {
     const events: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       events.push(postData)
       route.fulfill({ status: 200, body: '{"status":"ok"}' })
@@ -179,7 +179,7 @@ test.describe('Posthog Analytics', () => {
   test('multiple page navigations fire separate pageview events', async ({ page }) => {
     const pageviewRequests: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       if (postData?.event === '$pageview') {
         pageviewRequests.push(postData)
@@ -204,7 +204,7 @@ test.describe('Posthog Analytics', () => {
   test('posthog endpoint receives requests with correct method', async ({ page }) => {
     let requestMethod = ''
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       requestMethod = route.request().method()
       route.fulfill({ status: 200, body: '{"status":"ok"}' })
     })
@@ -222,7 +222,7 @@ test.describe('Posthog Analytics', () => {
     // We verify by checking that events are still sent (since we're not setting DNT in test)
     const events: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       events.push(postData)
       route.fulfill({ status: 200, body: '{"status":"ok"}' })
@@ -238,7 +238,7 @@ test.describe('Posthog Analytics', () => {
   test('event properties do not contain sensitive user data', async ({ page }) => {
     const events: any[] = []
 
-    await page.route('**/app.posthog.com/e/', (route) => {
+    await page.route('**/us.i.posthog.com/e/', (route) => {
       const postData = route.request().postDataJSON()
       events.push(postData)
       route.fulfill({ status: 200, body: '{"status":"ok"}' })
