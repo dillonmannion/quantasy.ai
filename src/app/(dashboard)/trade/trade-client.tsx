@@ -208,7 +208,7 @@ export function TradeClient({
 
             <div className="space-y-2">
               <h4 className="text-sm font-semibold">Methodology</h4>
-              <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+              <p className="text-xs text-[#a1a1aa] whitespace-pre-wrap">
                 {tradeResult?.explanation.methodology}
               </p>
             </div>
@@ -216,7 +216,7 @@ export function TradeClient({
             {tradeResult?.explanation.caveats && tradeResult.explanation.caveats.length > 0 ? (
               <div className="space-y-2">
                 <h4 className="text-sm font-semibold text-yellow-500">Caveats</h4>
-                <ul className="text-xs list-disc list-inside text-muted-foreground">
+                <ul className="text-xs list-disc list-inside text-[#a1a1aa]">
                   {tradeResult.explanation.caveats.map((caveat, i) => (
                     <li key={i}>{caveat}</li>
                   ))}
