@@ -35,15 +35,15 @@ export function LineupSlot({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
-          <div className="text-xs font-medium text-muted-foreground uppercase">
+          <div className="text-xs font-medium text-[#ffffff] uppercase">
             {slot.slotType === 'starter' ? 'Starter' : 'Bench'}
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-[#a1a1aa]">
             {slot.allowedPositions.join(', ')}
           </div>
         </div>
         {isOptimized && (
-          <div className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded">
+          <div className="text-xs font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">
             Optimized
           </div>
         )}
@@ -52,7 +52,7 @@ export function LineupSlot({
       {player ? (
         <div className="space-y-1">
           <div className="font-semibold text-sm">{player.fullName}</div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center justify-between text-xs text-[#a1a1aa]">
             <span>
               {player.position}
               {player.team && ` • ${player.team}`}

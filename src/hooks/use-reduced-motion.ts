@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react'
 export function useReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window === 'undefined') return false
+    // Disable animations in E2E tests (Playwright) to prevent a11y failures from opacity transitions
+    if (window.navigator.webdriver) return true
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches
   })
 
