@@ -118,6 +118,7 @@ test.describe('Waiver Wire', () => {
 
   test('week selector changes trigger refetch', async ({ page }) => {
     await expect(page.locator('h2:has-text("Top Waiver Picks")').first()).toBeVisible({ timeout: 15000 })
+    await page.waitForTimeout(500)
     const initialRecs = await page.locator('span:has-text("Priority Score:")').count()
     expect(initialRecs).toBeGreaterThan(0)
     await page.fill('input[id="week"]', '5')
