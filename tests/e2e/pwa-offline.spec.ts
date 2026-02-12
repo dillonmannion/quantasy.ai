@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('PWA Offline Mode', () => {
   test('offline indicator visible when offline', async ({ page, context }) => {
     await page.goto('/draft')
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     
     await context.setOffline(true)
     await page.evaluate(() => window.dispatchEvent(new Event('offline')))
@@ -14,7 +14,7 @@ test.describe('PWA Offline Mode', () => {
 
   test('offline indicator hidden when online', async ({ page, context }) => {
     await page.goto('/draft')
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     
     await context.setOffline(true)
     await page.evaluate(() => window.dispatchEvent(new Event('offline')))
@@ -27,18 +27,18 @@ test.describe('PWA Offline Mode', () => {
 
   test('rankings visible before going offline', async ({ page, context }) => {
     await page.goto('/draft')
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     
     await context.setOffline(true)
     await page.evaluate(() => window.dispatchEvent(new Event('offline')))
     
     await expect(page.locator('[data-testid="offline-indicator"]')).toBeVisible({ timeout: 5000 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible()
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible()
   })
 
   test('mock draft works fully offline', async ({ page, context }) => {
     await page.goto('/draft')
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     
     await context.setOffline(true)
     await page.evaluate(() => window.dispatchEvent(new Event('offline')))
@@ -51,6 +51,6 @@ test.describe('PWA Offline Mode', () => {
     await expect(firstPlayer).toBeVisible()
     await firstPlayer.click()
     
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible()
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible()
   })
 })

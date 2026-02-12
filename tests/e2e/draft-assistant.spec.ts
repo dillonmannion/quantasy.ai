@@ -8,8 +8,8 @@ test.describe('Draft Assistant', () => {
   // === PAGE LOAD TESTS ===
 
   test('page loads with player rankings', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Draft Assistant")')).toBeVisible({ timeout: 15000 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible()
+    await expect(page.locator('h1:has-text("Draft Assistant")').first()).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible()
     const playerCards = page.locator('[data-testid="player-card"]')
     await expect(playerCards.first()).toBeVisible({ timeout: 10000 })
     const count = await playerCards.count()
@@ -17,19 +17,19 @@ test.describe('Draft Assistant', () => {
   })
 
   test('displays league name in header', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Draft Assistant")')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h1:has-text("Draft Assistant")').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('text=Test Fantasy League')).toBeVisible()
   })
 
   test('shows mock draft mode indicator when not live', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Draft Assistant")')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h1:has-text("Draft Assistant")').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('text=Mock Draft')).toBeVisible()
   })
 
   // === POSITION FILTER TESTS ===
 
   test('position filter - clicking QB shows only QBs', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.click('[data-testid="filter-QB"]')
@@ -47,7 +47,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('position filter - clicking RB shows only RBs', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.click('[data-testid="filter-RB"]')
@@ -64,7 +64,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('position filter - All shows all positions', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     // First filter to QB
@@ -83,7 +83,7 @@ test.describe('Draft Assistant', () => {
   // === SEARCH TESTS ===
 
   test('search filters players by name', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const initialCount = await page.locator('[data-testid="player-card"]').count()
@@ -99,7 +99,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('search is case insensitive', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.fill('[data-testid="search-input"]', 'mahomes')
@@ -109,7 +109,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('clearing search shows all players again', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const initialCount = await page.locator('[data-testid="player-card"]').count()
@@ -130,14 +130,14 @@ test.describe('Draft Assistant', () => {
   // === SORT TESTS ===
 
   test('sort toggle - VBD is default sort', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     
     const vbdButton = page.locator('[data-testid="sort-VBD"]')
     await expect(vbdButton).toBeVisible()
   })
 
   test('sort toggle - clicking Proj changes sort', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const firstPlayerBefore = await page.locator('[data-testid="player-card"]').first().textContent()
@@ -153,7 +153,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('sort toggle - clicking ADP changes sort', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.click('[data-testid="sort-ADP"]')
@@ -166,7 +166,7 @@ test.describe('Draft Assistant', () => {
   // === MOCK DRAFT TESTS ===
 
   test('mock draft - start button initiates draft mode', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Draft Assistant")')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h1:has-text("Draft Assistant")').first()).toBeVisible({ timeout: 15000 })
     
     const startButton = page.locator('[data-testid="start-mock-draft"]')
     await expect(startButton).toBeVisible()
@@ -177,7 +177,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('mock draft - clicking player marks as drafted', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const startButton = page.locator('[data-testid="start-mock-draft"]')
@@ -192,7 +192,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('mock draft - undo restores last pick', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const startButton = page.locator('[data-testid="start-mock-draft"]')
@@ -210,7 +210,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('mock draft - reset clears all picks', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const startButton = page.locator('[data-testid="start-mock-draft"]')
@@ -233,7 +233,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('mock draft - multiple rounds progression', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.locator('[data-testid="start-mock-draft"]').click()
@@ -255,7 +255,7 @@ test.describe('Draft Assistant', () => {
   // === SHOW YOUR WORK / EXPLANATION TESTS ===
 
   test('show your work - VBD label visible on player cards', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const firstPlayer = page.locator('[data-testid="player-card"]').first()
@@ -263,7 +263,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('show your work - clicking expand shows calculation details', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     // Look for Show Your Work button in the UI
@@ -283,7 +283,7 @@ test.describe('Draft Assistant', () => {
   // === PLAYER ROW DISPLAY TESTS ===
 
   test('player row shows position badge', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const firstPlayer = page.locator('[data-testid="player-card"]').first()
@@ -292,7 +292,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('player row shows team abbreviation', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const firstPlayer = page.locator('[data-testid="player-card"]').first()
@@ -301,7 +301,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('VBD score displays correctly', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const firstPlayer = page.locator('[data-testid="player-card"]').first()
@@ -313,7 +313,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('player projected points display', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const firstPlayer = page.locator('[data-testid="player-card"]').first()
@@ -323,7 +323,7 @@ test.describe('Draft Assistant', () => {
   // === HIDE DRAFTED TESTS ===
 
   test('hide drafted toggle filters out drafted players', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const startButton = page.locator('[data-testid="start-mock-draft"]')
@@ -346,7 +346,7 @@ test.describe('Draft Assistant', () => {
   })
 
   test('drafted players appear with opacity when not hidden', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const startButton = page.locator('[data-testid="start-mock-draft"]')
@@ -371,14 +371,14 @@ test.describe('Draft Assistant', () => {
 
   test('mobile - responsive layout at 390px', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await expect(page.locator('h1:has-text("Draft Assistant")')).toBeVisible({ timeout: 15000 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible()
+    await expect(page.locator('h1:has-text("Draft Assistant")').first()).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible()
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
   })
 
   test('mobile - controls are accessible', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     
     await expect(page.locator('[data-testid="search-input"]')).toBeVisible()
     await expect(page.locator('[data-testid="filter-All"]')).toBeVisible()
@@ -387,7 +387,7 @@ test.describe('Draft Assistant', () => {
 
   test('mobile - player cards are full width', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     const playerCard = page.locator('[data-testid="player-card"]').first()
@@ -398,7 +398,7 @@ test.describe('Draft Assistant', () => {
 
   test('mobile - swipe gesture to draft player', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     
     await page.locator('[data-testid="start-mock-draft"]').click()
     await expect(page.locator('text=Pick 1')).toBeVisible({ timeout: 5000 })
@@ -419,12 +419,12 @@ test.describe('Draft Assistant', () => {
     }
     
     // Rankings should still be visible
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible()
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible()
   })
 
   test('mobile - sort buttons accessible', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     
     await expect(page.locator('[data-testid="sort-VBD"]')).toBeVisible()
     await expect(page.locator('[data-testid="sort-Proj"]')).toBeVisible()
@@ -434,7 +434,7 @@ test.describe('Draft Assistant', () => {
   // === EMPTY/ERROR STATE TESTS ===
 
   test('handles empty state gracefully', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Draft Assistant")')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('h1:has-text("Draft Assistant")').first()).toBeVisible({ timeout: 15000 })
     
     // Either player cards exist or empty message is shown
     const hasPlayers = await page.locator('[data-testid="player-card"]').count() > 0
@@ -447,8 +447,8 @@ test.describe('Draft Assistant', () => {
 
   test('my team sidebar visible on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await expect(page.locator('h1:has-text("Draft Assistant")')).toBeVisible({ timeout: 15000 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Draft Assistant")').first()).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 10000 })
     
     // Grid layout should be active on desktop
     const hasGridLayout = await page.locator('.lg\\:grid-cols-\\[1fr_300px\\]').count() > 0
@@ -459,7 +459,7 @@ test.describe('Draft Assistant', () => {
 
   test('my team sidebar shows drafted players', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.locator('[data-testid="start-mock-draft"]').click()
@@ -478,10 +478,10 @@ test.describe('Draft Assistant', () => {
   // === VIRTUALIZATION TESTS ===
 
   test('rankings list handles scrolling with virtualization', async ({ page }) => {
-    await expect(page.locator('[data-testid="rankings-list"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="rankings-list"]').first()).toBeVisible({ timeout: 15000 })
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
-    const rankingsList = page.locator('[data-testid="rankings-list"]')
+    const rankingsList = page.locator('[data-testid="rankings-list"]').first()
     
     // Scroll down
     await rankingsList.evaluate(el => el.scrollTop = 500)
