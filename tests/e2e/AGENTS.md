@@ -87,12 +87,48 @@ pnpm test:e2e -g "should redirect"
 
 ## CI Integration
 
-E2E tests run in CI with:
-- Local Supabase (started via `supabase start`)
-- Chromium only (faster CI)
-- Artifacts uploaded on failure (7-day retention)
-- Retries: 2 in CI, 0 locally
-- Workers: 1 in CI (serial), parallel locally
+E2E tests run in GitHub Actions CI using **3-shard parallelization** for faster execution.
+
+### Architecture
+- **quality** job: type-check → lint → unit tests → build (runs in parallel with e2e)
+- **e2e** job: 3 parallel shards, each running ~61 tests (183 total, excluding perf/PWA)
+- **report-merge** job: merges blob reports from all shards into unified HTML report
+
+### Configuration
+- **Shard count**: 3 (configured via matrix strategy)
+- **Reporter**: blob in CI (for shard merging), html locally
+- **Workers**: 1 per shard (serial within shard, parallel across shards)
+- **Browsers**: Chromium only (Mobile Safari runs locally)
+- **Retries**: 2 in CI, 0 locally
+- **Excluded**: `performance.spec.ts`, `pwa-offline.spec.ts` (run in nightly workflow)
+
+### Local Debugging of Shard-Specific Failures
+If a test fails in CI shard 2/3 but passes locally:
+```bash
+# Run the same shard locally
+CI=true ENABLE_MSW=true pnpm exec playwright test --project=chromium --shard=2/3
+
+# Or run all shards sequentially
+for i in 1 2 3; do
+  CI=true ENABLE_MSW=true pnpm exec playwright test --project=chromium --shard=$i/3
+done
+```
+
+### Sharding Safety
+Tests can safely run in parallel shards because:
+- Each shard has **isolated Supabase instance** (separate database)
+- Each shard spawns **own dev server** (separate port)
+- MSW mocks prevent external API calls
+
+**Note**: `rls-policies.spec.ts` uses hardcoded UUIDs but is safe across shards due to per-shard database isolation.
+
+### Nightly Workflow
+Performance and PWA tests run in a separate nightly workflow:
+- **Schedule**: Daily at 6am UTC
+- **Manual trigger**: Available via `workflow_dispatch`
+- **Tests**: `performance.spec.ts`, `pwa-offline.spec.ts`
+- **Build**: Requires production build (`pnpm build --webpack`)
+- **Failure handling**: Creates GitHub issue with `nightly-failure` label
 
 ## Selector Patterns
 
@@ -118,12 +154,31 @@ await page.click('[data-testid="player-card"]')
 await page.dispatchEvent('[data-testid="player-card"]', 'click')
 ```
 
-**Wait patterns for debounced state:**
+**Wait patterns (condition-based, NOT fixed timeouts):**
 ```typescript
+// DOM visibility
+await expect(page.locator('[data-testid="player-card"]')).toBeVisible()
+await expect(page.locator('[data-testid="modal"]')).not.toBeVisible()
+
+// Content updates
+await expect(page.locator('[data-testid="week-selector"]')).toHaveText('Week 1')
+
+// Element state
+await expect(page.locator('[data-testid="toggle"]')).toBeChecked()
+await expect(page.locator('[data-testid="slider"]')).toHaveValue('20')
+
+// Element count (for debounced search/filter)
 await page.fill('[data-testid="search-input"]', 'Mahomes')
-await page.waitForTimeout(500)  // Wait for debounce
 await expect(page.locator('[data-testid="player-row"]')).toHaveCount(1)
+
+// Network events (analytics tests)
+await page.waitForRequest(req => req.url().includes('posthog.com/e/'))
+
+// Navigation
+await page.waitForURL('/dashboard')
 ```
+
+**DO NOT use `waitForTimeout()`.** It's unreliable and slower than condition-based waits.
 
 ## Auth State Control
 
