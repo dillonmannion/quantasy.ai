@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+import { openPickSelector } from './helpers/pick-selector'
 
 /**
  * Pick Valuation Integration Flow Tests
@@ -98,15 +99,6 @@ async function setupPickValueMock(page: Page) {
   })
 }
 
-// Helper to open pick selector in trade
-async function openPickSelector(page: Page, zone: 'give' | 'receive') {
-  const buttonTestId = zone === 'give' ? 'add-pick-give' : 'add-pick-receive'
-  const button = page.locator(`[data-testid="${buttonTestId}"]`)
-  await expect(button).toBeVisible({ timeout: 10000 })
-  await button.click()
-  await page.waitForTimeout(500)
-}
-
 test.describe('Pick Valuation Integration Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Set up API mock for pick values
@@ -163,7 +155,7 @@ test.describe('Pick Valuation Integration Flow', () => {
     // ===== PHASE 3: Navigate to trade and add pick =====
     await page.goto('/trade')
     await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="add-pick-give"]')).toBeVisible()
     
     // Open pick selector for "You Give" zone
     await openPickSelector(page, 'give')
@@ -239,7 +231,7 @@ test.describe('Pick Valuation Integration Flow', () => {
   test('add future pick to trade and verify value', async ({ page }) => {
     await page.goto('/trade')
     await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="add-pick-receive"]')).toBeVisible()
     
     // Open pick selector
     await openPickSelector(page, 'receive')
@@ -300,18 +292,16 @@ test.describe('Pick Valuation Integration Flow', () => {
     
     // Close dialog
     await page.keyboard.press('Escape')
-    await page.waitForTimeout(300)
+    await expect(explanation).not.toBeVisible()
     
     // ===== PHASE 3: Trade flow on mobile =====
     await page.goto('/trade')
     await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-    await page.waitForTimeout(500)
     
     // Open pick selector using dispatchEvent
     const addPickButton = page.locator('[data-testid="add-pick-give"]')
     await expect(addPickButton).toBeVisible()
     await addPickButton.dispatchEvent('click')
-    await page.waitForTimeout(500)
     
     // Select pick
     await expect(page.getByText('Add Draft Pick')).toBeVisible()

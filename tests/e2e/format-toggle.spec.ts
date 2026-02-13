@@ -4,7 +4,7 @@ test.describe('Trade Page Format Toggle', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/trade')
     await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="dynasty-redraft-toggle"]')).toBeVisible({ timeout: 5000 })
   })
 
   test('format toggle (Dynasty/Redraft) is visible', async ({ page }) => {
@@ -21,7 +21,12 @@ test.describe('Trade Page Format Toggle', () => {
     
     // Click the toggle
     await toggle.click()
-    await page.waitForTimeout(500)
+    
+    if (initialChecked) {
+      await expect(toggle).not.toBeChecked()
+    } else {
+      await expect(toggle).toBeChecked()
+    }
     
     // Get new state
     const newChecked = await toggle.isChecked()
@@ -41,8 +46,13 @@ test.describe('Trade Page Format Toggle', () => {
     await page.screenshot({ path: '.sisyphus/evidence/task-10-format-toggle-before.png' })
     
     // Click toggle
+    const beforeChecked = await toggle.isChecked()
     await toggle.click()
-    await page.waitForTimeout(500)
+    if (beforeChecked) {
+      await expect(toggle).not.toBeChecked()
+    } else {
+      await expect(toggle).toBeChecked()
+    }
     
     // Take screenshot after
     await page.screenshot({ path: '.sisyphus/evidence/task-10-format-toggle.png' })
@@ -61,7 +71,11 @@ test.describe('Trade Page Format Toggle', () => {
     
     // Click to toggle
     await toggle.click()
-    await page.waitForTimeout(300)
+    if (isChecked) {
+      await expect(toggle).not.toBeChecked()
+    } else {
+      await expect(toggle).toBeChecked()
+    }
     
     const afterFirstClick = await toggle.isChecked()
     console.log(`After first click - Dynasty selected: ${afterFirstClick}`)
@@ -69,7 +83,11 @@ test.describe('Trade Page Format Toggle', () => {
     
     // Click again to toggle back
     await toggle.click()
-    await page.waitForTimeout(300)
+    if (afterFirstClick) {
+      await expect(toggle).not.toBeChecked()
+    } else {
+      await expect(toggle).toBeChecked()
+    }
     
     const afterSecondClick = await toggle.isChecked()
     console.log(`After second click - Dynasty selected: ${afterSecondClick}`)

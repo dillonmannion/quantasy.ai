@@ -1,19 +1,18 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { hasE2EAuthState } from './helpers/auth-state'
+import { openPickSelector } from './helpers/pick-selector'
 
-async function openPickSelector(page: Page, zone: 'give' | 'receive') {
-  const buttonTestId = zone === 'give' ? 'add-pick-give' : 'add-pick-receive'
-  const button = page.locator(`[data-testid="${buttonTestId}"]`)
-  
-  await expect(button).toBeVisible({ timeout: 10000 })
-  await button.click()
-  await page.waitForTimeout(500)
-}
+const hasAuthState = hasE2EAuthState()
 
 test.describe('Trade Calculator with Picks', () => {
+  test.beforeEach(() => {
+    test.skip(!hasAuthState, 'Requires generated E2E auth state from global setup')
+  })
+
   test.beforeEach(async ({ page }) => {
     await page.goto('/trade')
     await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="bias-slider"]')).toBeVisible({ timeout: 5000 })
   })
 
   test('can open pick selector', async ({ page }) => {
@@ -80,8 +79,7 @@ test.describe('Trade Calculator with Picks', () => {
         await page.keyboard.press('ArrowRight')
     }
     
-    // Debounce wait
-    await page.waitForTimeout(1000)
+    await expect(slider).toHaveValue('20')
     
     // We expect the backend/logic to reflect bias changes in the value
     // Since we rely on the backend here (for Current picks), the test assumes backend integration
@@ -107,7 +105,7 @@ test.describe('Trade Calculator with Picks', () => {
         await page.keyboard.press('ArrowRight')
     }
     
-    await page.waitForTimeout(1000)
+    await expect(slider).toHaveValue('20')
     
     // Verify: Value updated to 70.0 (50 + 0.2 * 100)
     await expect(valueDisplay).toContainText('70.0')
