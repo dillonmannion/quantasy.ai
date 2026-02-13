@@ -134,21 +134,20 @@ async function openPlayerPicker(page: Page, zone: 'give' | 'receive') {
 
   await expect(button).toBeVisible({ timeout: 10000 })
   await button.click()
-  await page.waitForTimeout(500)
   await expect(page.locator('[data-testid="player-picker-modal"]')).toBeVisible({ timeout: 10000 })
+  await expect(page.locator('[data-testid="player-picker-search"]')).toBeVisible({ timeout: 5000 })
 }
 
 async function selectPlayer(page: Page, searchQuery: string) {
   const searchInput = page.locator('[data-testid="player-picker-search"]')
   await expect(searchInput).toBeVisible({ timeout: 5000 })
   await searchInput.fill(searchQuery)
-  await page.waitForTimeout(500)
 
   const playerItem = page.locator('[data-testid="player-picker-item"]').first()
   await expect(playerItem).toBeVisible({ timeout: 5000 })
   await playerItem.scrollIntoViewIfNeeded()
   await playerItem.dispatchEvent('click')
-  await page.waitForTimeout(500)
+  await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
 }
 
 async function proposeTradeWithMock(page: Page, mockResponse: unknown) {
@@ -165,7 +164,6 @@ async function proposeTradeWithMock(page: Page, mockResponse: unknown) {
   const proposeButton = page.locator('[data-testid="propose-trade-button"]')
   await expect(proposeButton).toBeVisible({ timeout: 5000 })
   await proposeButton.click()
-  await page.waitForTimeout(500)
 
   // Wait for dialog to open
   await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 })
@@ -175,7 +173,7 @@ test.describe('Multi-Source Player Values', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/trade')
     await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="add-player-give"]')).toBeVisible({ timeout: 5000 })
   })
 
   test.describe('Consensus Value Display', () => {
@@ -222,7 +220,6 @@ test.describe('Multi-Source Player Values', () => {
       await dropdownTrigger.scrollIntoViewIfNeeded()
       await expect(dropdownTrigger).toBeVisible({ timeout: 5000 })
       await dropdownTrigger.click()
-      await page.waitForTimeout(800)
 
       await expect(dialog.locator('text=Z-scores')).toBeVisible({ timeout: 5000 })
       await expect(dialog.locator('text=normalization')).toBeVisible()
@@ -248,7 +245,6 @@ test.describe('Multi-Source Player Values', () => {
       const dropdownTrigger = page.locator('[data-testid="value-dropdown-4046"]')
       await expect(dropdownTrigger).toBeVisible({ timeout: 5000 })
       await dropdownTrigger.click()
-      await page.waitForTimeout(300)
 
       // Verify available sources are shown
       await expect(page.locator('[data-testid="source-KTC-4046"]')).toBeVisible({ timeout: 5000 })
@@ -290,7 +286,6 @@ test.describe('Multi-Source Player Values', () => {
       const proposeButton = page.locator('[data-testid="propose-trade-button"]')
       await expect(proposeButton).toBeVisible({ timeout: 5000 })
       await proposeButton.click()
-      await page.waitForTimeout(500)
 
       await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 })
 
@@ -299,15 +294,13 @@ test.describe('Multi-Source Player Values', () => {
       const firstValue = await firstConsensus.textContent()
 
       await page.keyboard.press('Escape')
-      await page.waitForTimeout(300)
+      await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 5000 })
 
       const toggle = page.locator('[data-testid="dynasty-redraft-toggle"]')
       await expect(toggle).toBeVisible({ timeout: 5000 })
       await toggle.click()
-      await page.waitForTimeout(500)
 
       await proposeButton.click()
-      await page.waitForTimeout(500)
 
       await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 })
 
@@ -362,12 +355,10 @@ test.describe('Multi-Source Player Values', () => {
 
       const searchInput = page.locator('[data-testid="player-picker-search"]')
       await searchInput.fill('Mahomes')
-      await page.waitForTimeout(500)
 
       const playerItem = page.locator('[data-testid="player-picker-item"]').first()
       await expect(playerItem).toBeVisible({ timeout: 5000 })
       await playerItem.dispatchEvent('click')
-      await page.waitForTimeout(800)
 
       await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
 
@@ -376,7 +367,6 @@ test.describe('Multi-Source Player Values', () => {
 
       // Scroll to see content on mobile
       await page.evaluate(() => window.scrollBy(0, 200))
-      await page.waitForTimeout(300)
 
       // Verify consensus value is visible on mobile
       const consensusValue = page.locator('[data-testid="consensus-value-4046"]')
@@ -390,11 +380,10 @@ test.describe('Multi-Source Player Values', () => {
       await openPlayerPicker(page, 'give')
       const searchInput = page.locator('[data-testid="player-picker-search"]')
       await searchInput.fill('Mahomes')
-      await page.waitForTimeout(500)
 
       const playerItem = page.locator('[data-testid="player-picker-item"]').first()
+      await expect(playerItem).toBeVisible({ timeout: 5000 })
       await playerItem.dispatchEvent('click')
-      await page.waitForTimeout(800)
 
       await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
 
@@ -403,10 +392,8 @@ test.describe('Multi-Source Player Values', () => {
       const dialog = page.locator('[role="dialog"]')
       const dropdownTrigger = dialog.locator('[data-testid="value-dropdown-4046"]')
       await dropdownTrigger.scrollIntoViewIfNeeded()
-      await page.waitForTimeout(300)
       await expect(dropdownTrigger).toBeVisible({ timeout: 5000 })
       await dropdownTrigger.dispatchEvent('click')
-      await page.waitForTimeout(800)
 
       await expect(dialog.locator('[data-testid="source-KTC-4046"]')).toHaveCount(1)
     })

@@ -6,7 +6,6 @@ async function openPlayerPicker(page: Page, zone: 'give' | 'receive') {
   
   await expect(button).toBeVisible({ timeout: 10000 })
   await button.click()
-  await page.waitForTimeout(500)
   await expect(page.locator('[data-testid="player-picker-modal"]')).toBeVisible({ timeout: 10000 })
   await expect(page.locator('[data-testid="player-picker-search"]')).toBeVisible({ timeout: 5000 })
 }
@@ -15,20 +14,19 @@ async function selectPlayer(page: Page, searchQuery: string) {
   const searchInput = page.locator('[data-testid="player-picker-search"]')
   await expect(searchInput).toBeVisible({ timeout: 5000 })
   await searchInput.fill(searchQuery)
-  await page.waitForTimeout(500)
   
   const playerItem = page.locator('[data-testid="player-picker-item"]').first()
   await expect(playerItem).toBeVisible({ timeout: 5000 })
   await playerItem.scrollIntoViewIfNeeded()
   await playerItem.dispatchEvent('click')
-  await page.waitForTimeout(500)
+  await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
 }
 
 test.describe('Trade Calculator', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/trade')
     await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="add-player-give"]')).toBeVisible({ timeout: 5000 })
   })
 
   test('page loads with trade builder interface', async ({ page }) => {
@@ -61,7 +59,6 @@ test.describe('Trade Calculator', () => {
     await openPlayerPicker(page, 'give')
     
     await page.locator('[data-testid="player-picker-close"]').click()
-    await page.waitForTimeout(500)
     
     await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
   })
@@ -70,7 +67,6 @@ test.describe('Trade Calculator', () => {
     await openPlayerPicker(page, 'give')
     
     await page.mouse.click(10, 10)
-    await page.waitForTimeout(500)
     
     await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
   })
@@ -90,8 +86,8 @@ test.describe('Trade Calculator', () => {
     expect(initialCount).toBeGreaterThan(0)
     
     await page.locator('[data-testid="player-picker-search"]').fill('Mahomes')
-    await page.waitForTimeout(500)
     
+    await expect(page.locator('[data-testid="player-picker-item"]:has-text("Mahomes")').first()).toBeVisible({ timeout: 5000 })
     const filteredCount = await page.locator('[data-testid="player-picker-item"]').count()
     expect(filteredCount).toBeLessThan(initialCount)
     expect(filteredCount).toBeGreaterThan(0)
@@ -101,9 +97,8 @@ test.describe('Trade Calculator', () => {
     await openPlayerPicker(page, 'give')
     
     await page.locator('[data-testid="player-picker-search"]').fill('xyznonexistentplayer123')
-    await page.waitForTimeout(500)
     
-    await expect(page.locator('[data-testid="player-picker-empty"]')).toBeVisible()
+    await expect(page.locator('[data-testid="player-picker-empty"]')).toBeVisible({ timeout: 5000 })
   })
 
   test('clearing search restores player list', async ({ page }) => {
@@ -112,14 +107,14 @@ test.describe('Trade Calculator', () => {
     const initialCount = await page.locator('[data-testid="player-picker-item"]').count()
     
     await page.locator('[data-testid="player-picker-search"]').fill('Mahomes')
-    await page.waitForTimeout(500)
     
+    await expect(page.locator('[data-testid="player-picker-item"]:has-text("Mahomes")').first()).toBeVisible({ timeout: 5000 })
     const filteredCount = await page.locator('[data-testid="player-picker-item"]').count()
     expect(filteredCount).toBeLessThan(initialCount)
     
     await page.locator('[data-testid="player-picker-search"]').fill('')
-    await page.waitForTimeout(500)
     
+    await expect(page.locator('[data-testid="player-picker-item"]')).not.toHaveCount(filteredCount, { timeout: 5000 })
     const restoredCount = await page.locator('[data-testid="player-picker-item"]').count()
     expect(restoredCount).toBe(initialCount)
   })
@@ -128,14 +123,14 @@ test.describe('Trade Calculator', () => {
     await openPlayerPicker(page, 'give')
     
     await page.locator('[data-testid="filter-QB"]').click()
-    await page.waitForTimeout(500)
     
+    await expect(page.locator('[data-testid="player-picker-item"]').first()).toBeVisible({ timeout: 5000 })
     const qbCount = await page.locator('[data-testid="player-picker-item"]').count()
     expect(qbCount).toBeGreaterThan(0)
     
     await page.locator('[data-testid="filter-RB"]').click()
-    await page.waitForTimeout(500)
     
+    await expect(page.locator('[data-testid="player-picker-item"]').first()).toBeVisible({ timeout: 5000 })
     const rbCount = await page.locator('[data-testid="player-picker-item"]').count()
     expect(rbCount).toBeGreaterThan(0)
   })
@@ -144,11 +139,13 @@ test.describe('Trade Calculator', () => {
     await openPlayerPicker(page, 'give')
     
     await page.locator('[data-testid="filter-QB"]').click()
-    await page.waitForTimeout(500)
+    
+    await expect(page.locator('[data-testid="player-picker-item"]').first()).toBeVisible({ timeout: 5000 })
     const qbCount = await page.locator('[data-testid="player-picker-item"]').count()
     
     await page.locator('[data-testid="filter-All"]').click()
-    await page.waitForTimeout(500)
+    
+    await expect(page.locator('[data-testid="player-picker-item"]')).not.toHaveCount(qbCount, { timeout: 5000 })
     const allCount = await page.locator('[data-testid="player-picker-item"]').count()
     
     expect(allCount).toBeGreaterThan(qbCount)
@@ -174,14 +171,14 @@ test.describe('Trade Calculator', () => {
   test('can add multiple players to same zone', async ({ page }) => {
     await openPlayerPicker(page, 'give')
     await page.locator('[data-testid="player-picker-item"]').first().click()
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toHaveCount(1, { timeout: 5000 })
     
     await openPlayerPicker(page, 'give')
     await page.locator('[data-testid="player-picker-item"]').first().click()
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
     
-    const chipCount = await page.locator('[data-testid="zone-give"] [data-testid="player-chip"]').count()
-    expect(chipCount).toBe(2)
+    await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toHaveCount(2, { timeout: 5000 })
   })
 
   test('selected players are removed from picker list', async ({ page }) => {
@@ -190,8 +187,8 @@ test.describe('Trade Calculator', () => {
     
     await openPlayerPicker(page, 'receive')
     await page.locator('[data-testid="player-picker-search"]').fill('Mahomes')
-    await page.waitForTimeout(500)
     
+    await expect(page.locator('[data-testid="player-picker-empty"]')).toBeVisible({ timeout: 5000 })
     const afterCount = await page.locator('[data-testid="player-picker-item"]').count()
     expect(afterCount).toBe(0)
   })
@@ -205,7 +202,6 @@ test.describe('Trade Calculator', () => {
     
     await chip.hover()
     await page.locator('[data-testid="zone-give"] [data-testid="player-chip-remove"]').click()
-    await page.waitForTimeout(500)
     
     await expect(chip).not.toBeVisible({ timeout: 5000 })
     await expect(page.locator('[data-testid="zone-give-empty"]')).toBeVisible()
@@ -219,7 +215,6 @@ test.describe('Trade Calculator', () => {
     
     await page.locator('[data-testid="zone-give"] [data-testid="player-chip"]').hover()
     await page.locator('[data-testid="zone-give"] [data-testid="player-chip-remove"]').click()
-    await page.waitForTimeout(500)
     
     await expect(page.locator('[data-testid="propose-trade-button"]')).not.toBeVisible({ timeout: 5000 })
     await expect(page.locator('[data-testid="zone-give-empty"]')).toBeVisible()
@@ -231,8 +226,7 @@ test.describe('Trade Calculator', () => {
     await openPlayerPicker(page, 'give')
     await selectPlayer(page, 'Mahomes')
     
-    await page.waitForTimeout(500)
-    
+    await expect(page.locator('[data-testid="fairness-meter-value"]')).not.toHaveText('0', { timeout: 5000 })
     const fairnessValue = await page.locator('[data-testid="fairness-meter-value"]').textContent()
     expect(fairnessValue).not.toBe('0')
   })
@@ -241,8 +235,7 @@ test.describe('Trade Calculator', () => {
     await openPlayerPicker(page, 'give')
     await selectPlayer(page, 'Mahomes')
     
-    await page.waitForTimeout(500)
-    
+    await expect(page.locator('[data-testid="fairness-meter-value"]')).not.toHaveText('0', { timeout: 5000 })
     const verdict = await page.locator('[data-testid="fairness-meter-verdict"]').textContent()
     expect(['You Lose', 'Slight Loss', 'Balanced']).toContain(verdict)
   })
@@ -251,13 +244,12 @@ test.describe('Trade Calculator', () => {
     await openPlayerPicker(page, 'give')
     await selectPlayer(page, 'Mahomes')
     
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="fairness-meter-value"]')).not.toHaveText('0', { timeout: 5000 })
     const valueAfterAdd = await page.locator('[data-testid="fairness-meter-value"]').textContent()
     expect(valueAfterAdd).not.toBe('0')
     
     await page.locator('[data-testid="zone-give"] [data-testid="player-chip"]').hover()
     await page.locator('[data-testid="zone-give"] [data-testid="player-chip-remove"]').click()
-    await page.waitForTimeout(500)
     
     await expect(page.locator('[data-testid="fairness-meter-value"]')).toHaveText('0')
   })
@@ -308,13 +300,12 @@ test.describe('Trade Calculator', () => {
     
     const searchInput = page.locator('[data-testid="player-picker-search"]')
     await searchInput.fill('Mahomes')
-    await page.waitForTimeout(500)
     
     const playerItem = page.locator('[data-testid="player-picker-item"]').first()
     await expect(playerItem).toBeVisible({ timeout: 5000 })
     await playerItem.dispatchEvent('click')
-    await page.waitForTimeout(800)
     
+    await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
     await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toBeVisible({ timeout: 10000 })
     
     await page.evaluate(() => window.scrollBy(0, 300))
@@ -323,8 +314,8 @@ test.describe('Trade Calculator', () => {
 
   test('desktop layout - zones side by side at 1920x1080', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 })
-    await page.waitForTimeout(500)
     
+    await expect(page.locator('[data-testid="zone-give-header"]')).toBeVisible({ timeout: 5000 })
     const giveBox = await page.locator('[data-testid="zone-give-header"]').boundingBox()
     const receiveBox = await page.locator('[data-testid="zone-receive-header"]').boundingBox()
     
@@ -351,14 +342,12 @@ test.describe('Trade Calculator', () => {
   test('handles adding players to both zones in quick succession', async ({ page }) => {
     await openPlayerPicker(page, 'give')
     await page.locator('[data-testid="player-picker-item"]').first().click()
-    await page.waitForTimeout(800)
     await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
     await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toBeVisible({ timeout: 5000 })
-    await page.waitForTimeout(500)
     
     await openPlayerPicker(page, 'receive')
     await page.locator('[data-testid="player-picker-item"]').first().click()
-    await page.waitForTimeout(800)
+    await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
     
     await expect(page.locator('[data-testid="zone-give"] [data-testid="player-chip"]')).toBeVisible()
     await expect(page.locator('[data-testid="zone-receive"] [data-testid="player-chip"]')).toBeVisible()

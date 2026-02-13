@@ -15,7 +15,7 @@ test.describe('Posthog Analytics', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Verify pageview was captured
     expect(pageviewRequests.length).toBeGreaterThan(0)
@@ -35,7 +35,7 @@ test.describe('Posthog Analytics', () => {
     })
 
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     expect(pageviewRequests.length).toBeGreaterThan(0)
     const pageview = pageviewRequests[0]
@@ -52,7 +52,7 @@ test.describe('Posthog Analytics', () => {
     })
 
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Check no email addresses in any event
     for (const event of events) {
@@ -72,7 +72,7 @@ test.describe('Posthog Analytics', () => {
     })
 
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Check no username or user_id in properties
     for (const event of events) {
@@ -98,7 +98,7 @@ test.describe('Posthog Analytics', () => {
 
     // Navigate to trade page
     await page.goto('/trade')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Should have at least one pageview event
     expect(pageviewRequests.length).toBeGreaterThan(0)
@@ -121,7 +121,7 @@ test.describe('Posthog Analytics', () => {
 
     // Navigate to waivers page
     await page.goto('/waivers')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Should have at least one pageview event
     expect(pageviewRequests.length).toBeGreaterThan(0)
@@ -144,7 +144,7 @@ test.describe('Posthog Analytics', () => {
 
     // Navigate to roster page
     await page.goto('/roster')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Should have at least one pageview event
     expect(pageviewRequests.length).toBeGreaterThan(0)
@@ -164,7 +164,7 @@ test.describe('Posthog Analytics', () => {
     })
 
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     expect(events.length).toBeGreaterThan(0)
     const event = events[0]
@@ -189,12 +189,12 @@ test.describe('Posthog Analytics', () => {
 
     // Navigate to first page
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
     const firstCount = pageviewRequests.length
 
     // Navigate to second page
     await page.goto('/trade')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
     const secondCount = pageviewRequests.length
 
     // Should have more events after second navigation
@@ -210,7 +210,7 @@ test.describe('Posthog Analytics', () => {
     })
 
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Posthog uses POST for event tracking
     expect(requestMethod).toBe('POST')
@@ -229,7 +229,7 @@ test.describe('Posthog Analytics', () => {
     })
 
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Events should be captured (DNT not set in test)
     expect(events.length).toBeGreaterThan(0)
@@ -245,7 +245,7 @@ test.describe('Posthog Analytics', () => {
     })
 
     await page.goto('/dashboard')
-    await page.waitForTimeout(1000)
+    await page.waitForRequest(request => request.url().includes('us.i.posthog.com/e/'))
 
     // Check all events for sensitive data
     for (const event of events) {

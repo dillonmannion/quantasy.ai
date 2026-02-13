@@ -33,7 +33,7 @@ test.describe('Draft Assistant', () => {
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.click('[data-testid="filter-QB"]')
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 5000 })
     
     const playerCards = page.locator('[data-testid="player-card"]')
     const count = await playerCards.count()
@@ -51,7 +51,7 @@ test.describe('Draft Assistant', () => {
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.click('[data-testid="filter-RB"]')
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 5000 })
     
     const playerCards = page.locator('[data-testid="player-card"]')
     const count = await playerCards.count()
@@ -69,12 +69,12 @@ test.describe('Draft Assistant', () => {
     
     // First filter to QB
     await page.click('[data-testid="filter-QB"]')
-    await page.waitForTimeout(300)
+    await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 5000 })
     const qbCount = await page.locator('[data-testid="player-card"]').count()
     
     // Then switch back to All
     await page.click('[data-testid="filter-All"]')
-    await page.waitForTimeout(300)
+    await expect(page.locator('[data-testid="player-card"]')).not.toHaveCount(qbCount, { timeout: 5000 })
     const allCount = await page.locator('[data-testid="player-card"]').count()
     
     expect(allCount).toBeGreaterThan(qbCount)
@@ -89,7 +89,7 @@ test.describe('Draft Assistant', () => {
     const initialCount = await page.locator('[data-testid="player-card"]').count()
     
     await page.fill('[data-testid="search-input"]', 'Mahomes')
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="player-card"]:has-text("Mahomes")')).toBeVisible({ timeout: 5000 })
     
     const filteredCount = await page.locator('[data-testid="player-card"]').count()
     expect(filteredCount).toBeLessThan(initialCount)
@@ -103,9 +103,8 @@ test.describe('Draft Assistant', () => {
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.fill('[data-testid="search-input"]', 'mahomes')
-    await page.waitForTimeout(500)
     
-    await expect(page.locator('[data-testid="player-card"]:has-text("Mahomes")')).toBeVisible()
+    await expect(page.locator('[data-testid="player-card"]:has-text("Mahomes")')).toBeVisible({ timeout: 5000 })
   })
 
   test('clearing search shows all players again', async ({ page }) => {
@@ -115,13 +114,13 @@ test.describe('Draft Assistant', () => {
     const initialCount = await page.locator('[data-testid="player-card"]').count()
     
     await page.fill('[data-testid="search-input"]', 'Mahomes')
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="player-card"]:has-text("Mahomes")')).toBeVisible({ timeout: 5000 })
     
     const filteredCount = await page.locator('[data-testid="player-card"]').count()
     expect(filteredCount).toBeLessThan(initialCount)
     
     await page.fill('[data-testid="search-input"]', '')
-    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="player-card"]')).not.toHaveCount(filteredCount, { timeout: 5000 })
     
     const restoredCount = await page.locator('[data-testid="player-card"]').count()
     expect(restoredCount).toBe(initialCount)
@@ -143,7 +142,6 @@ test.describe('Draft Assistant', () => {
     const firstPlayerBefore = await page.locator('[data-testid="player-card"]').first().textContent()
     
     await page.click('[data-testid="sort-Proj"]')
-    await page.waitForTimeout(300)
     
     const projButton = page.locator('[data-testid="sort-Proj"]')
     await expect(projButton).toBeVisible()
@@ -157,7 +155,6 @@ test.describe('Draft Assistant', () => {
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible({ timeout: 10000 })
     
     await page.click('[data-testid="sort-ADP"]')
-    await page.waitForTimeout(300)
     
     const adpButton = page.locator('[data-testid="sort-ADP"]')
     await expect(adpButton).toBeVisible()
@@ -244,7 +241,7 @@ test.describe('Draft Assistant', () => {
       const playerCard = page.locator('[data-testid="player-card"]').first()
       if (await playerCard.isVisible()) {
         await playerCard.click()
-        await page.waitForTimeout(300)
+        await expect(page.locator(`text=Pick ${i + 2}`)).toBeVisible({ timeout: 5000 })
       }
     }
     
@@ -339,8 +336,8 @@ test.describe('Draft Assistant', () => {
     // Click hide drafted
     const hideDraftedButton = page.getByRole('button', { name: /hide drafted/i })
     await hideDraftedButton.click()
-    await page.waitForTimeout(300)
     
+    await expect(page.locator('[data-testid="player-card"]')).not.toHaveCount(countBefore, { timeout: 5000 })
     const countAfter = await page.locator('[data-testid="player-card"]').count()
     expect(countAfter).toBeLessThan(countBefore)
   })
@@ -414,8 +411,6 @@ test.describe('Draft Assistant', () => {
       await page.mouse.down()
       await page.mouse.move(box.x + 150, box.y + box.height / 2, { steps: 10 })
       await page.mouse.up()
-      
-      await page.waitForTimeout(500)
     }
     
     // Rankings should still be visible
@@ -464,7 +459,7 @@ test.describe('Draft Assistant', () => {
     
     await page.locator('[data-testid="start-mock-draft"]').click()
     await page.locator('[data-testid="player-card"]').first().click()
-    await page.waitForTimeout(300)
+    await expect(page.locator('text=Pick 2')).toBeVisible({ timeout: 5000 })
     
     // Sidebar should update with drafted player
     const sidebar = page.locator('[data-testid="my-team-sidebar"]')
@@ -485,7 +480,6 @@ test.describe('Draft Assistant', () => {
     
     // Scroll down
     await rankingsList.evaluate(el => el.scrollTop = 500)
-    await page.waitForTimeout(300)
     
     // Players should still be visible after scrolling
     await expect(page.locator('[data-testid="player-card"]').first()).toBeVisible()

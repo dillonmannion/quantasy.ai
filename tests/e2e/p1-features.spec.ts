@@ -6,21 +6,20 @@ async function openPlayerPicker(page: Page, zone: 'give' | 'receive') {
 
   await expect(button).toBeVisible({ timeout: 10000 })
   await button.click()
-  await page.waitForTimeout(500)
   await expect(page.locator('[data-testid="player-picker-modal"]')).toBeVisible({ timeout: 10000 })
+  await expect(page.locator('[data-testid="player-picker-search"]')).toBeVisible({ timeout: 5000 })
 }
 
 async function selectPlayer(page: Page, searchQuery: string) {
   const searchInput = page.locator('[data-testid="player-picker-search"]')
   await expect(searchInput).toBeVisible({ timeout: 5000 })
   await searchInput.fill(searchQuery)
-  await page.waitForTimeout(500)
 
   const playerItem = page.locator('[data-testid="player-picker-item"]').first()
   await expect(playerItem).toBeVisible({ timeout: 5000 })
   await playerItem.scrollIntoViewIfNeeded()
   await playerItem.dispatchEvent('click')
-  await page.waitForTimeout(500)
+  await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
 }
 
 test.describe('P1 Features', () => {
@@ -75,7 +74,6 @@ test.describe('P1 Features', () => {
 
     test('displays transaction list', async ({ page }) => {
       await page.goto('/dashboard')
-      await page.waitForTimeout(1000)
 
       const button = page.locator('[data-testid="view-transactions-button"]')
       await expect(button).toBeVisible({ timeout: 10000 })
@@ -92,7 +90,6 @@ test.describe('P1 Features', () => {
 
     test('expands and collapses transaction details', async ({ page }) => {
       await page.goto('/dashboard')
-      await page.waitForTimeout(1000)
 
       const button = page.locator('[data-testid="view-transactions-button"]')
       await expect(button).toBeVisible({ timeout: 10000 })
@@ -104,20 +101,17 @@ test.describe('P1 Features', () => {
       const toggleButton = page.locator('[data-testid="transaction-toggle-0"]')
       await expect(toggleButton).toBeVisible({ timeout: 5000 })
       await toggleButton.click()
-      await page.waitForTimeout(300)
 
       const details = page.locator('[data-testid^="transaction-details-"]').first()
       await expect(details).toBeVisible({ timeout: 5000 })
 
       await toggleButton.click()
-      await page.waitForTimeout(300)
 
       await expect(details).not.toBeVisible({ timeout: 5000 })
     })
 
     test('filters transactions by type', async ({ page }) => {
       await page.goto('/dashboard')
-      await page.waitForTimeout(1000)
 
       const button = page.locator('[data-testid="view-transactions-button"]')
       await expect(button).toBeVisible({ timeout: 10000 })
@@ -132,14 +126,13 @@ test.describe('P1 Features', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/trade')
       await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-      await page.waitForTimeout(500)
+      await expect(page.locator('[data-testid="tab-partners"]')).toBeVisible({ timeout: 5000 })
     })
 
     test('displays trade partners when tab is clicked', async ({ page }) => {
       const partnersTab = page.locator('[data-testid="tab-partners"]')
       await expect(partnersTab).toBeVisible({ timeout: 5000 })
       await partnersTab.click()
-      await page.waitForTimeout(500)
 
       const partnerList = page.locator('[data-testid="trade-partner-list"]')
       const loadingState = page.locator('[data-testid="trade-partner-finder-loading"]')
@@ -162,7 +155,6 @@ test.describe('P1 Features', () => {
 
     test('shows partner needs and strengths', async ({ page }) => {
       await page.locator('[data-testid="tab-partners"]').click()
-      await page.waitForTimeout(500)
 
       const partnerList = page.locator('[data-testid="trade-partner-list"]')
       const noPartnersState = page.locator('text=No Partners Found')
@@ -181,7 +173,6 @@ test.describe('P1 Features', () => {
 
     test('suggests trade from partner', async ({ page }) => {
       await page.locator('[data-testid="tab-partners"]').click()
-      await page.waitForTimeout(500)
 
       const partnerList = page.locator('[data-testid="trade-partner-list"]')
       const noPartnersState = page.locator('text=No Partners Found')
@@ -194,7 +185,6 @@ test.describe('P1 Features', () => {
       const suggestButton = page.locator('[data-testid^="suggest-trade-"]').first()
       await expect(suggestButton).toBeVisible({ timeout: 5000 })
       await suggestButton.click()
-      await page.waitForTimeout(500)
 
       await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 5000 })
 
@@ -209,9 +199,7 @@ test.describe('P1 Features', () => {
       await expect(partnersTab).toBeVisible({ timeout: 5000 })
       
       await partnersTab.scrollIntoViewIfNeeded()
-      await page.waitForTimeout(300)
       await partnersTab.click({ force: true })
-      await page.waitForTimeout(1000)
 
       await expect(partnersTab).toHaveAttribute('data-state', 'active', { timeout: 5000 })
 
@@ -254,7 +242,6 @@ test.describe('P1 Features', () => {
       await page.locator('input[id="faab-remaining"]').first().fill('150')
 
       await page.locator('button:has-text("Refresh Recommendations")').first().click()
-      await page.waitForTimeout(500)
 
       await expect(page.locator('h2:has-text("Top Waiver Picks")').first()).toBeVisible({ timeout: 15000 })
     })
@@ -264,7 +251,6 @@ test.describe('P1 Features', () => {
       await page.locator('input[id="faab-remaining"]').first().fill('100')
 
       await page.click('button:has-text("Refresh Recommendations")')
-      await page.waitForTimeout(500)
 
       await expect(page.locator('text=Remaining cannot exceed Total')).toBeVisible({ timeout: 5000 })
     })
@@ -274,7 +260,6 @@ test.describe('P1 Features', () => {
       await page.locator('input[id="faab-remaining"]').first().fill('-20')
 
       await page.click('button:has-text("Refresh Recommendations")')
-      await page.waitForTimeout(500)
 
       await expect(page.locator('text=Budget must be positive')).toBeVisible({ timeout: 5000 })
     })
@@ -292,7 +277,7 @@ test.describe('P1 Features', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/trade')
       await expect(page.locator('[data-testid="trade-builder"]')).toBeVisible({ timeout: 15000 })
-      await page.waitForTimeout(500)
+      await expect(page.locator('[data-testid="add-player-give"]')).toBeVisible({ timeout: 5000 })
     })
 
     test('shows VBD labels when players added', async ({ page }) => {
@@ -327,7 +312,6 @@ test.describe('P1 Features', () => {
       const showCalcButton = page.locator('[data-testid="show-calculation"]')
       await expect(showCalcButton).toBeVisible({ timeout: 5000 })
       await showCalcButton.click()
-      await page.waitForTimeout(300)
 
       await expect(page.locator('text=VBD Methodology')).toBeVisible({ timeout: 5000 })
       await expect(page.locator('text=Value Based Drafting')).toBeVisible()
@@ -342,12 +326,10 @@ test.describe('P1 Features', () => {
 
       const showCalcButton = page.locator('[data-testid="show-calculation"]')
       await showCalcButton.click()
-      await page.waitForTimeout(300)
 
       await expect(page.locator('text=VBD Methodology')).toBeVisible({ timeout: 5000 })
 
       await showCalcButton.click()
-      await page.waitForTimeout(300)
 
       await expect(page.locator('text=VBD Methodology')).not.toBeVisible({ timeout: 3000 })
     })
@@ -355,14 +337,10 @@ test.describe('P1 Features', () => {
     test('shows both give and receive sides in breakdown', async ({ page }) => {
       await openPlayerPicker(page, 'give')
       await page.locator('[data-testid="player-picker-item"]').first().click()
-      await page.waitForTimeout(800)
-
       await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
 
       await openPlayerPicker(page, 'receive')
       await page.locator('[data-testid="player-picker-item"]').first().click()
-      await page.waitForTimeout(800)
-
       await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
 
       await expect(page.locator('[data-testid="trade-explanation"]')).toBeVisible({ timeout: 5000 })
@@ -377,17 +355,14 @@ test.describe('P1 Features', () => {
 
       const searchInput = page.locator('[data-testid="player-picker-search"]')
       await searchInput.fill('Mahomes')
-      await page.waitForTimeout(500)
 
       const playerItem = page.locator('[data-testid="player-picker-item"]').first()
       await expect(playerItem).toBeVisible({ timeout: 5000 })
       await playerItem.dispatchEvent('click')
-      await page.waitForTimeout(800)
 
       await expect(page.locator('[data-testid="player-picker-modal"]')).not.toBeVisible({ timeout: 5000 })
 
       await page.evaluate(() => window.scrollBy(0, 500))
-      await page.waitForTimeout(300)
 
       await expect(page.locator('[data-testid="trade-explanation"]')).toBeVisible({ timeout: 5000 })
 
