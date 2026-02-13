@@ -25,7 +25,7 @@ const tools = [
     description: 'Value-Based Drafting rankings',
     color: 'text-accent',
     bgColor: 'bg-accent/20',
-    phase: 2,
+    phase: 1,
   },
   {
     href: '/roster',
@@ -34,7 +34,7 @@ const tools = [
     description: 'Optimize your starting lineup',
     color: 'text-blue-400',
     bgColor: 'bg-blue-400/20',
-    phase: 3,
+    phase: 1,
   },
   {
     href: '/trade',
@@ -43,7 +43,7 @@ const tools = [
     description: 'Evaluate trade fairness',
     color: 'text-primary',
     bgColor: 'bg-primary/20',
-    phase: 3,
+    phase: 1,
   },
   {
     href: '/waivers',
@@ -52,7 +52,7 @@ const tools = [
     description: 'FAAB and priority optimization',
     color: 'text-green-400',
     bgColor: 'bg-green-400/20',
-    phase: 4,
+    phase: 1,
   },
 ]
 
