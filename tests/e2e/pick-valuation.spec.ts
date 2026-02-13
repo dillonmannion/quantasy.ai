@@ -1,8 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-
-async function openPickSelector(page: Page, side: 'give' | 'receive') {
-  await page.click(`[data-testid="add-pick-${side}"]`)
-}
+import { openPickSelector } from './helpers/pick-selector'
 
 /**
  * Pick Valuation Integration Flow Tests
