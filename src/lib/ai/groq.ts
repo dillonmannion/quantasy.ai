@@ -1,6 +1,7 @@
 import Groq from 'groq-sdk'
 
 let client: Groq | null = null
+let apiKeyWarningLogged = false
 
 function getClient(): Groq {
   if (!client) {
@@ -9,6 +10,13 @@ function getClient(): Groq {
     })
   }
   return client
+}
+
+function logApiKeyWarning(): void {
+  if (!apiKeyWarningLogged) {
+    console.warn('[AI] GROQ_API_KEY not set — AI explanations disabled')
+    apiKeyWarningLogged = true
+  }
 }
 
 export interface GenerateExplanationParams {
@@ -35,6 +43,11 @@ export interface GenerateTradeRecommendationParams {
 export async function generateExplanation(
   params: GenerateExplanationParams
 ): Promise<string> {
+  if (!process.env.GROQ_API_KEY) {
+    logApiKeyWarning()
+    return 'AI explanations are currently unavailable.'
+  }
+
   const {
     playerName,
     position,
@@ -77,6 +90,11 @@ Provide a 2-3 sentence explanation focusing on why this player is valuable relat
 export async function generateTradeRecommendation(
   params: GenerateTradeRecommendationParams
 ): Promise<string> {
+  if (!process.env.GROQ_API_KEY) {
+    logApiKeyWarning()
+    return 'AI trade recommendations are currently unavailable.'
+  }
+
   const {
     myRosterId,
     myPlayers,

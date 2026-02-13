@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "next dev --turbo",
+    "dev:mock": "ENABLE_MSW=true next dev --turbo",
     "build": "next build",
     "start": "next start",
     "preview": "next build && next start",

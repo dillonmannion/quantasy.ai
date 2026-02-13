@@ -68,6 +68,12 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
+      - name: Ensure nightly-failure label exists
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh label create "nightly-failure" --color "d73a4a" --description "Nightly test failure" || true
+
       - name: Create failure issue
         if: failure()
         env:
