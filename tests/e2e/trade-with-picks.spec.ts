@@ -1,8 +1,12 @@
-import { test, expect } from '@playwright/test'
-import { hasE2EAuthState } from './helpers/auth-state'
-import { openPickSelector } from './helpers/pick-selector'
+import { test, expect, type Page } from '@playwright/test'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 
-const hasAuthState = hasE2EAuthState()
+const hasAuthState = existsSync(join(__dirname, '.auth', 'user.json'))
+
+async function openPickSelector(page: Page, side: 'give' | 'receive') {
+  await page.click(`[data-testid="add-pick-${side}"]`)
+}
 
 test.describe('Trade Calculator with Picks', () => {
   test.beforeEach(() => {
