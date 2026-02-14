@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { calculateTradeForLeague, type TradeOutput } from '@/lib/algorithms'
+import { calculateTradeForLeague } from '@/lib/algorithms/calculate-trade-for-league'
+import type { TradeOutput } from '@/lib/algorithms'
 import type { TradeableAsset } from '@/lib/algorithms/types'
 
 interface TradeRequest {

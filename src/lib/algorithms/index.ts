@@ -76,7 +76,6 @@ export type { LineupForWeekOptions } from './calculate-lineup-for-week'
 export { calculateLineupForWeek } from './calculate-lineup-for-week'
 
 export type { CalculateTradeForLeagueOptions } from './calculate-trade-for-league'
-export { calculateTradeForLeague } from './calculate-trade-for-league'
 
 export { calculateWaiversForLeague } from './calculate-waivers-for-league'
 
