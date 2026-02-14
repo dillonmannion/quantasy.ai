@@ -122,4 +122,7 @@ import { calculateVBD, type VBDInput } from '@/lib/algorithms'
 
 // WRONG - deep import bypasses barrel
 import { calculateVBD } from '@/lib/algorithms/vbd'
+
+// EXCEPTION - trade orchestrator is NOT in barrel (pulls in heavyweight scraper deps)
+import { calculateTradeForLeague } from '@/lib/algorithms/calculate-trade-for-league'
 ```
