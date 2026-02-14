@@ -1,3 +1,5 @@
+import 'server-only'
+
 /**
  * KeepTradeCut (KTC) Player Value Scraper
  *

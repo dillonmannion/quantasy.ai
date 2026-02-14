@@ -1,3 +1,5 @@
+import 'server-only'
+
 /**
  * FantasyCalc Player Value Scraper
  *
