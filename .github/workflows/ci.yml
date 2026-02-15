@@ -4,12 +4,17 @@ on:
   pull_request:
     branches: [prod, dev]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -39,9 +44,22 @@ jobs:
       
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CI_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_POSTHOG_KEY: 'phc_test_key_for_e2e'
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+          retention-days: 1
 
   e2e:
     runs-on: ubuntu-latest
+    needs: [quality]
+    timeout-minutes: 15
 
     strategy:
       fail-fast: false
@@ -51,6 +69,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Sync migrations to hosted Supabase
+        run: |
+          npx supabase link --project-ref ${{ secrets.CI_SUPABASE_PROJECT_REF }}
+          npx supabase db push --linked
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -63,34 +88,14 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
       
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-      
-      - name: Start Supabase
-        run: |
-          supabase start --exclude studio,inbucket,imgproxy
-          supabase db reset
-      
-      - name: Set Supabase Environment
-        run: |
-          SUPABASE_STATUS=$(supabase status -o json)
-          API_URL=$(echo "$SUPABASE_STATUS" | jq -r '.API_URL')
-          ANON=$(echo "$SUPABASE_STATUS" | jq -r '.ANON_KEY')
-          SERVICE=$(echo "$SUPABASE_STATUS" | jq -r '.SERVICE_ROLE_KEY')
-
-          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON" >> $GITHUB_ENV
-          echo "SUPABASE_SECRET_KEY=$SERVICE" >> $GITHUB_ENV
-
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON" >> $GITHUB_ENV
-          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE" >> $GITHUB_ENV
-
-          echo "::add-mask::$SERVICE"
-      
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
       
       - name: Install Playwright
         run: pnpm exec playwright install --with-deps chromium
@@ -99,6 +104,12 @@ jobs:
         run: pnpm exec playwright test --project=chromium --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --grep-invert="Performance Regression|PWA Offline"
         env:
           ENABLE_MSW: 'true'
+          CI: 'true'
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CI_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.CI_SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.CI_SUPABASE_SECRET_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.CI_SUPABASE_PUBLISHABLE_KEY }}
       
       - name: Upload blob report
         uses: actions/upload-artifact@v4
@@ -112,6 +123,7 @@ jobs:
     if: always()
     needs: [e2e]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v4
