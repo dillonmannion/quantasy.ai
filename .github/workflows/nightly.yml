@@ -40,11 +40,19 @@ jobs:
 
       - name: Set Supabase Environment
         run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=$(supabase status -o json | jq -r '.API_URL')" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o json | jq -r '.ANON_KEY')" >> $GITHUB_ENV
-          SERVICE_KEY=$(supabase status -o json | jq -r '.SERVICE_ROLE_KEY')
-          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_KEY" >> $GITHUB_ENV
-          echo "::add-mask::$SERVICE_KEY"
+          SUPABASE_STATUS=$(supabase status -o json)
+          API_URL=$(echo "$SUPABASE_STATUS" | jq -r '.API_URL')
+          ANON=$(echo "$SUPABASE_STATUS" | jq -r '.ANON_KEY')
+          SERVICE=$(echo "$SUPABASE_STATUS" | jq -r '.SERVICE_ROLE_KEY')
+
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON" >> $GITHUB_ENV
+          echo "SUPABASE_SECRET_KEY=$SERVICE" >> $GITHUB_ENV
+
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE" >> $GITHUB_ENV
+
+          echo "::add-mask::$SERVICE"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

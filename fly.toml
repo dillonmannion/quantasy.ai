@@ -7,21 +7,21 @@ app = 'quantasy-alpha'
 primary_region = 'sjc'
 
 [build]
-  dockerfile = 'Dockerfile'
-  # Build args passed via CI workflow from GitHub secrets
-  # NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+dockerfile = 'Dockerfile'
+# Build args passed via CI workflow from GitHub secrets
+# NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 [env]
-  PORT = '3000'
+PORT = '3000'
 
 [http_service]
-  internal_port = 3000
-  force_https = true
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+internal_port = 3000
+force_https = true
+auto_stop_machines = 'stop'
+auto_start_machines = true
+min_machines_running = 0
+processes = ['app']
 
 [[vm]]
-  size = 'shared-cpu-1x'
-  memory = '256mb'
+size = 'shared-cpu-1x'
+memory = '512mb'

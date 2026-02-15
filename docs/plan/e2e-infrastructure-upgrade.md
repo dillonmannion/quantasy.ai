@@ -203,16 +203,16 @@ const TEST_PASSWORD = 'test-password-123!'
 
 export default async function globalSetup(config: FullConfig) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const secretKey = process.env.SUPABASE_SECRET_KEY
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   const baseURL = config.projects[0]?.use?.baseURL || 'http://localhost:3000'
 
-  if (!supabaseUrl || !serviceRoleKey || !anonKey) {
+  if (!supabaseUrl || !secretKey || !publishableKey) {
     console.log('[E2E Setup] Skipping - missing Supabase credentials')
     return
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  const supabase = createClient(supabaseUrl, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   })
 
@@ -247,7 +247,7 @@ export default async function globalSetup(config: FullConfig) {
 
   // Generate auth session
   console.log('[E2E Setup] Generating session...')
-  const anonClient = createClient(supabaseUrl, anonKey)
+  const anonClient = createClient(supabaseUrl, publishableKey)
   const { data: signInData, error: signInError } = await anonClient.auth.signInWithPassword({
     email: TEST_EMAIL,
     password: TEST_PASSWORD,
@@ -335,14 +335,14 @@ jobs:
           supabase start --exclude studio,inbucket,imgproxy
           supabase db reset  # Applies migrations + seed.sql
       
-      # NEW: Set environment variables
-      - name: Set Supabase Environment
-        run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=$(supabase status -o json | jq -r '.API_URL')" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o json | jq -r '.ANON_KEY')" >> $GITHUB_ENV
-          SERVICE_KEY=$(supabase status -o json | jq -r '.SERVICE_ROLE_KEY')
-          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_KEY" >> $GITHUB_ENV
-          echo "::add-mask::$SERVICE_KEY"
+       # NEW: Set environment variables
+       - name: Set Supabase Environment
+         run: |
+           echo "NEXT_PUBLIC_SUPABASE_URL=$(supabase status -o json | jq -r '.API_URL')" >> $GITHUB_ENV
+           echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(supabase status -o json | jq -r '.ANON_KEY')" >> $GITHUB_ENV
+           SERVICE_KEY=$(supabase status -o json | jq -r '.SERVICE_ROLE_KEY')
+           echo "SUPABASE_SECRET_KEY=$SERVICE_KEY" >> $GITHUB_ENV
+           echo "::add-mask::$SERVICE_KEY"
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

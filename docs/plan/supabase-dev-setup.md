@@ -98,14 +98,14 @@ Add documentation for local vs remote setup:
 # Supabase - Local Development (default)
 # Start local Supabase with: pnpm db:start
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<from supabase status>
-SUPABASE_SERVICE_ROLE_KEY=<from supabase status>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<from supabase status ANON_KEY>
+SUPABASE_SECRET_KEY=<from supabase status SERVICE_ROLE_KEY>
 
 # Supabase - Remote/Production
 # Uncomment and fill these for production deployment
 # NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-# SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+# SUPABASE_SECRET_KEY=your-secret-key
 ```
 
 ### Phase 2: Type Safety (Low Effort)
@@ -167,14 +167,14 @@ jobs:
       - name: Start Supabase
         run: supabase start --exclude studio,inbucket,imgproxy
       
-      # NEW: Extract credentials for tests
-      - name: Set Supabase Environment
-        run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=$(supabase status -o json | jq -r '.API_URL')" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o json | jq -r '.ANON_KEY')" >> $GITHUB_ENV
-          SERVICE_KEY=$(supabase status -o json | jq -r '.SERVICE_ROLE_KEY')
-          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_KEY" >> $GITHUB_ENV
-          echo "::add-mask::$SERVICE_KEY"
+       # NEW: Extract credentials for tests
+       - name: Set Supabase Environment
+         run: |
+           echo "NEXT_PUBLIC_SUPABASE_URL=$(supabase status -o json | jq -r '.API_URL')" >> $GITHUB_ENV
+           echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(supabase status -o json | jq -r '.ANON_KEY')" >> $GITHUB_ENV
+           SERVICE_KEY=$(supabase status -o json | jq -r '.SERVICE_ROLE_KEY')
+           echo "SUPABASE_SECRET_KEY=$SERVICE_KEY" >> $GITHUB_ENV
+           echo "::add-mask::$SERVICE_KEY"
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

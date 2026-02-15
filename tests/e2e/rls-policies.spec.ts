@@ -5,6 +5,12 @@ import * as path from 'path'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SECRET_KEY = process.env.SUPABASE_SECRET_KEY
+  ?? process.env.SUPABASE_SERVICE_ROLE_KEY
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 const TEST_EMAIL = 'e2e-test@quantasy.test'
 const TEST_PASSWORD = 'test-password-123!'
 
@@ -17,14 +23,11 @@ const RLS_TEST_IDS = [
 ]
 
 async function cleanupRlsTestData() {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!SECRET_KEY) {
     return
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-  const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+  const serviceClient = createClient(SUPABASE_URL!, SECRET_KEY!, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
@@ -38,14 +41,11 @@ test.describe('RLS Policy Verification', () => {
   test.beforeAll(async () => {
     await cleanupRlsTestData()
 
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SECRET_KEY) {
       return
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+    const serviceClient = createClient(SUPABASE_URL!, SECRET_KEY!, {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
@@ -83,15 +83,12 @@ test.describe('RLS Policy Verification', () => {
    })
 
   test('authenticated client cannot write to leagues table (RLS policy blocks)', async () => {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SECRET_KEY) {
       test.skip()
       return
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-    const anonClient = createClient(supabaseUrl, anonKey)
+    const anonClient = createClient(SUPABASE_URL!, PUBLISHABLE_KEY!)
     const {
       data: { session },
     } = await anonClient.auth.signInWithPassword({
@@ -111,15 +108,12 @@ test.describe('RLS Policy Verification', () => {
   })
 
   test('service role client CAN write to leagues table (RLS allows)', async () => {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SECRET_KEY) {
       test.skip()
       return
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+    const serviceClient = createClient(SUPABASE_URL!, SECRET_KEY!, {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
@@ -135,20 +129,16 @@ test.describe('RLS Policy Verification', () => {
   })
 
   test('shared VBD cache is readable by league members', async () => {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SECRET_KEY) {
       test.skip()
       return
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+    const serviceClient = createClient(SUPABASE_URL!, SECRET_KEY!, {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const anonClient = createClient(supabaseUrl, anonKey)
+    const anonClient = createClient(SUPABASE_URL!, PUBLISHABLE_KEY!)
     const { data: authData } = await anonClient.auth.signInWithPassword({
       email: TEST_EMAIL,
       password: TEST_PASSWORD,
@@ -192,20 +182,16 @@ test.describe('RLS Policy Verification', () => {
   })
 
   test('shared VBD cache is NOT readable for non-member leagues', async () => {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SECRET_KEY) {
       test.skip()
       return
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+    const serviceClient = createClient(SUPABASE_URL!, SECRET_KEY!, {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const anonClient = createClient(supabaseUrl, anonKey)
+    const anonClient = createClient(SUPABASE_URL!, PUBLISHABLE_KEY!)
     const { data: authData } = await anonClient.auth.signInWithPassword({
       email: TEST_EMAIL,
       password: TEST_PASSWORD,

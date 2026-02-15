@@ -24,8 +24,8 @@ Create a `.env.local` file in the root directory and populate it with the follow
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous API key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (Server-side only) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable API key |
+| `SUPABASE_SECRET_KEY` | Your Supabase secret key (Server-side only) |
 | `NEXT_PUBLIC_APP_URL` | The base URL of your application (e.g., `http://localhost:3000`) |
 | `GROQ_API_KEY` | API key for Groq AI integration (used for AI explanations) |
 | `SENTRY_DSN` | Sentry Data Source Name for error monitoring |

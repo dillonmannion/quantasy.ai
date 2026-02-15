@@ -115,7 +115,7 @@ Use `card-balatro` class for game-themed styling:
 Ensure these are set in `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
 ```
 
 No additional environment variables needed for Sleeper API (public, no auth).

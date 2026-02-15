@@ -11,8 +11,10 @@ const TEST_PASSWORD = 'test-password-123!'
 
 export default async function globalSetup(config: FullConfig) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const serviceRoleKey = process.env.SUPABASE_SECRET_KEY
+    ?? process.env.SUPABASE_SERVICE_ROLE_KEY
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const baseURL = config.projects[0]?.use?.baseURL || 'http://localhost:3000'
 
   if (!supabaseUrl || !serviceRoleKey || !anonKey) {

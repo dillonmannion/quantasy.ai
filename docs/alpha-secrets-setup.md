@@ -16,7 +16,7 @@ GitHub Actions secrets are used during the build process to pass configuration t
 2. You must have admin access to the repository
 3. Click **"New repository secret"** for each secret below
 
-### 1.2 Configure Five Required Secrets
+### 1.2 Configure Six Required Secrets
 
 #### Secret 1: FLY_API_TOKEN
 
@@ -43,7 +43,7 @@ Secret Value: [paste token from Fly.io]
 **Purpose**: Supabase project URL for client-side and build-time configuration
 
 **Where to Get It**:
-1. Go to https://supabase.com/dashboard/project/_/settings/api
+1. Go to https://supabase.com/dashboard/project/_/settings/api-keys
 2. Replace `_` with your Supabase project ID
 3. Copy the **Project URL** (looks like `https://your-project.supabase.co`)
 
@@ -60,25 +60,29 @@ Secret Value: https://your-project.supabase.co
 
 ---
 
-#### Secret 3: NEXT_PUBLIC_SUPABASE_ANON_KEY
+#### Secret 3: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
-**Purpose**: Supabase anonymous API key for client-side authentication
+**Purpose**: Supabase publishable API key for client-side authentication
 
 **Where to Get It**:
-1. Go to https://supabase.com/dashboard/project/_/settings/api
+1. Go to https://supabase.com/dashboard/project/_/settings/api-keys
 2. Replace `_` with your Supabase project ID
-3. Copy the **anon public** key (starts with `eyJ...`)
+3. Copy a **publishable** key (starts with `sb_publishable_...`)
 
 **Used By**:
-- `.github/workflows/deploy.yml` (line 24, passed as build arg)
-- `Dockerfile` (line 20, ARG NEXT_PUBLIC_SUPABASE_ANON_KEY)
-- Runtime: `src/lib/supabase/client.ts`
+- `.github/workflows/deploy.yml` (passed as build arg)
+- `Dockerfile` (ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+- Runtime: `src/lib/supabase/client.ts`, `server.ts`, `middleware.ts`
 
 **GitHub Actions Step**:
 ```
-Secret Name: NEXT_PUBLIC_SUPABASE_ANON_KEY
-Secret Value: eyJ...
+Secret Name: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+Secret Value: sb_publishable_...
 ```
+
+> **Migration Note**: This replaces the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`. The code
+> falls back to `NEXT_PUBLIC_SUPABASE_ANON_KEY` if the new name isn't set, so both work
+> during the transition period.
 
 ---
 
@@ -128,16 +132,37 @@ Secret Value: [paste token from Sentry]
 
 ---
 
+#### Secret 6: NEXT_PUBLIC_POSTHOG_KEY
+
+**Purpose**: PostHog project API key for product analytics (build-time, baked into client JS)
+
+**Where to Get It**:
+1. Go to https://us.posthog.com/settings/project#variables
+2. Copy the **Project API Key** (starts with `phc_...`)
+
+**Used By**:
+- `.github/workflows/deploy.yml` (passed as build arg)
+- `Dockerfile` (ARG NEXT_PUBLIC_POSTHOG_KEY)
+- Runtime: `src/components/providers/posthog-provider.tsx`
+
+**GitHub Actions Step**:
+```
+Secret Name: NEXT_PUBLIC_POSTHOG_KEY
+Secret Value: phc_...
+```
+
+---
+
 ### 1.3 Verify GitHub Secrets
 
-After adding all five secrets, verify they're configured:
+After adding all six secrets, verify they're configured:
 
 ```bash
 # List all repository secrets (requires GitHub CLI)
 gh secret list --repo 4Clover/quantasy.ai
 ```
 
-Expected output should show all five secrets listed (values are masked).
+Expected output should show all six secrets listed (values are masked).
 
 ---
 
@@ -151,26 +176,30 @@ Runtime secrets are injected into the Fly.io VM at startup and are available to 
 - Authenticated with Fly.io: `flyctl auth login`
 - App deployed to Fly.io (or created via `flyctl launch`)
 
-### 2.2 Set Four Runtime Secrets
+### 2.2 Set Three Runtime Secrets
 
 Run these commands from your local machine (not in the VM):
 
-#### Secret 1: SUPABASE_SERVICE_ROLE_KEY
+#### Secret 1: SUPABASE_SECRET_KEY
 
-**Purpose**: Server-side Supabase admin key for privileged database operations
+**Purpose**: Server-side Supabase secret key for privileged database operations (bypasses RLS)
 
 **Where to Get It**:
-1. Go to https://supabase.com/dashboard/project/_/settings/api
+1. Go to https://supabase.com/dashboard/project/_/settings/api-keys
 2. Replace `_` with your Supabase project ID
-3. Copy the **service_role secret** key (starts with `eyJ...`, longer than anon key)
+3. Create or copy a **secret** key (starts with `sb_secret_...`)
 
-**Used By**: `src/lib/supabase/admin.ts` (line 23)
+**Used By**: `src/lib/supabase/admin.ts` (createServiceClient)
 
 **Fly.io Command**:
 ```bash
-flyctl secrets set SUPABASE_SERVICE_ROLE_KEY="your-service-role-key-here" \
+flyctl secrets set SUPABASE_SECRET_KEY="sb_secret_..." \
   --app quantasy-alpha
 ```
+
+> **Migration Note**: This replaces the legacy `SUPABASE_SERVICE_ROLE_KEY`. The code
+> falls back to `SUPABASE_SERVICE_ROLE_KEY` if the new name isn't set, so both work
+> during the transition period.
 
 ---
 
@@ -211,25 +240,6 @@ flyctl secrets set SENTRY_DSN="https://key@quantasy-es.sentry.io/project-id" \
 
 ---
 
-#### Secret 4: NEXT_PUBLIC_POSTHOG_KEY (Optional)
-
-**Purpose**: PostHog analytics key for product analytics (optional)
-
-**Where to Get It**:
-1. Go to https://posthog.com/app/project/settings
-2. Copy the **Project API Key**
-3. Leave blank if not using PostHog
-
-**Used By**: `src/instrumentation-client.ts` (optional analytics)
-
-**Fly.io Command** (only if using PostHog):
-```bash
-flyctl secrets set NEXT_PUBLIC_POSTHOG_KEY="your-posthog-key-here" \
-  --app quantasy-alpha
-```
-
----
-
 ### 2.3 Verify Fly.io Runtime Secrets
 
 After setting all secrets, verify they're configured:
@@ -242,10 +252,9 @@ flyctl secrets list --app quantasy-alpha
 Expected output:
 ```
 NAME                          DIGEST                  CREATED AT
-SUPABASE_SERVICE_ROLE_KEY     sha256:abc123...        2 minutes ago
+SUPABASE_SECRET_KEY           sha256:abc123...        2 minutes ago
 GROQ_API_KEY                  sha256:def456...        2 minutes ago
 SENTRY_DSN                    sha256:ghi789...        2 minutes ago
-NEXT_PUBLIC_POSTHOG_KEY       sha256:jkl012...        2 minutes ago
 ```
 
 ---
@@ -368,12 +377,13 @@ Before deploying to production, verify all secrets and configuration are in plac
 # List GitHub repository secrets
 gh secret list --repo 4Clover/quantasy.ai
 
-# Expected: All 5 secrets listed
+# Expected: All 6 secrets listed
 # FLY_API_TOKEN
 # NEXT_PUBLIC_SUPABASE_URL
-# NEXT_PUBLIC_SUPABASE_ANON_KEY
+# NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 # NEXT_PUBLIC_SENTRY_DSN
 # SENTRY_AUTH_TOKEN
+# NEXT_PUBLIC_POSTHOG_KEY
 ```
 
 ---
@@ -384,11 +394,10 @@ gh secret list --repo 4Clover/quantasy.ai
 # List Fly.io runtime secrets
 flyctl secrets list --app quantasy-alpha
 
-# Expected: All 4 secrets listed
-# SUPABASE_SERVICE_ROLE_KEY
+# Expected: All 3 secrets listed
+# SUPABASE_SECRET_KEY
 # GROQ_API_KEY
 # SENTRY_DSN
-# NEXT_PUBLIC_POSTHOG_KEY (if using)
 ```
 
 ---
@@ -464,7 +473,7 @@ flyctl status --app quantasy-alpha
 
 ---
 
-### Runtime Error: "SUPABASE_SERVICE_ROLE_KEY is required"
+### Runtime Error: "SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) is required"
 
 **Cause**: Runtime secret not set in Fly.io
 
@@ -474,7 +483,7 @@ flyctl status --app quantasy-alpha
 flyctl secrets list --app quantasy-alpha
 
 # If missing, set it
-flyctl secrets set SUPABASE_SERVICE_ROLE_KEY="your-key" --app quantasy-alpha
+flyctl secrets set SUPABASE_SECRET_KEY="sb_secret_..." --app quantasy-alpha
 
 # Restart app to pick up new secret
 flyctl restart --app quantasy-alpha
@@ -506,17 +515,17 @@ flyctl restart --app quantasy-alpha
 
 ## Summary Checklist
 
-- [ ] GitHub Actions Secrets configured (5 total)
+- [ ] GitHub Actions Secrets configured (6 total)
   - [ ] FLY_API_TOKEN
   - [ ] NEXT_PUBLIC_SUPABASE_URL
-  - [ ] NEXT_PUBLIC_SUPABASE_ANON_KEY
+  - [ ] NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   - [ ] NEXT_PUBLIC_SENTRY_DSN
   - [ ] SENTRY_AUTH_TOKEN
-- [ ] Fly.io Runtime Secrets configured (4 total)
-  - [ ] SUPABASE_SERVICE_ROLE_KEY
+  - [ ] NEXT_PUBLIC_POSTHOG_KEY
+- [ ] Fly.io Runtime Secrets configured (3 total)
+  - [ ] SUPABASE_SECRET_KEY
   - [ ] GROQ_API_KEY
   - [ ] SENTRY_DSN
-  - [ ] NEXT_PUBLIC_POSTHOG_KEY (optional)
 - [ ] Supabase Hosted Project configured
   - [ ] Migrations applied
   - [ ] Auth redirects configured
@@ -534,7 +543,7 @@ flyctl restart --app quantasy-alpha
 ## References
 
 - **Fly.io Secrets**: https://fly.io/docs/reference/secrets/
-- **Supabase API Settings**: https://supabase.com/dashboard/project/_/settings/api
+- **Supabase API Keys**: https://supabase.com/dashboard/project/_/settings/api-keys
 - **Groq Console**: https://console.groq.com/keys
 - **Sentry Auth Tokens**: https://quantasy-es.sentry.io/settings/auth-tokens/
 - **GitHub Actions Secrets**: https://github.com/4Clover/quantasy.ai/settings/secrets/actions

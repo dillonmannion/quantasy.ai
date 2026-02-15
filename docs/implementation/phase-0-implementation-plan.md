@@ -1061,8 +1061,8 @@ Create `.env.local` file:
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbG...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbG... # Server-side only
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=eyJhbG...
+SUPABASE_SECRET_KEY=eyJhbG... # Server-side only
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -1263,7 +1263,7 @@ import type { Database } from './types'
 export function createClient() {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   )
 }
 ```
@@ -1280,7 +1280,7 @@ export async function createClient() {
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         get(name: string) {
@@ -1321,7 +1321,7 @@ export async function updateSession(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         get(name: string) {
@@ -2182,8 +2182,8 @@ export default nextConfig
 ```bash
 fly secrets set \
   NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co \
-  NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbG... \
-  SUPABASE_SERVICE_ROLE_KEY=eyJhbG... \
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=eyJhbG... \
+  SUPABASE_SECRET_KEY=eyJhbG... \
   NEXT_PUBLIC_APP_URL=https://quantasy-alpha.fly.dev
 ```
 
@@ -2248,11 +2248,11 @@ jobs:
       - name: Run tests
         run: pnpm test
       
-      - name: Build
-        run: pnpm build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+       - name: Build
+         run: pnpm build
+         env:
+           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 ```
 
 **Create `.github/workflows/deploy.yml`:**
