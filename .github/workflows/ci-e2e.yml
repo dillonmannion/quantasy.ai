@@ -54,13 +54,15 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CI_SUPABASE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_POSTHOG_KEY: 'phc_test_key_for_e2e'
-      
+
+      - name: Package build artifact
+        run: tar -czf nextjs-build.tar.gz .next
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: nextjs-build
-          path: .next/
-          include-hidden-files: true
+          path: nextjs-build.tar.gz
           if-no-files-found: error
           retention-days: 1
 
@@ -104,7 +106,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: nextjs-build
-          path: .next/
+          path: .
+
+      - name: Extract build artifact
+        run: tar -xzf nextjs-build.tar.gz
       
       - name: Install Playwright
         run: pnpm exec playwright install --with-deps chromium
