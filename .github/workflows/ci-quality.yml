@@ -1,0 +1,51 @@
+name: CI Quality (Debug)
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip-build:
+        description: 'Skip the build step (faster for lint/type issues)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.28.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Type check
+        run: pnpm type-check
+      
+      - name: Lint
+        run: pnpm lint
+      
+      - name: Run unit tests
+        run: pnpm test:run
+      
+      - name: Build
+        if: ${{ !inputs.skip-build }}
+        run: pnpm build

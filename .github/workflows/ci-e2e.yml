@@ -1,0 +1,136 @@
+name: CI E2E (Debug)
+
+on:
+  workflow_dispatch:
+    inputs:
+      shard:
+        description: 'Which shard to run (or "all")'
+        type: choice
+        required: true
+        default: 'all'
+        options: ['all', '1', '2', '3']
+      test-filter:
+        description: 'Playwright --grep filter (e.g. "auth" or "trade")'
+        type: string
+        required: false
+        default: ''
+      retries:
+        description: 'Playwright retry count'
+        type: number
+        required: false
+        default: 0
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-e2e-debug-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.28.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CI_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_POSTHOG_KEY: 'phc_test_key_for_e2e'
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+          retention-days: 1
+
+  e2e:
+    needs: [build]
+    if: ${{ needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: ${{ inputs.shard == 'all' && fromJSON('[1, 2, 3]') || fromJSON(format('[{0}]', inputs.shard)) }}
+        shardTotal: [3]
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Sync migrations to hosted Supabase
+        run: |
+          npx supabase link --project-ref ${{ secrets.CI_SUPABASE_PROJECT_REF }}
+          npx supabase db push --linked
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.28.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+      
+      - name: Install Playwright
+        run: pnpm exec playwright install --with-deps chromium
+      
+      - name: Run E2E tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
+        run: |
+          GREP_ARGS=""
+          if [ -n "${{ inputs.test-filter }}" ]; then
+            GREP_ARGS="--grep=\"${{ inputs.test-filter }}\""
+          fi
+          pnpm exec playwright test --project=chromium \
+            --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} \
+            --grep-invert="Performance Regression|PWA Offline" \
+            $GREP_ARGS
+        env:
+          ENABLE_MSW: 'true'
+          CI: 'true'
+          E2E_RETRIES: ${{ inputs.retries }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CI_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.CI_SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.CI_SUPABASE_SECRET_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.CI_SUPABASE_PUBLISHABLE_KEY }}
+      
+      - name: Upload blob report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blob-report-debug-shard-${{ matrix.shardIndex }}
+          path: blob-report/
+          retention-days: 1
