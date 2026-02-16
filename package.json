@@ -91,7 +91,7 @@
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.5",
     "jsdom": "^27.4.0",
-    "lighthouse": "^13.0.2",
+    "lighthouse": "^13.0.3",
     "msw": "^2.12.10",
     "supabase": "^2.76.8",
     "tailwindcss": "^4.1.18",
