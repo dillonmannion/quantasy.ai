@@ -68,7 +68,7 @@ jobs:
     needs: [build]
     if: ${{ needs.build.result == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -86,7 +86,7 @@ jobs:
 
       - name: Start local Supabase
         run: |
-          supabase start --exclude studio,inbucket,imgproxy,logflare,vector
+          supabase start --exclude studio,mailpit,imgproxy,logflare,vector
           supabase db reset
 
       - name: Set Supabase environment

@@ -72,7 +72,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: [quality]
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -90,7 +90,7 @@ jobs:
 
       - name: Start local Supabase
         run: |
-          supabase start --exclude studio,inbucket,imgproxy,logflare,vector
+          supabase start --exclude studio,mailpit,imgproxy,logflare,vector
           supabase db reset
 
       - name: Set Supabase environment
