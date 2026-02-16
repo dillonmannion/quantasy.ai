@@ -10,7 +10,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.E2E_RETRIES !== undefined ? Number(process.env.E2E_RETRIES) : (process.env.CI ? 2 : 0),
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI 
     ? [['blob'], ['github']] 
@@ -37,14 +37,15 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'ENABLE_MSW=true pnpm dev',
+    command: process.env.CI ? 'ENABLE_MSW=true pnpm start' : 'ENABLE_MSW=true pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    timeout: process.env.CI ? 30000 : 120000,
     env: {
       ENABLE_MSW: 'true',
       NEXT_PUBLIC_POSTHOG_KEY: 'phc_test_key_for_e2e',
       NEXT_PUBLIC_POSTHOG_HOST: 'https://us.i.posthog.com',
     },
   },
+  maxFailures: process.env.CI ? 10 : undefined,
 })
