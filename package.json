@@ -93,7 +93,7 @@
     "jsdom": "^27.4.0",
     "lighthouse": "^13.0.2",
     "msw": "^2.12.10",
-    "supabase": "^2.76.8",
+    "supabase": "^2.76.9",
     "tailwindcss": "^4.1.18",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
