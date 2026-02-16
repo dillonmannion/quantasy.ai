@@ -63,17 +63,12 @@ export async function GET(request: NextRequest) {
     } else {
       const nflState = await getNFLState()
       week = nflState.week
-      console.log(`[Transactions] No week provided, using current week: ${week}`)
     }
-
-    console.log(`[Transactions] Fetching transactions for league ${leagueId}, week ${week}`)
 
     const [transactions, players] = await Promise.all([
       getCachedTransactions(leagueId, week),
       getCachedPlayers(),
     ])
-
-    console.log(`[Transactions] Retrieved ${transactions.length} transactions`)
 
     const transactionsWithNames = transactions.map((transaction) => {
       const resolvedAdds: Record<string, ResolvedPlayer> = {}
@@ -122,4 +117,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
