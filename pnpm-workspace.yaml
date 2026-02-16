@@ -1,0 +1,12 @@
+packages:
+  - .
+
+onlyBuiltDependencies:
+  - '@sentry/cli'
+  - core-js
+  - esbuild
+  - msw
+  - protobufjs
+  - sharp
+  - supabase
+  - unrs-resolver

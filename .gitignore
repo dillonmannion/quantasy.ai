@@ -1,0 +1,94 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+.tmp-files
+
+# dependencies
+/node_modules
+/.pnpm
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+/test-results/
+/playwright-report/
+/tests/e2e/.auth/
+
+# Agent-browser verification artifacts
+/artifacts/
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# IDE
+.vscode/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+# OpenCode (ignore all except skills)
+.opencode/*
+!.opencode/skills/
+# OpenCode/Sisyphus working files
+.sisyphus/
+
+# Alternative package managers (project uses pnpm)
+bun.lock
+yarn.lock
+
+# Generated types (regenerated from schema)
+src/lib/supabase/types.generated.ts
+
+# PWA generated files
+public/sw.js
+public/workbox-*.js
+public/*.map
+supabase/.temp/
+
+# Development artifacts
+data/
+scripts/
+scripts/live-trade-eval.ts
+*.heapsnapshot
+git-diagnostics-*.zip
+.serena/
+
+# Browser/Lighthouse cache (from Playwright runs)
+**/lighthouse.*/
+**/AppData/
+undefined:*
+*wsl.localhost*
+
+# CLI config (user-specific)
+.qai.json
+
+# Personal dev environment docs (not project-specific)
+docs/nix-dev-environment-setup.md
+docs/wsl-dev-environment-guide.md
+
+# Sentry Config File
+.env.sentry-build-plugin

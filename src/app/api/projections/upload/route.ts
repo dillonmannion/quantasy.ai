@@ -1,0 +1,300 @@
+import { NextRequest, NextResponse } from 'next/server'
+import Papa from 'papaparse'
+import { createClient } from '@/lib/supabase/server'
+import { saveProjections } from '@/lib/projections'
+import { incrementProjectionVersion } from '@/lib/algorithms/cache'
+import type { PlayerProjection } from '@/lib/projections/types'
+
+interface CSVRow {
+  player_id?: string
+  full_name?: string
+  position?: string
+  projected_points?: string
+}
+
+interface ValidationWarning {
+  row: number
+  reason: string
+}
+
+interface UploadResponse {
+  success: boolean
+  count: number
+  warnings: ValidationWarning[]
+  error?: string
+}
+
+const ACCEPTED_MIME_TYPES = [
+  'text/csv',
+  'text/plain',
+  'application/csv',
+  'application/vnd.ms-excel',
+]
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_ROWS = 2000
+
+/**
+ * Parse CSV content into rows using Papa Parse
+ * Handles quoted fields, escapes, and various line endings safely
+ */
+function parseCSV(content: string): { rows: CSVRow[]; error?: string } {
+  const result = Papa.parse<Record<string, string>>(content, {
+    header: true,
+    skipEmptyLines: true,
+    dynamicTyping: false,
+  })
+
+  if (result.errors.length > 0) {
+    const firstError = result.errors[0]
+    return {
+      rows: [],
+      error: `CSV parse error at row ${firstError.row}: ${firstError.message}`,
+    }
+  }
+
+  // Normalize headers to lowercase
+  const normalizedRows: CSVRow[] = result.data.map((row) => {
+    const normalized: CSVRow = {}
+    Object.entries(row).forEach(([key, value]) => {
+      const lowerKey = key.toLowerCase().trim()
+      normalized[lowerKey as keyof CSVRow] = String(value).trim()
+    })
+    return normalized
+  })
+
+  return { rows: normalizedRows }
+}
+
+/**
+ * Validate a single CSV row
+ */
+function validateRow(
+  row: CSVRow,
+  rowNumber: number
+): { valid: boolean; warning?: ValidationWarning; projection?: PlayerProjection } {
+  // Check required fields
+  if (!row.player_id) {
+    return {
+      valid: false,
+      warning: {
+        row: rowNumber,
+        reason: 'missing player_id',
+      },
+    }
+  }
+
+  if (!row.projected_points) {
+    return {
+      valid: false,
+      warning: {
+        row: rowNumber,
+        reason: 'missing projected_points',
+      },
+    }
+  }
+
+  // Validate player_id is numeric
+  if (!/^\d+$/.test(row.player_id)) {
+    return {
+      valid: false,
+      warning: {
+        row: rowNumber,
+        reason: `invalid player_id format: ${row.player_id}`,
+      },
+    }
+  }
+
+  // Validate projected_points is numeric
+  const projectedPoints = parseFloat(row.projected_points)
+  if (isNaN(projectedPoints)) {
+    return {
+      valid: false,
+      warning: {
+        row: rowNumber,
+        reason: `invalid projected_points: ${row.projected_points}`,
+      },
+    }
+  }
+
+  // Build projection object
+  const projection: PlayerProjection = {
+    playerId: row.player_id,
+    fullName: row.full_name || '',
+    position: row.position || '',
+    projectedPoints,
+    source: 'manual_csv',
+    updatedAt: new Date().toISOString(),
+  }
+
+  return {
+    valid: true,
+    projection,
+  }
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse<UploadResponse>> {
+  try {
+    // 1. Authenticate user
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          count: 0,
+          warnings: [],
+          error: 'Unauthorized',
+        },
+        { status: 401 }
+      )
+    }
+
+    // 2. Parse multipart/form-data
+    const formData = await request.formData()
+    const file = formData.get('file') as File | null
+
+    if (!file) {
+      return NextResponse.json(
+        {
+          success: false,
+          count: 0,
+          warnings: [],
+          error: 'No file provided',
+        },
+        { status: 400 }
+      )
+    }
+
+    // 3. Validate file (MIME type + extension)
+    const fileName = file.name.toLowerCase()
+    const isValidExtension = fileName.endsWith('.csv')
+    const isValidMimeType = ACCEPTED_MIME_TYPES.includes(file.type)
+
+    if (!isValidExtension && !isValidMimeType) {
+      return NextResponse.json(
+        {
+          success: false,
+          count: 0,
+          warnings: [],
+          error: `Invalid file type. Expected CSV file, got ${file.type || 'unknown'}`,
+        },
+        { status: 400 }
+      )
+    }
+
+     // 4. Validate file size (5MB max)
+     if (file.size > MAX_FILE_SIZE) {
+       return NextResponse.json(
+         {
+           success: false,
+           count: 0,
+           warnings: [],
+           error: `File size exceeds 5MB limit (${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+         },
+         { status: 400 }
+       )
+     }
+
+     // 5. Parse CSV using Papa Parse
+     const content = await file.text()
+     const parseResult = parseCSV(content)
+
+     if (parseResult.error) {
+       return NextResponse.json(
+         {
+           success: false,
+           count: 0,
+           warnings: [],
+           error: `CSV parsing failed: ${parseResult.error}`,
+         },
+         { status: 400 }
+       )
+     }
+
+     const csvRows = parseResult.rows
+
+     if (csvRows.length === 0) {
+       return NextResponse.json(
+         {
+           success: false,
+           count: 0,
+           warnings: [],
+           error: 'CSV file is empty or invalid',
+         },
+         { status: 400 }
+       )
+     }
+
+     // 6. Validate row count (2000 max)
+     if (csvRows.length > MAX_ROWS) {
+       return NextResponse.json(
+         {
+           success: false,
+           count: 0,
+           warnings: [],
+           error: `CSV contains ${csvRows.length} rows, exceeds 2000 row limit`,
+         },
+         { status: 400 }
+       )
+     }
+
+     // 7. Validate rows (player_id, projected_points)
+     const warnings: ValidationWarning[] = []
+     const validProjections: PlayerProjection[] = []
+
+     csvRows.forEach((row, index) => {
+       const rowNumber = index + 2 // +2 because row 1 is header, 0-indexed
+       const validation = validateRow(row, rowNumber)
+
+       if (!validation.valid && validation.warning) {
+         warnings.push(validation.warning)
+       } else if (validation.projection) {
+         validProjections.push(validation.projection)
+       }
+     })
+
+     // If no valid projections, return early
+     if (validProjections.length === 0) {
+       return NextResponse.json({
+         success: true,
+         count: 0,
+         warnings,
+       })
+     }
+
+     // 8. Call saveProjections()
+     const result = await saveProjections(validProjections)
+
+     // 9. Increment projection version to invalidate algorithm caches
+     try {
+       await incrementProjectionVersion()
+     } catch (error) {
+       console.error('[Projections] Failed to increment projection version:', error)
+       // Don't fail the upload, projections are still valid
+     }
+
+     // 10. Return success count + warnings
+     return NextResponse.json({
+       success: true,
+       count: result.success,
+       warnings,
+     })
+  } catch (error) {
+    console.error('[API] Projection upload error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+    return NextResponse.json(
+      {
+        success: false,
+        count: 0,
+        warnings: [],
+        error: `Failed to upload projections: ${errorMessage}`,
+      },
+      { status: 500 }
+    )
+  }
+}

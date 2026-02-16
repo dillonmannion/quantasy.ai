@@ -1,0 +1,2 @@
+[tools]
+iam-policy-json-to-terraform = "latest"

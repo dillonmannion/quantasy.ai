@@ -1,0 +1,233 @@
+name: CI E2E (Debug)
+
+on:
+  workflow_dispatch:
+    inputs:
+      shard:
+        description: 'Which shard to run (or "all")'
+        type: choice
+        required: true
+        default: 'all'
+        options: ['all', '1', '2', '3']
+      test-filter:
+        description: 'Playwright --grep filter (e.g. "auth" or "trade")'
+        type: string
+        required: false
+        default: ''
+      retries:
+        description: 'Playwright retry count'
+        type: number
+        required: false
+        default: 0
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-e2e-debug-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.28.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CI_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_POSTHOG_KEY: 'phc_test_key_for_e2e'
+      - name: Package build artifact
+        run: tar -czf nextjs-build.tar.gz .next
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: nextjs-build.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  e2e:
+    needs: [build]
+    if: ${{ needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: ${{ inputs.shard == 'all' && fromJSON('[1, 2, 3]') || fromJSON(format('[{0}]', inputs.shard)) }}
+        shardTotal: [3]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase
+        run: |
+          supabase start --exclude studio,mailpit,imgproxy,logflare,vector
+          supabase db reset
+
+      - name: Set Supabase environment
+        run: |
+          SUPABASE_STATUS=$(supabase status -o json)
+          API_URL=$(echo "$SUPABASE_STATUS" | jq -r '.API_URL')
+          ANON=$(echo "$SUPABASE_STATUS" | jq -r '.ANON_KEY')
+          SERVICE=$(echo "$SUPABASE_STATUS" | jq -r '.SERVICE_ROLE_KEY')
+
+          echo "$SUPABASE_STATUS" > supabase-status.json
+
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON" >> $GITHUB_ENV
+          echo "SUPABASE_SECRET_KEY=$SERVICE" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE" >> $GITHUB_ENV
+
+          echo "::add-mask::$ANON"
+          echo "::add-mask::$SERVICE"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.28.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .
+      - name: Extract build artifact
+        run: tar -xzf nextjs-build.tar.gz
+      - name: Install Playwright
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      
+      - name: Run E2E tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
+        id: run-e2e
+        continue-on-error: true
+        run: |
+          GREP_ARGS=""
+          if [ -n "${{ inputs.test-filter }}" ]; then
+            GREP_ARGS="--grep=\"${{ inputs.test-filter }}\""
+          fi
+          pnpm exec playwright test --project=chromium \
+            --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} \
+            --grep-invert="Performance Regression|PWA Offline" \
+            $GREP_ARGS 2>&1 | tee "playwright-shard-${{ matrix.shardIndex }}.log"
+        env:
+          ENABLE_MSW: 'true'
+          CI: 'true'
+          E2E_RETRIES: ${{ inputs.retries }}
+      
+      - name: Upload blob report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blob-report-debug-shard-${{ matrix.shardIndex }}
+          path: blob-report/
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload Playwright test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-test-results-debug-shard-${{ matrix.shardIndex }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload shard log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-shard-debug-log-${{ matrix.shardIndex }}
+          path: playwright-shard-${{ matrix.shardIndex }}.log
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Collect Supabase diagnostics on failure
+        if: failure()
+        run: |
+          {
+            echo "=== supabase status ==="
+            supabase status || true
+            echo
+            echo "=== docker ps ==="
+            docker ps || true
+            echo
+            echo "=== supabase container logs (tail 200) ==="
+            for container in $(docker ps --format '{{.Names}}' | grep 'supabase' || true); do
+              echo "--- $container ---"
+              docker logs --tail 200 "$container" 2>&1 || true
+            done
+          } > supabase-diagnostics-debug-${{ matrix.shardIndex }}.log
+
+      - name: Upload Supabase diagnostics
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: supabase-diagnostics-debug-shard-${{ matrix.shardIndex }}
+          path: |
+            supabase-status.json
+            supabase-diagnostics-debug-${{ matrix.shardIndex }}.log
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: CI failure packet
+        if: steps.run-e2e.outcome == 'failure'
+        run: |
+          {
+            echo "## Debug E2E shard failure summary"
+            echo "- Shard: ${{ matrix.shardIndex }}/${{ matrix.shardTotal }}"
+            echo "- Log artifact: playwright-shard-debug-log-${{ matrix.shardIndex }}"
+            echo "- Trace/screenshots artifact: playwright-test-results-debug-shard-${{ matrix.shardIndex }}"
+            echo "- Blob artifact: blob-report-debug-shard-${{ matrix.shardIndex }}"
+            echo "- Supabase diagnostics artifact: supabase-diagnostics-debug-shard-${{ matrix.shardIndex }}"
+            echo ""
+            echo "### Last 40 log lines"
+            echo '```text'
+            tail -n 40 "playwright-shard-${{ matrix.shardIndex }}.log" || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail job if E2E failed
+        if: steps.run-e2e.outcome == 'failure'
+        run: exit 1

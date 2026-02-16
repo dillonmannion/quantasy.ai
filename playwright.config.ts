@@ -1,0 +1,51 @@
+import { defineConfig, devices } from '@playwright/test'
+
+// Fix for WSL: chrome-launcher creates malformed temp dirs when LOCALAPPDATA is undefined
+// See: https://github.com/GoogleChrome/chrome-launcher/issues/334
+if (typeof process.env.LOCALAPPDATA === 'undefined') {
+  process.env.LOCALAPPDATA = '/tmp'
+}
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.E2E_RETRIES !== undefined ? Number(process.env.E2E_RETRIES) : (process.env.CI ? 2 : 0),
+  workers: process.env.CI ? 1 : undefined,
+  reporter: process.env.CI 
+    ? [['blob'], ['github']] 
+    : [['html']],
+  globalSetup: './tests/e2e/global-setup.ts',
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    storageState: 'tests/e2e/.auth/user.json',
+  },
+  timeout: 30000,
+  expect: {
+    timeout: 10000,
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 13'] },
+    },
+  ],
+  webServer: {
+    command: process.env.CI ? 'ENABLE_MSW=true pnpm start' : 'ENABLE_MSW=true pnpm dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: process.env.CI ? 30000 : 120000,
+    env: {
+      ENABLE_MSW: 'true',
+      NEXT_PUBLIC_POSTHOG_KEY: 'phc_test_key_for_e2e',
+      NEXT_PUBLIC_POSTHOG_HOST: 'https://us.i.posthog.com',
+    },
+  },
+  maxFailures: process.env.CI ? 10 : undefined,
+})

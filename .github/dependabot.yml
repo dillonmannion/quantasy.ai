@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      production:
+        patterns:
+          - "react*"
+          - "next"
+          - "@supabase/*"
+        update-types:
+          - "patch"
+          - "minor"
+      development:
+        patterns:
+          - "@types/*"
+          - "vitest"
+          - "@playwright/*"
+          - "eslint*"
