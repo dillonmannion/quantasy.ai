@@ -94,7 +94,7 @@ AI Explanations: Cached indefinitely (SHA256 of inputs)
 - `'use client'` only when needed (hooks, events, browser APIs)
 - shadcn/ui in `components/ui/` - do not modify directly
 - `motion/react` library (not framer-motion)
-- Named exports only (no default exports)
+- Named exports for libraries/components (default exports only where framework-required: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`)
 - **Performance**: Use `next/dynamic` for lazy loading heavy client components (Builder, Optimizer) with `Skeleton` fallbacks.
 - **Animations**: Avoid `motion.div` in virtualized lists or LCP elements.
 
@@ -124,6 +124,41 @@ AI Explanations: Cached indefinitely (SHA256 of inputs)
 - Simple state: Context + useState (AuthProvider)
 - Encapsulated logic: Custom hooks in `src/hooks/`
 - SSR safety: Check `typeof window !== 'undefined'`
+
+## GIT WORKFLOW
+
+Full conventions in [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+### Branching
+- **`prod`** — Production (Fly.io deploys). Never commit directly.
+- **`dev`** — Integration branch. CI must pass. Never commit directly.
+- **Feature branches** — All work here. Branch from `dev`, merge back via PR.
+- **Naming**: `{type}/{kebab-case}` — e.g., `feat/draft-ui`, `fix/auth-redirect`, `chore/update-deps`
+- **Lifecycle**: Branch from `dev` → work → PR to `dev` (squash merge) → delete branch
+- **Promotion**: `dev` → `prod` via PR (merge commit) + semver tag
+- **Trivial changes**: `docs:` and `chore:` single-file edits may go directly to `dev`
+
+### Commits
+- [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): description`
+- **Types**: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`, `style`, `chore`, `revert`
+- **Scopes**: `draft`, `algorithms`, `monte-carlo`, `sleeper`, `auth`, `ui`, `api`, `db`, `trade`, `waivers`, `roster`, `players`, `animation`
+- Imperative mood, lowercase after colon, no trailing period, 72 char max
+- Body explains WHY not HOW. Footer: `Closes #N`, `BREAKING CHANGE:`
+
+### Pull Requests
+- Title matches commit convention: `type(scope): description`
+- One logical change per PR (not LOC-gated — keep it focused, not small)
+- PR description: **Why** (required), **What Changed** (narrative), **Learnings** (knowledge capture)
+- Template: `.github/PULL_REQUEST_TEMPLATE.md`
+
+### Learnings Feedback Loop
+- Every PR captures gotchas, stuck points, decisions, and gaps discovered during the work
+- After merge, review learnings and promote them to: AGENTS.md rules, skills, code comments, or ADRs
+- This is how individual PRs become institutional knowledge — do not skip it
+
+### Merge Strategy
+- Feature branches → `dev`: **Squash merge**
+- `dev` → `prod`: **Merge commit** + semver tag
 
 ## ANTI-PATTERNS
 
