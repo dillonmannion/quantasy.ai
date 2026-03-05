@@ -35,7 +35,7 @@ export function DraftViewTabs({ players }: DraftViewTabsProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] lg:grid-cols-[1fr_300px] gap-6">
         <div className="min-w-0">
           {view === 'rankings' ? (
             <DraftRankings players={players} />

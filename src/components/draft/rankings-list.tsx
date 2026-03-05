@@ -117,7 +117,7 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
                 className={cn(
                   'relative flex items-center gap-4 px-4 py-3 border-b hover:bg-accent transition-all duration-200',
                   isDraftable && !isMobile && 'cursor-pointer hover:scale-[1.01] hover:shadow-md origin-center',
-                  isDrafted && 'opacity-50 bg-muted'
+                  isDrafted && 'bg-muted text-muted-foreground'
                 )}
                 onClick={!isMobile ? handleDraft : undefined}
                 data-testid="player-card"

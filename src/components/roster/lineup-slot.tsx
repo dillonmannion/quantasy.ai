@@ -29,7 +29,7 @@ export function LineupSlot({
       className={cn(
         'p-4 flex flex-col gap-2',
         isOptimized && 'border-primary/50 bg-primary/5',
-        !player && 'border-dashed opacity-50',
+        !player && 'border-dashed border-muted-foreground/30',
         className
       )}
     >

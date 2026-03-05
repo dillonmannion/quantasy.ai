@@ -169,7 +169,7 @@ function SandboxContent({ vbdRankings, leagueInfo, onReset }: SandboxContentProp
       </div>
 
       {displayPlayers.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] lg:grid-cols-[1fr_300px] gap-6">
           <DraftRankings 
             players={displayPlayers}
             simulationResults={results}

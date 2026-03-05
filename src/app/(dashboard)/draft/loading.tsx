@@ -17,7 +17,7 @@ export default function Loading() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] lg:grid-cols-[1fr_300px] gap-6">
           <Card className="card-balatro p-6">
              <div className="space-y-4">
                <div className="flex gap-4 mb-6">

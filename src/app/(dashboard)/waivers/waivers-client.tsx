@@ -175,7 +175,7 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommen
       )}
 
       {state.recommendations && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-2xl font-bold font-display">Top Waiver Picks</h2>
             <RecommendationList recommendations={state.recommendations.recommendations} />
