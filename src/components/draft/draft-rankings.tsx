@@ -99,6 +99,8 @@ export function DraftRankings({
         onSortChange={setSortBy}
         riskTolerance={riskTolerance}
         onRiskChange={onRiskChange}
+        resultCount={filteredAndSortedPlayers.length}
+        totalCount={players.length}
       />
       <RankingsList 
         players={filteredAndSortedPlayers} 

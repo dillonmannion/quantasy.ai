@@ -20,6 +20,8 @@ interface RankingsControlsProps {
   hideDrafted: boolean
   sortBy: SortOption
   riskTolerance?: number
+  resultCount?: number
+  totalCount?: number
 }
 
 const positions: Position[] = ['All', 'QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'DL', 'LB', 'DB']
@@ -33,7 +35,9 @@ export function RankingsControls({
   selectedPosition,
   hideDrafted,
   sortBy,
-  riskTolerance
+  riskTolerance,
+  resultCount,
+  totalCount
 }: RankingsControlsProps) {
   const [searchInput, setSearchInput] = useState('')
 
@@ -52,7 +56,9 @@ export function RankingsControls({
         aria-atomic="true"
         className="sr-only"
       >
-        Search results updated
+        {resultCount !== undefined && totalCount !== undefined
+          ? `Showing ${resultCount} of ${totalCount} players`
+          : 'Search results updated'}
       </div>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col md:flex-row gap-4 flex-1">
