@@ -136,6 +136,7 @@ Full conventions in [CONTRIBUTING.md](./CONTRIBUTING.md).
 - **Naming**: `{type}/{kebab-case}` — e.g., `feat/draft-ui`, `fix/auth-redirect`, `chore/update-deps`
 - **Lifecycle**: Branch from `dev` → work → PR to `dev` (squash merge) → delete branch
 - **Promotion**: `dev` → `prod` via PR (merge commit) + semver tag
+- **Trivial changes**: `docs:` and `chore:` single-file edits may go directly to `dev`
 
 ### Commits
 - [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): description`
@@ -146,9 +147,14 @@ Full conventions in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ### Pull Requests
 - Title matches commit convention: `type(scope): description`
-- Target ≤400 LOC changed. Over 800: split it.
-- Must include: Why, What, How to Test, Checklist
+- One logical change per PR (not LOC-gated — keep it focused, not small)
+- PR description: **Why** (required), **What Changed** (narrative), **Learnings** (knowledge capture)
 - Template: `.github/PULL_REQUEST_TEMPLATE.md`
+
+### Learnings Feedback Loop
+- Every PR captures gotchas, stuck points, decisions, and gaps discovered during the work
+- After merge, review learnings and promote them to: AGENTS.md rules, skills, code comments, or ADRs
+- This is how individual PRs become institutional knowledge — do not skip it
 
 ### Merge Strategy
 - Feature branches → `dev`: **Squash merge**

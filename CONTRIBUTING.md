@@ -1,4 +1,8 @@
-# Contributing to Quantasy
+# Quantasy — Development Reference
+
+> This is a solo-dev reference guide. The audience is future-you, not external contributors.
+> Every convention here exists to keep the project navigable, the git history readable,
+> and the knowledge base growing.
 
 ## Quick Start
 
@@ -30,6 +34,8 @@ dev  ──●──●──●──●──●──●──●──●─
 - **`dev`** — Integration branch. CI must pass before anything merges. Never commit directly.
 - **Feature branches** — All work happens here. Short-lived (1-3 days max). Branch from `dev`.
 
+**Trivial changes** (`docs:`, `chore:` single-file edits like typo fixes) may be committed directly to `dev` to reduce ceremony. Use judgment — if it touches logic, use a branch.
+
 ### Branch Naming
 
 **Pattern:** `{type}/{kebab-case-description}`
@@ -49,7 +55,6 @@ dev  ──●──●──●──●──●──●──●──●─
 - Lowercase only, kebab-case, no spaces
 - Keep under 50 characters
 - Present tense (`add-dark-mode` not `added-dark-mode`)
-- No personal names (`john/fix-bug` is meaningless to future readers)
 
 ### Branch Lifecycle
 
@@ -232,6 +237,15 @@ wip: still working on this           # Squash before merge
 
 ## Pull Requests
 
+### When to Use a PR
+
+| Change Type | PR Required? |
+|-------------|-------------|
+| `feat/`, `fix/`, `refactor/`, `perf/` | Yes — always use a branch + PR |
+| `docs:`, `chore:` (single-file, trivial) | Optional — may commit directly to `dev` |
+| Any multi-file change | Yes |
+| Anything touching logic | Yes |
+
 ### Title
 
 Follows the same convention as commit messages:
@@ -242,23 +256,17 @@ type(scope): imperative description
 
 The squash-merge commit message will be derived from the PR title. Make it count.
 
-### Size
-
-| Size | LOC Changed | Verdict |
-|------|-------------|---------|
-| Ideal | ≤400 | Target this |
-| Acceptable | 400-800 | Justify in PR description |
-| Warning | 800-1000 | Strongly consider splitting |
-| Too large | >1000 | Split it. No exceptions. |
-
-Auto-generated files, lock files, and large deletions don't count toward LOC limits.
-
 ### Description
 
-Fill out the PR template completely. The two most important sections:
+The PR template has three sections. The only hard requirement is **Why**.
 
-1. **Why** — Reviewers evaluate your *approach*, not just your code. Without context, they can only check syntax.
-2. **How to Test** — If a reviewer can't verify your change, the PR is incomplete.
+1. **Why** — The motivation. Future-you WILL forget why you made this change in 3 months. Write it down now.
+2. **What Changed** — Brief narrative of the approach and key decisions. Not a diff recap — explain the thinking.
+3. **Learnings** — Knowledge captured during the work. See [Learnings Feedback Loop](#learnings-feedback-loop) below.
+
+### One Logical Change Per PR
+
+Keep each PR focused on a single logical change. This isn't about LOC limits — it's about keeping the git history navigable. If you're mixing a feature with a refactor, split them.
 
 ### Linking Issues
 
@@ -268,20 +276,41 @@ Related to #456      — reference without closing
 Part of #789         — partial work toward a larger goal
 ```
 
-### Draft PRs
+---
 
-Use GitHub Draft PRs for:
-- Early architectural feedback
-- WIP that's blocked on another PR
-- Sharing for async discussion
+## Learnings Feedback Loop
 
-Convert to Ready only when: CI green + self-review done + description complete.
+Every PR has a **Learnings** section. This is the knowledge capture mechanism that keeps the project improving.
+
+### What to Capture
+
+| Category | Example |
+|----------|---------|
+| **Gotchas** | "Sleeper API returns `null` for IR players, not `0` — broke the VBD baseline" |
+| **Stuck points** | "Spent 2h debugging a hydration mismatch — turned out `useEffect` was running before auth context resolved" |
+| **Decisions** | "Chose SHA256 over MD5 for cache keys because Node's crypto module is equally fast for both" |
+| **Patterns discovered** | "The `await params` pattern in Next.js 15+ applies to all dynamic route segments, not just `[id]`" |
+| **Gaps found** | "AGENTS.md doesn't mention the `getCurrentSeason()` util — should be added to WHERE TO LOOK" |
+
+### How Learnings Feed Back
+
+After merging a PR, review the Learnings section and determine where the knowledge should live permanently:
+
+| If the learning is... | Then update... |
+|-----------------------|----------------|
+| A new rule or constraint | `AGENTS.md` → CONVENTIONS or ANTI-PATTERNS |
+| A gotcha about an API or library | `AGENTS.md` → relevant section, or module's own AGENTS.md |
+| A reusable pattern for AI agents | A skill file or orchestration config |
+| A workaround for a specific tool | Inline code comment with `// GOTCHA:` prefix |
+| An architectural decision worth remembering | `AGENTS.md` → ARCHITECTURE PATTERNS or a dedicated ADR if significant |
+
+This loop is what turns individual PRs into institutional knowledge. Don't skip it.
 
 ---
 
 ## Testing
 
-### Before Opening a PR
+### Before Merging
 
 ```bash
 pnpm validate          # type-check + lint + tests (MUST pass)

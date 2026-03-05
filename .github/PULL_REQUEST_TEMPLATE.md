@@ -1,64 +1,25 @@
-<!--
-  Before opening this PR, confirm:
-  - Title follows convention: type(scope): description
-  - You've self-reviewed the diff
-  - `pnpm validate` passes
-  - Target ≤400 LOC (justify if larger)
--->
-
 ## Why
 
-<!--
-  What problem does this solve? What's the motivation?
-  Link to the issue. This is the most important section —
-  reviewers evaluate your APPROACH, not just your code.
--->
+<!-- What motivated this change? What problem, idea, or need drove it?
+     This is for future-you — you WILL forget in 3 months. -->
 
-Closes #
+## What Changed
 
-## What
+<!-- Brief narrative of what you did. Not a diff summary —
+     explain the approach and any key decisions. -->
 
-<!--
-  Summarize the changes. Bullet list.
-  Give reviewers a map of the diff before they open it.
--->
+## Learnings
 
--
--
+<!-- Capture knowledge from this work for future reference.
+     This section feeds back into AGENTS.md, skills, and orchestration docs.
 
-## How to Test
+     Prompts to consider:
+     - What was tricky, unexpected, or got you stuck?
+     - How did you resolve it? What did you discover?
+     - Any patterns, gotchas, or edge cases worth remembering?
+     - Should anything here become a rule in AGENTS.md?
+     - Did you find a gap in existing docs/skills/tooling? -->
 
-<!--
-  Exact steps to verify this works. Be specific enough that
-  a reviewer can reproduce without asking questions.
--->
+---
 
-1.
-2.
-3.
-
-## Screenshots
-
-<!--
-  Required for UI changes. Before/after preferred.
-  Omit this section entirely if no visual changes.
--->
-
-## Notes for Reviewer
-
-<!--
-  Optional. Call out:
-  - Areas of uncertainty where you want focused feedback
-  - Tradeoffs you made and why
-  - Things you explicitly decided NOT to do
-  - Known limitations or follow-up work planned
--->
-
-## Checklist
-
-- [ ] `pnpm validate` passes (type-check + lint + tests)
-- [ ] Tests added/updated for new behavior
-- [ ] No `any`, `@ts-ignore`, or `console.log` left in
-- [ ] Mobile tested (if UI change)
-- [ ] Docs updated (if public API changed)
-- [ ] Breaking changes noted in PR title with `!` and described above
+- [ ] CI passes (`pnpm validate`)
