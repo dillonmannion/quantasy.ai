@@ -94,7 +94,7 @@ AI Explanations: Cached indefinitely (SHA256 of inputs)
 - `'use client'` only when needed (hooks, events, browser APIs)
 - shadcn/ui in `components/ui/` - do not modify directly
 - `motion/react` library (not framer-motion)
-- Named exports only (no default exports)
+- Named exports for libraries/components (default exports only where framework-required: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`)
 - **Performance**: Use `next/dynamic` for lazy loading heavy client components (Builder, Optimizer) with `Skeleton` fallbacks.
 - **Animations**: Avoid `motion.div` in virtualized lists or LCP elements.
 

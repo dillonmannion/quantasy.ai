@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Git workflow conventions (CONTRIBUTING.md, PR template, CHANGELOG)
+- Git workflow conventions (CONTRIBUTING.md, PR template, CHANGELOG, AGENTS.md)
 
 ## [0.1.0] - 2026-02-04
 

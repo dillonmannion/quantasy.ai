@@ -163,7 +163,7 @@ Scope is optional. Omit when the change is cross-cutting or doesn't fit a single
 ### Footer Conventions
 
 ```
-Closes #123              — auto-closes issue on merge
+Closes #123              — auto-closes issue on merge (use in PR body)
 Fixes #456               — same as Closes
 Refs #789                — reference without closing
 BREAKING CHANGE: <desc>  — triggers MAJOR version bump
@@ -271,10 +271,12 @@ Keep each PR focused on a single logical change. This isn't about LOC limits —
 ### Linking Issues
 
 ```
-Closes #123          — auto-closes on merge (use in PR body, not commit messages)
+Closes #123          — auto-closes on merge
 Related to #456      — reference without closing
 Part of #789         — partial work toward a larger goal
 ```
+
+Use `Closes`/`Fixes` in the **PR body** — GitHub reads these on merge. Avoid putting them in commit messages (noise when cherry-picked).
 
 ---
 
@@ -340,8 +342,8 @@ pnpm lint              # ESLint
 
 ## Code Standards
 
-- **TypeScript strict mode** — no `any`, no `@ts-ignore`, no `@ts-expect-error`
-- **Named exports only** — no default exports
+- **TypeScript strict mode** — no `any`, no `@ts-ignore`, no `@ts-expect-error` in production code (tests may use `any` for mocking per ESLint config)
+- **Named exports** for libraries and components — default exports only where framework-required (Next.js route files: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`)
 - **Server Components by default** — `'use client'` only when needed
 - **`motion/react`** — not framer-motion
 - **`cn()` from `@/lib/utils`** — for conditional Tailwind classes
