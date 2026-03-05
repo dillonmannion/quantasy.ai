@@ -18,9 +18,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.28.1
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,7 +33,7 @@ jobs:
 
       - name: Start Supabase
         run: |
-          supabase start --exclude studio,inbucket,imgproxy
+          supabase start --exclude studio,mailpit,imgproxy,logflare,vector
           supabase db reset
 
       - name: Set Supabase Environment
@@ -52,6 +50,7 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON" >> $GITHUB_ENV
           echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE" >> $GITHUB_ENV
 
+          echo "::add-mask::$ANON"
           echo "::add-mask::$SERVICE"
 
       - name: Install dependencies
@@ -62,11 +61,14 @@ jobs:
 
       - name: Build for PWA tests
         run: pnpm build --webpack
+        env:
+          NEXT_PUBLIC_POSTHOG_KEY: 'phc_test_key_for_e2e'
 
       - name: Run Perf/PWA E2E Tests
         run: pnpm exec playwright test --project=chromium --grep="Performance Regression|PWA Offline" --workers=1
         env:
           ENABLE_MSW: 'true'
+          CI: 'true'
 
       - name: Upload HTML Report
         if: always()
@@ -82,12 +84,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh label create "nightly-failure" --color "d73a4a" --description "Nightly test failure" || true
 
-      - name: Create failure issue
+      - name: Create failure issue (if none open)
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue create \
-            --title "Nightly E2E Tests Failed - $(date +%Y-%m-%d)" \
-            --body "Nightly performance/PWA tests failed. Check workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --label "nightly-failure"
+          EXISTING=$(gh issue list --label "nightly-failure" --state open --json number --jq 'length')
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "Nightly failure issue already open — skipping creation. Adding comment to latest."
+            LATEST=$(gh issue list --label "nightly-failure" --state open --json number --jq '.[0].number')
+            gh issue comment "$LATEST" \
+              --body "Still failing as of $(date +%Y-%m-%d). Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          else
+            gh issue create \
+              --title "Nightly E2E Tests Failed - $(date +%Y-%m-%d)" \
+              --body "Nightly performance/PWA tests failed. Check workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              --label "nightly-failure"
+          fi
