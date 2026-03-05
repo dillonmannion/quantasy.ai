@@ -47,6 +47,13 @@ export function RankingsControls({
 
   return (
     <div className="space-y-4">
+      <div 
+        aria-live="polite" 
+        aria-atomic="true"
+        className="sr-only"
+      >
+        Search results updated
+      </div>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col md:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-sm">

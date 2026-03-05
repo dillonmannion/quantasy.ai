@@ -105,7 +105,7 @@ export function LeagueForm({ onLeagueLoaded, onError }: LeagueFormProps) {
             onChange={(e) => setLeagueId(e.target.value)}
             disabled={isLoading}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Find this in your Sleeper league URL: sleeper.com/leagues/<strong>[LEAGUE_ID]</strong>
           </p>
         </div>
@@ -158,7 +158,7 @@ export function LeagueForm({ onLeagueLoaded, onError }: LeagueFormProps) {
             >
               {csvFileName || 'Choose CSV file'}
             </Button>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Required columns: <code>player_id</code>, <code>projected_points</code>
             </p>
           </div>

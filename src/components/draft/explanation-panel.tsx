@@ -204,7 +204,7 @@ export function ExplanationPanel({
 
             <div className="bg-muted/50 p-3 rounded-lg">
               <h4 className="font-medium mb-1 text-sm">Why VBD?</h4>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Value-Based Drafting (VBD) helps you identify which players provide the most value
                 relative to replacement-level options. A high VBD means this player is significantly
                 better than the baseline, making them more valuable in your draft.

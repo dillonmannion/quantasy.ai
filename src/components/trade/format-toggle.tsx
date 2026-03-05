@@ -19,7 +19,7 @@ export function FormatToggle({ value, onChange, className }: FormatToggleProps) 
         htmlFor="format-toggle"
         className={cn(
           'cursor-pointer transition-colors text-sm',
-          isDynasty ? 'text-[#a1a1aa]' : 'text-foreground font-medium'
+           isDynasty ? 'text-muted-foreground' : 'text-foreground font-medium'
         )}
         onClick={() => onChange('redraft')}
       >
@@ -36,7 +36,7 @@ export function FormatToggle({ value, onChange, className }: FormatToggleProps) 
         htmlFor="format-toggle"
         className={cn(
           'cursor-pointer transition-colors text-sm',
-          !isDynasty ? 'text-[#a1a1aa]' : 'text-foreground font-medium'
+           !isDynasty ? 'text-muted-foreground' : 'text-foreground font-medium'
         )}
         onClick={() => onChange('dynasty')}
       >

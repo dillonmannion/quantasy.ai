@@ -114,7 +114,7 @@ export function SimulationProgress({
   return (
     <div className="w-full px-4 py-2 bg-background/95 backdrop-blur border-b animate-in fade-in slide-in-from-top-2">
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-medium text-muted-foreground animate-pulse">
+        <span className="text-sm font-medium text-muted-foreground animate-pulse">
           Running Monte Carlo Simulation...
         </span>
         <span className="text-xs font-mono text-muted-foreground">

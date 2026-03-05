@@ -8,7 +8,7 @@ const MobileNavAnimated = dynamic(
   { 
     ssr: false,
     loading: () => (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pb-[env(safe-area-inset-bottom)]">
         <div className="bg-card/80 backdrop-blur-md border-t border-border">
           <div className="grid grid-cols-6 h-16">
             {[...Array(6)].map((_, i) => (

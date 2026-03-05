@@ -76,7 +76,7 @@ export function ApplyOptimizationButton({
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="p-3 bg-muted/50 rounded-lg">
-                <div className="text-xs text-muted-foreground mb-1">
+                <div className="text-sm text-muted-foreground mb-1">
                   Current
                 </div>
                 <div className="text-2xl font-bold">
@@ -85,7 +85,7 @@ export function ApplyOptimizationButton({
                 <div className="text-xs text-muted-foreground">pts</div>
               </div>
               <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                <div className="text-xs text-muted-foreground mb-1">
+                <div className="text-sm text-muted-foreground mb-1">
                   Optimized
                 </div>
                 <div className="text-2xl font-bold text-primary">
@@ -102,7 +102,7 @@ export function ApplyOptimizationButton({
                   <div className="font-medium text-sm">
                     +{pointsDelta.toFixed(1)} points improvement
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-sm text-muted-foreground">
                     {(
                       ((pointsDelta / current.projectedPoints) * 100).toFixed(1)
                     )}
@@ -116,7 +116,7 @@ export function ApplyOptimizationButton({
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-amber-900 dark:text-amber-200">
                 <div className="font-medium mb-1">Changes will be applied</div>
-                <div className="text-xs opacity-90">
+                <div className="text-sm opacity-90">
                   Your current lineup will be replaced with the optimized
                   configuration. You can always revert to your previous lineup.
                 </div>

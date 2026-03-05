@@ -63,7 +63,7 @@ export function StreakIndicator({
       <div className="text-center">
         <p className="text-sm font-semibold">{label}</p>
         {isAtRisk && (
-          <p className="text-xs text-destructive mt-1">Streak at risk!</p>
+          <p className="text-sm text-destructive mt-1">Streak at risk!</p>
         )}
       </div>
     </div>

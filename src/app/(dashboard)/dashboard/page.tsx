@@ -192,7 +192,7 @@ export default async function DashboardPage() {
                               <p className={`text-sm text-foreground/80`}>
                                 {tool.description}
                               </p>
-                              <p className="text-xs text-foreground/80 mt-2">
+                              <p className="text-sm text-foreground/80 mt-2">
                                 {!hasLeagues
                                   ? 'Connect a league first'
                                   : `Coming in Phase ${tool.phase}`}

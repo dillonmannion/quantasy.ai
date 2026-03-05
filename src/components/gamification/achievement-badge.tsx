@@ -114,7 +114,7 @@ export function AchievementBadge({
             {name}
           </p>
           {achievement.unlocked_at && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {new Date(achievement.unlocked_at).toLocaleDateString()}
             </p>
           )}

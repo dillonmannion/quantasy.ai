@@ -40,7 +40,7 @@ export function MyTeamSidebar() {
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{pick.playerName}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-sm text-muted-foreground mt-1">
                     {pick.position}
                   </div>
                 </div>
@@ -55,7 +55,7 @@ export function MyTeamSidebar() {
 
       {state.picks.length > 0 && (
         <div className="mt-4 pt-4 border-t">
-          <div className="text-xs text-muted-foreground space-y-1">
+          <div className="text-sm text-muted-foreground space-y-1">
             {Object.entries(picksByPosition).map(([position, picks]) => (
               <div key={position} className="flex justify-between">
                 <span>{position}:</span>

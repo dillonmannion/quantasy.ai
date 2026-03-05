@@ -17,8 +17,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <div className="min-h-screen bg-background">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-background focus:text-foreground focus:rounded-md focus:shadow-lg">
+        Skip to content
+      </a>
       <DesktopSidebar />
-      <main className="lg:pl-64">
+      <main id="main-content" className="lg:pl-64">
         {children}
       </main>
       <MobileNav />

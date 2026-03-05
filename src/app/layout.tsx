@@ -13,6 +13,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Quantasy - Fantasy Football Tools',
   description: 'AI-powered fantasy football tools and analytics with algorithmic transparency',
+  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
 }
 
 export default function RootLayout({

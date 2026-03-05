@@ -111,7 +111,7 @@ export function FaabBidSlider({
           )}
        </div>
 
-       <div className="flex justify-between items-center text-xs">
+       <div className="flex justify-between items-center text-sm">
           <span 
             className={cn("font-medium transition-colors", getBudgetColor(percentOfRemaining))}
             data-testid="budget-percentage"
@@ -137,7 +137,7 @@ export function FaabBidSlider({
              exit={{ height: 0, opacity: 0 }}
              className="overflow-hidden"
            >
-             <div className="pt-2 text-xs text-muted-foreground space-y-2 bg-muted/30 p-3 rounded-md mt-2">
+             <div className="pt-2 text-sm text-muted-foreground space-y-2 bg-muted/30 p-3 rounded-md mt-2">
                 <div className="flex items-start gap-2">
                    <TrendingUp className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
                    <div>

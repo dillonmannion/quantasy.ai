@@ -59,7 +59,7 @@ export function LineupExplanationPanel({
                       className="text-sm p-2 bg-muted/50 rounded"
                     >
                       <div className="font-medium">{player.fullName}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-sm text-muted-foreground">
                         {player.reason}
                       </div>
                     </div>
@@ -83,11 +83,11 @@ export function LineupExplanationPanel({
                           {decision.projectedPoints.toFixed(1)} pts
                         </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-sm text-muted-foreground">
                         {decision.slotType === 'starter' ? 'Starter' : 'Bench'} •{' '}
                         {decision.allowedPositions.join(', ')}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="text-sm text-muted-foreground mt-1">
                         {decision.reason}
                       </div>
                     </div>
@@ -101,7 +101,7 @@ export function LineupExplanationPanel({
                 <h4 className="font-medium mb-2 text-sm">Limitations</h4>
                 <ul className="space-y-1">
                   {explanation.caveats.map((caveat, idx) => (
-                    <li key={idx} className="text-xs text-muted-foreground">
+                    <li key={idx} className="text-sm text-muted-foreground">
                       • {caveat}
                     </li>
                   ))}
@@ -109,7 +109,7 @@ export function LineupExplanationPanel({
               </div>
             )}
 
-            <div className="text-xs text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               Calculated at{' '}
               {new Date(explanation.timestamp).toLocaleString()}
             </div>

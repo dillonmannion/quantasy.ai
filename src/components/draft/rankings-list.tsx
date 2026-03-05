@@ -187,6 +187,9 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
                 {isMobile ? (
                   <SwipeablePlayerRow
                     playerId={player.playerId}
+                    playerName={player.name}
+                    position={player.position}
+                    vbd={player.vbd}
                     onDraft={handleDraft}
                     isDraftable={isDraftable}
                     enableDrag={isMobile}
@@ -200,6 +203,14 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
             )
           })}
         </div>
+      </div>
+      
+      <div 
+        aria-live="assertive" 
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {celebration?.show && celebration.label && `${celebration.label}`}
       </div>
       
       {!prefersReducedMotion && celebration && <Kaching {...celebration} />}

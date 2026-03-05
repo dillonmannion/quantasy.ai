@@ -90,7 +90,7 @@ export function TransactionRow({ transaction, index }: TransactionRowProps) {
               
               <div className="flex flex-col min-w-0">
                 <span className="text-sm font-medium truncate">{getSummary()}</span>
-                <span className="text-xs text-muted-foreground">{timeAgo}</span>
+                <span className="text-sm text-muted-foreground">{timeAgo}</span>
               </div>
             </div>
 

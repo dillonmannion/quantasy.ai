@@ -220,7 +220,7 @@ export const PickExplanation = memo(function PickExplanation({
             )}
 
             {/* Algorithm Info */}
-            <div className="pt-2 border-t border-border/50 text-xs text-muted-foreground space-y-1">
+            <div className="pt-2 border-t border-border/50 text-sm text-muted-foreground space-y-1">
               <p>Method: {explanation.methodology}</p>
               {explanation.caveats.length > 0 && (
                 <ul className="list-disc list-inside opacity-75">

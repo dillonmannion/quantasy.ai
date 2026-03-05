@@ -214,7 +214,7 @@ export function TradeBuilder({
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                  <h2 className="text-lg font-bold" data-testid="zone-give-header">You Give</h2>
-                 <span className="text-xs text-[#a1a1aa]">Total: {calculateTotalValue(youGive).toFixed(1)}</span>
+                   <span className="text-sm text-muted-foreground">Total: {calculateTotalValue(youGive).toFixed(1)}</span>
               </div>
               <div className="flex gap-2">
                 <button
@@ -244,16 +244,16 @@ export function TradeBuilder({
             <div className="card-balatro p-4 min-h-[200px] space-y-2" data-testid="zone-give" data-testid-section="you-give-section">
               {youGive.length === 0 ? (
                 <div className="flex items-center justify-center h-[200px] text-foreground" data-testid="zone-give-empty">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-foreground/80">No assets selected</p>
-                    <p className="text-xs text-[#a1a1aa] mt-1">
-                      Tap or drag to add
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <SortableContext
-                  items={youGive.map(getItemId)}
+                   <div className="text-center">
+                     <p className="text-sm font-medium text-foreground/80">No assets selected</p>
+                     <p className="text-sm text-muted-foreground mt-1">
+                       Tap or drag to add
+                     </p>
+                   </div>
+                 </div>
+               ) : (
+                 <SortableContext
+                   items={youGive.map(getItemId)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
@@ -290,7 +290,7 @@ export function TradeBuilder({
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                  <h2 className="text-lg font-bold" data-testid="zone-receive-header">You Receive</h2>
-                 <span className="text-xs text-[#a1a1aa]">Total: {calculateTotalValue(youReceive).toFixed(1)}</span>
+                   <span className="text-sm text-muted-foreground">Total: {calculateTotalValue(youReceive).toFixed(1)}</span>
               </div>
               <div className="flex gap-2">
                  <button
@@ -320,16 +320,16 @@ export function TradeBuilder({
             <div className="card-balatro p-4 min-h-[200px] space-y-2" data-testid="zone-receive" data-testid-section="you-receive-section">
               {youReceive.length === 0 ? (
                 <div className="flex items-center justify-center h-[200px] text-foreground" data-testid="zone-receive-empty">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-foreground/80">No assets selected</p>
-                    <p className="text-xs text-[#a1a1aa] mt-1">
-                      Tap or drag to add
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <SortableContext
-                  items={youReceive.map(getItemId)}
+                   <div className="text-center">
+                     <p className="text-sm font-medium text-foreground/80">No assets selected</p>
+                     <p className="text-sm text-muted-foreground mt-1">
+                       Tap or drag to add
+                     </p>
+                   </div>
+                 </div>
+               ) : (
+                 <SortableContext
+                   items={youReceive.map(getItemId)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
