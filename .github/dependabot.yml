@@ -5,13 +5,55 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      timezone: "America/Los_Angeles"
+    target-branch: "dev"
     open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
     groups:
-      production:
+      core-framework:
         patterns:
-          - "react*"
+          - "react"
+          - "react-dom"
           - "next"
+          - "next-themes"
           - "@supabase/*"
+        update-types:
+          - "patch"
+          - "minor"
+      ui-components:
+        patterns:
+          - "@radix-ui/*"
+          - "@dnd-kit/*"
+          - "radix-ui"
+          - "lucide-react"
+          - "motion"
+          - "sonner"
+          - "class-variance-authority"
+          - "clsx"
+          - "tailwind-merge"
+        update-types:
+          - "patch"
+          - "minor"
+      monitoring:
+        patterns:
+          - "@sentry/*"
+          - "posthog-js"
+        update-types:
+          - "patch"
+          - "minor"
+      utilities:
+        patterns:
+          - "date-fns"
+          - "papaparse"
+          - "zod"
+          - "groq-sdk"
+          - "@tanstack/*"
+          - "server-only"
         update-types:
           - "patch"
           - "minor"
@@ -19,5 +61,29 @@ updates:
         patterns:
           - "@types/*"
           - "vitest"
+          - "@vitest/*"
           - "@playwright/*"
-          - "eslint*"
+          - "@testing-library/*"
+          - "@axe-core/*"
+          - "@vitejs/*"
+          - "eslint"
+          - "eslint-config-next"
+          - "typescript"
+          - "jsdom"
+          - "msw"
+          - "dotenv"
+          - "tsx"
+          - "lighthouse"
+        update-types:
+          - "patch"
+          - "minor"
+      build-tooling:
+        patterns:
+          - "supabase"
+          - "@next/*"
+          - "@ducanh2912/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+        update-types:
+          - "patch"
+          - "minor"

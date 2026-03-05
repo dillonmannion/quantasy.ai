@@ -21,15 +21,15 @@ jobs:
           version: latest
       
       - name: Start Supabase
-        run: supabase start --exclude studio,inbucket,imgproxy
+        run: supabase start --exclude studio,mailpit,imgproxy,logflare,vector
       
       - name: Run Security Advisors
         run: |
-          supabase db lint --level warn
+          supabase db lint --level warning
           
       - name: Check for Critical Issues
         run: |
-          ERRORS=$(supabase db lint --level error --format json 2>/dev/null | jq 'length' || echo "0")
+          ERRORS=$(supabase db lint --level error --format json 2>/dev/null | jq '. | length' || echo "0")
           if [ "$ERRORS" -gt 0 ]; then
             echo "::error::Found $ERRORS security errors"
             supabase db lint --level error
