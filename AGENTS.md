@@ -125,6 +125,35 @@ AI Explanations: Cached indefinitely (SHA256 of inputs)
 - Encapsulated logic: Custom hooks in `src/hooks/`
 - SSR safety: Check `typeof window !== 'undefined'`
 
+## GIT WORKFLOW
+
+Full conventions in [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+### Branching
+- **`prod`** — Production (Fly.io deploys). Never commit directly.
+- **`dev`** — Integration branch. CI must pass. Never commit directly.
+- **Feature branches** — All work here. Branch from `dev`, merge back via PR.
+- **Naming**: `{type}/{kebab-case}` — e.g., `feat/draft-ui`, `fix/auth-redirect`, `chore/update-deps`
+- **Lifecycle**: Branch from `dev` → work → PR to `dev` (squash merge) → delete branch
+- **Promotion**: `dev` → `prod` via PR (merge commit) + semver tag
+
+### Commits
+- [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): description`
+- **Types**: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`, `style`, `chore`, `revert`
+- **Scopes**: `draft`, `algorithms`, `monte-carlo`, `sleeper`, `auth`, `ui`, `api`, `db`, `trade`, `waivers`, `roster`, `players`, `animation`
+- Imperative mood, lowercase after colon, no trailing period, 72 char max
+- Body explains WHY not HOW. Footer: `Closes #N`, `BREAKING CHANGE:`
+
+### Pull Requests
+- Title matches commit convention: `type(scope): description`
+- Target ≤400 LOC changed. Over 800: split it.
+- Must include: Why, What, How to Test, Checklist
+- Template: `.github/PULL_REQUEST_TEMPLATE.md`
+
+### Merge Strategy
+- Feature branches → `dev`: **Squash merge**
+- `dev` → `prod`: **Merge commit** + semver tag
+
 ## ANTI-PATTERNS
 
 - **DO NOT** call Sleeper API from components - use `src/lib/sleeper/client.ts`

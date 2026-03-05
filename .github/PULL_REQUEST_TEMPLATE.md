@@ -1,68 +1,64 @@
-## Summary
+<!--
+  Before opening this PR, confirm:
+  - Title follows convention: type(scope): description
+  - You've self-reviewed the diff
+  - `pnpm validate` passes
+  - Target ≤400 LOC (justify if larger)
+-->
 
-<!-- Brief description of the changes in this PR -->
-<!-- What problem does this solve? What feature does it add? -->
+## Why
 
-## Type
-
-<!-- Select the type of change -->
-
-- [ ] Feature (new functionality)
-- [ ] Fix (bug fix)
-- [ ] Chore (maintenance, docs, tooling, dependencies)
-
-## Changes
-
-<!-- List the specific changes made -->
-
-- Change 1
-- Change 2
-- Change 3
-
-## Testing
-
-<!-- Verify that all tests pass locally before submitting -->
-
-- [ ] Unit tests pass (`pnpm test:run`)
-- [ ] E2E tests pass (`pnpm test:e2e`)
-- [ ] Type check passes (`pnpm type-check`)
-- [ ] Lint passes (`pnpm lint`)
-- [ ] Build succeeds (`pnpm build`)
-
-## Testing Details
-
-<!-- Describe how you tested these changes -->
-<!-- Include steps to reproduce if applicable -->
-
-## Breaking Changes
-
-<!-- Does this PR introduce breaking changes? -->
-
-- [ ] This PR includes breaking changes
-
-<!-- If breaking changes, describe the migration path and impact -->
-
-## Related Issues
-
-<!-- Link related issues using #issue-number -->
+<!--
+  What problem does this solve? What's the motivation?
+  Link to the issue. This is the most important section —
+  reviewers evaluate your APPROACH, not just your code.
+-->
 
 Closes #
 
+## What
+
+<!--
+  Summarize the changes. Bullet list.
+  Give reviewers a map of the diff before they open it.
+-->
+
+-
+-
+
+## How to Test
+
+<!--
+  Exact steps to verify this works. Be specific enough that
+  a reviewer can reproduce without asking questions.
+-->
+
+1.
+2.
+3.
+
+## Screenshots
+
+<!--
+  Required for UI changes. Before/after preferred.
+  Omit this section entirely if no visual changes.
+-->
+
+## Notes for Reviewer
+
+<!--
+  Optional. Call out:
+  - Areas of uncertainty where you want focused feedback
+  - Tradeoffs you made and why
+  - Things you explicitly decided NOT to do
+  - Known limitations or follow-up work planned
+-->
+
 ## Checklist
 
-- [ ] Code follows the project's style guidelines
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests passed locally with my changes
-- [ ] Any dependent changes have been merged and published
-
-## Screenshots (if applicable)
-
-<!-- Add screenshots for UI changes -->
-
-## Additional Context
-
-<!-- Add any other context about the PR here -->
+- [ ] `pnpm validate` passes (type-check + lint + tests)
+- [ ] Tests added/updated for new behavior
+- [ ] No `any`, `@ts-ignore`, or `console.log` left in
+- [ ] Mobile tested (if UI change)
+- [ ] Docs updated (if public API changed)
+- [ ] Breaking changes noted in PR title with `!` and described above
