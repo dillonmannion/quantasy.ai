@@ -94,6 +94,9 @@ Next.js 16 (App Router) · React 19 · TypeScript (strict) · pnpm · Node 24 ·
 - `src/lib/sleeper/` — Sleeper API client with rate limiting + caching
 - `src/lib/supabase/` — DB client helpers (server.ts, client.ts, admin.ts)
 - `src/lib/ai/` — Groq integration with rate limiter
+- `src/lib/external/` — Third-party values (KTC, Dynasty Process, FantasyCalc)
+- `src/lib/gamification/` — Achievements, counters, streaks
+- `src/lib/projections/` — Projection data (CSV upload + bundled JSON)
 - `src/components/ui/` — shadcn/ui (auto-generated, don't edit)
 - `supabase/migrations/` — consolidated initial schema
 - `docs/` — planning, algorithm docs, feature refs

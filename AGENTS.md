@@ -1,7 +1,7 @@
 # QUANTASY - PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-02-04
-**Commit:** b98ff7a2
+**Generated:** 2026-03-05
+**Commit:** d03f7ff
 **Branch:** dev
 
 ## OVERVIEW
@@ -17,22 +17,30 @@ qai/
 │   │   ├── (auth)/             # Public routes (login, callback)
 │   │   ├── (dashboard)/        # Protected routes (dashboard, draft, roster, trade, waivers, connect, feedback)
 │   │   ├── (sandbox)/          # Public sandbox (draft-sandbox)
-│   │   └── api/                # API routes (algorithms, ai, players, projections, draft)
+│   │   └── api/                # API routes (algorithms, ai, players, projections, draft, transactions, feedback)
 │   ├── components/
 │   │   ├── animation/          # Balatro-inspired primitives (see ./animation/AGENTS.md)
 │   │   ├── ui/                 # shadcn/ui (New York style) - DO NOT MODIFY
 │   │   ├── draft/              # Draft Assistant UI (see ./draft/AGENTS.md)
-│   │   ├── layout/             # Responsive nav (mobile-first)
-│   │   ├── players/            # Player cards/lists (has index.ts barrel)
-│   │   └── providers/          # AuthProvider context
+│   │   ├── gamification/       # Achievement badges, toasts, streaks
+│   │   ├── layout/             # Responsive nav (mobile-first, see ./layout/AGENTS.md)
+│   │   ├── players/            # Player cards/lists
+│   │   ├── roster/             # Lineup optimizer UI (see ./roster/AGENTS.md)
+│   │   ├── trade/              # Trade calculator UI (see ./trade/AGENTS.md)
+│   │   ├── transactions/       # Transaction history display
+│   │   ├── visualization/      # SVG charts (sparkline, radar, fairness bar)
+│   │   ├── waiver/             # Waiver wire UI (see ./waiver/AGENTS.md)
+│   │   └── providers/          # AuthProvider + PostHogProvider
 │   ├── lib/
 │   │   ├── algorithms/         # VBD + algorithms (see ./algorithms/AGENTS.md)
 │   │   │   └── monte-carlo/    # Draft simulation (see ./monte-carlo/AGENTS.md)
 │   │   ├── sleeper/            # Sleeper API client (see ./sleeper/AGENTS.md)
 │   │   ├── supabase/           # Auth + DB (see ./supabase/AGENTS.md)
-│   │   ├── draft/              # Draft state (Context + reducer)
-│   │   ├── projections/        # Projection data layer (CSV upload)
-│   │   ├── ai/                 # Groq AI (llama-3.1-8b-instant, 30 req/min)
+│   │   ├── external/           # Third-party values: KTC, Dynasty Process, FantasyCalc (see ./external/AGENTS.md)
+│   │   ├── gamification/       # Achievements, counters, streaks (see ./gamification/AGENTS.md)
+│   │   ├── draft/              # Draft state (Context + reducer, see ./draft/AGENTS.md)
+│   │   ├── projections/        # Projection data layer (CSV upload + bundled JSON)
+│   │   ├── ai/                 # Groq AI (llama-3.1-8b-instant, 30 req/min, see ./ai/AGENTS.md)
 │   │   └── adp/                # ADP from FantasyFootballCalculator
 │   ├── hooks/                  # Custom hooks (see ./hooks/AGENTS.md)
 │   └── tests/                  # Vitest setup + unit tests
@@ -59,6 +67,11 @@ qai/
 | Planning docs | `docs/plan/00-overview.md` | Start here for project context |
 | Server action | `src/app/(dashboard)/*/actions.ts` | `'use server'` files |
 | API route | `src/app/api/*/route.ts` | Returns `NextResponse.json()` |
+| External values | `src/lib/external/` | KTC, Dynasty Process, FantasyCalc scrapers |
+| Gamification | `src/lib/gamification/` | Achievements, counters, streaks |
+| Projections | `src/lib/projections/` | CSV upload + bundled JSON data |
+| Visualization | `src/components/visualization/` | SVG sparkline, radar, fairness bar |
+| Transactions | `src/components/transactions/` | Transaction history display |
 
 ## DATA FLOW
 
@@ -273,6 +286,9 @@ Tables (Supabase Postgres):
 - `players` - Player data with projections (24h TTL)
 - `matchups` - Weekly matchup data (5m TTL)
 - `algorithm_outputs` - Saved algorithm results + AI explanations
+- `user_achievements` - Unlocked achievements per user
+- `user_counters` - Progress counters per user
+- `user_streaks` - Streak data per user
 
 Migrations in `supabase/migrations/`. Types in `src/lib/supabase/types.ts`.
 
@@ -349,15 +365,16 @@ pnpm dev                    # Start dev server
 - **Output:** Standalone Next.js
 - **CI:** GitHub Actions - type-check → lint → test → build → E2E
 - **Deploy:** Push to `prod` triggers `fly deploy`
-- **Region:** San Jose (sjc), shared-cpu-1x, 256MB
+- **Region:** San Jose (sjc), shared-cpu-1x, 512MB
 - **PWA:** Enabled with Workbox runtime caching
 
 ## ARCHITECTURE PATTERNS
 
 ### Algorithm Layer
-- **Pure functions**: `vbd.ts`, `lineup.ts`, `trade.ts`, `waivers.ts` (no side effects)
-- **Orchestrators**: `calculate-*-for-league.ts` (fetch data → call pure fn → cache)
-- **Sub-modules**: `monte-carlo/` has own barrel + types
+- **Pure functions**: `vbd.ts`, `lineup.ts`, `trade.ts`, `waivers.ts`, `pick-value.ts`, `dynasty-vbd.ts`, `age-curves.ts`, `roster-strength.ts`, `trade-partners.ts`, `value-normalization.ts`, `draft-picks.ts` (no side effects)
+- **Orchestrators**: `calculate-*-for-league.ts`, `calculate-pick-value-for-draft.ts` (fetch data → call pure fn → cache)
+- **Helpers**: `baselines.ts`, `flex.ts`, `idp.ts`, `scoring.ts` (shared utilities)
+- **Sub-modules**: `monte-carlo/` has own barrel + types + web workers
 
 ### API Routes
 - Auth check first: `supabase.auth.getUser()` → 401 if unauthorized
@@ -365,14 +382,14 @@ pnpm dev                    # Start dev server
 - Console logging: `[RouteName]` prefix for filtering
 
 ### Component Organization
-- Barrel exports: `index.ts` in animation, players, trade, roster, waiver
-- No barrel in: draft (page-specific), layout, providers, ui (shadcn)
+- Barrel exports: `index.ts` in animation, draft, gamification, players, roster, trade, transactions, visualization, waiver
+- No barrel in: layout, providers, ui (shadcn)
 
 ## NOTES
 
 - React 19 + Next.js 16
 - pnpm required (v10.28.x)
-- Node 22+ required
+- Node 24+ required
 - Turbopack in dev
 - Player sync: 60s timeout
 - Sleeper: 16 req/sec rate limit

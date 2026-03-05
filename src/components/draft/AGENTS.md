@@ -100,9 +100,9 @@ Rankings use VBD percentiles for color:
 // Draft state
 import { useDraftState, DraftStateProvider } from '@/lib/draft'
 
-// Draft components (selective exports)
+// Draft components (barrel export)
 import { PickValueBoard, PickExplanation } from '@/components/draft'
 
-// Other components via direct import (no barrel)
+// Direct import also supported for non-exported components
 import { DraftRankings } from '@/components/draft/draft-rankings'
 ```

@@ -6,15 +6,43 @@ Value-Based Drafting (VBD) and future algorithms. Pure functions, composable, ty
 
 ## FILES
 
+### Pure Functions
 | File | Purpose |
 |------|---------|
-| `vbd.ts` | Main VBD orchestrator |
+| `vbd.ts` | VBD ranking engine |
+| `lineup.ts` | Backtracking lineup optimizer (500ms timeout) |
+| `trade.ts` | Trade value comparison (redraft + dynasty) |
+| `waivers.ts` | Waiver recommendations + FAAB bids |
+| `pick-value.ts` | Draft pick valuation using expected players + scarcity |
+| `dynasty-vbd.ts` | Dynasty-adjusted VBD with age curves + multi-year discounting |
+| `age-curves.ts` | Dynasty value adjustment curves (peak 25-28) |
+| `roster-strength.ts` | VBD totals by position for trade partner matching |
+| `trade-partners.ts` | Compatible trade partner identification by roster needs |
+| `value-normalization.ts` | Z-score normalization across external value sources |
+| `draft-picks.ts` | Discounted pick chart values |
+
+### Helpers
+| File | Purpose |
+|------|---------|
 | `baselines.ts` | Position baseline (replacement level) |
 | `flex.ts` | FLEX/SUPERFLEX position handling |
 | `idp.ts` | IDP scarcity multiplier |
 | `scoring.ts` | Scoring format detection (PPR/half/standard) |
+
+### Orchestrators
+| File | Purpose |
+|------|---------|
 | `calculate-vbd-for-league.ts` | Fetches data + calls calculateVBD |
-| `types.ts` | All TypeScript interfaces |
+| `calculate-lineup-for-week.ts` | Fetches roster + calls optimizeLineup |
+| `calculate-trade-for-league.ts` | Fetches league/externals + calls evaluateTrade |
+| `calculate-waivers-for-league.ts` | Fetches free agents + calls recommendWaivers |
+| `calculate-pick-value-for-draft.ts` | Fetches draft state + calls calculatePickValue |
+
+### Infrastructure
+| File | Purpose |
+|------|---------|
+| `cache.ts` | SHA256 cache keys + getOrComputeAlgorithm (1h TTL) |
+| `types.ts` | All TypeScript interfaces (~923 lines) |
 | `index.ts` | Barrel export |
 
 ## VBD ALGORITHM
@@ -71,9 +99,14 @@ const output: VBDOutput = calculateVBD({
 |-----------|--------|------|---------|
 | VBD | Complete | `vbd.ts` | Draft rankings |
 | Lineup Optimizer | Complete | `lineup.ts` | Weekly lineup (backtracking, 500ms timeout) |
-| Trade Evaluator | Complete | `trade.ts` | Trade value comparison |
+| Trade Evaluator | Complete | `trade.ts` | Trade value comparison (redraft + dynasty) |
 | Waiver Priority | Complete | `waivers.ts` | Waiver recommendations + FAAB bids |
 | Monte Carlo | Complete | `monte-carlo/` | Draft survival simulation (see AGENTS.md) |
+| Pick Value | Complete | `pick-value.ts` | Draft pick valuation |
+| Dynasty VBD | Complete | `dynasty-vbd.ts` | Age-adjusted dynasty rankings |
+| Roster Strength | Complete | `roster-strength.ts` | Position group VBD totals |
+| Trade Partners | Complete | `trade-partners.ts` | Compatible partner matching |
+| Value Normalization | Complete | `value-normalization.ts` | Cross-source Z-score normalization |
 
 ## TESTING
 
@@ -123,6 +156,7 @@ import { calculateVBD, type VBDInput } from '@/lib/algorithms'
 // WRONG - deep import bypasses barrel
 import { calculateVBD } from '@/lib/algorithms/vbd'
 
-// EXCEPTION - trade orchestrator is NOT in barrel (pulls in heavyweight scraper deps)
+// EXCEPTION - orchestrators with heavyweight deps are NOT in barrel
 import { calculateTradeForLeague } from '@/lib/algorithms/calculate-trade-for-league'
+import { calculatePickValueForDraft } from '@/lib/algorithms/calculate-pick-value-for-draft'
 ```

@@ -11,6 +11,9 @@ Probabilistic draft simulation to calculate player survival rates. Runs 100-1000
 | `simulator.ts` | Core simulation engine with `runSimulation()` |
 | `market-model.ts` | Simulates other teams' draft behavior |
 | `utility.ts` | Generates recommendations from survival rates |
+| `guardrails.ts` | Position min/max enforcement (e.g., QB 1-2, RB 2-5) |
+| `worker.ts` | Web worker for non-blocking simulations |
+| `worker-client.ts` | Worker communication + cancellation management |
 | `types.ts` | 226 lines of Monte Carlo-specific types |
 | `index.ts` | Barrel export |
 

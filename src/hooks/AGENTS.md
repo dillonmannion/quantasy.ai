@@ -12,6 +12,8 @@ Cross-cutting React hooks. All client-side, SSR-safe.
 | `use-draft-sync.ts` | `useDraftSync` | Real-time draft polling |
 | `use-connection-status.ts` | `useConnectionStatus` | Network status detection |
 | `use-reduced-motion.ts` | `useReducedMotion` | Accessibility preference |
+| `use-monte-carlo.ts` | `useMonteCarlo` | Monte Carlo draft simulation hook |
+| `use-adaptive-polling.ts` | `useAdaptivePolling` | Dynamic polling interval adjustment |
 
 ## USAGE
 
@@ -29,6 +31,12 @@ const { isOnline, isReconnecting, retry } = useConnectionStatus()
 
 // Reduced motion (accessibility)
 const prefersReducedMotion = useReducedMotion()
+
+// Monte Carlo simulation
+const { simulate, results, isRunning, cancel } = useMonteCarlo()
+
+// Adaptive polling (adjusts interval based on activity)
+const { start, stop } = useAdaptivePolling(callback, { baseInterval, maxInterval })
 ```
 
 ## PATTERNS
@@ -88,6 +96,8 @@ import { useCelebration } from '@/hooks/use-celebration'
 import { useDraftSync } from '@/hooks/use-draft-sync'
 import { useConnectionStatus } from '@/hooks/use-connection-status'
 import { useReducedMotion } from '@/hooks/use-reduced-motion'
+import { useMonteCarlo } from '@/hooks/use-monte-carlo'
+import { useAdaptivePolling } from '@/hooks/use-adaptive-polling'
 ```
 
 ## HOOK TEMPLATE
