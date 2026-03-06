@@ -46,7 +46,11 @@ export async function spawnServer(
       : ['start', '--port', String(port)];
 
   console.log(`[serve] Starting ${mode} server on port ${port}...`);
-  const proc = spawn('pnpm', cmd, { stdio: 'inherit', detached: true });
+  const proc = spawn('pnpm', cmd, {
+    stdio: 'inherit',
+    detached: true,
+    env: { ...process.env, ENABLE_DEV_LOGIN: 'true' },
+  });
 
   proc.on('error', (err) => {
     console.error(`[serve] Process error: ${err.message}`);

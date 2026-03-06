@@ -22,7 +22,7 @@ import { NextResponse } from 'next/server'
  *  3. Request email must match ADMIN_EMAIL
  */
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEV_LOGIN !== 'true') {
     return NextResponse.json({ error: 'Not available' }, { status: 404 })
   }
 

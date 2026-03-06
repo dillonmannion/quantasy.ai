@@ -23,7 +23,7 @@ Total agents spawned: 1 per discovered route for analysis (count varies with rou
 
 Max concurrent analysis agents: configurable batch size (default 4, set in `tools/visual-qa/config.ts`).
 
-Auth is handled automatically by the capture script via the dev-login API and a Playwright browser context. No manual login, no agent-browser needed for capture.
+The CLI defaults to `--serve preview` — it builds the app and starts a preview server automatically. No dev server needs to be running. Auth is handled automatically by the capture script via the dev-login API and a Playwright browser context. No manual login, no agent-browser needed for capture.
 
 </Purpose>
 
@@ -61,7 +61,7 @@ The orchestration is driven by scripts that run before analysis begins. These sc
 
 | Script | Purpose | Invocation |
 |--------|---------|------------|
-| `cli.ts` | Chains capture + analysis prompt generation (full pipeline) | `pnpm visual-qa` |
+| `cli.ts` | Chains build → serve → capture → prompt generation (full pipeline). Defaults to `--serve preview` — builds and starts a preview server automatically. | `pnpm visual-qa` |
 | `capture-screenshots.ts` | Playwright-based capture of all routes at all viewports | Auto-run by CLI, or `pnpm visual-qa:capture` |
 | `discover-routes.ts` | Scans `src/app/**/page.tsx`, classifies routes as public/protected | Auto-run by CLI |
 | `setup.ts` | Archives previous screenshots to `.previous/`, creates dirs, health check | Auto-run by CLI |
@@ -155,34 +155,36 @@ There are no capture agents. Capture is done by the Playwright script the orches
 
 ## Phase 0: Capture (orchestrator — you do this directly)
 
-1. Determine the base URL. Default: `http://localhost:3000`. Use whatever the user provides.
-2. Run the full pipeline:
+1. Run the full pipeline:
 
 ```bash
-pnpm visual-qa --base-url <BASE_URL>
+pnpm visual-qa
 ```
 
+The CLI defaults to `--serve preview` — it builds the app and starts a preview server on port 6969 automatically. No dev server or `--base-url` needed. Just run the command.
+
 This single command does everything:
+- **Build & serve** — runs `pnpm build` then starts the production server (preview mode, default)
 - **Discover routes** — scans `src/app/**/page.tsx`, classifies public vs protected
 - **Setup directories** — archives previous screenshots to `.previous/`, creates fresh dirs, writes `.run-metadata.json`
-- **Health check** — verifies the dev server is responding
+- **Health check** — verifies the server is responding
 - **Authenticate** — calls dev-login API, creates a Playwright browser context with auth cookies
 - **Capture screenshots** — navigates every route at mobile, tablet, and desktop viewports, saves PNGs
 - **Generate prompts** — creates hydrated analysis prompt files and `batch-manifest.json`
 - **Scaffold report** — creates `screenshots/CHANGES-NEEDED.md` skeleton
 
-If the pipeline fails (app not running, auth failure, etc.), it exits non-zero with an error message. Inform the user and **stop**. Do NOT proceed to analysis.
+If the pipeline fails (build failure, auth failure, etc.), it exits non-zero with an error message. Inform the user and **stop**. Do NOT proceed to analysis.
 
-For quick QA on a single route during development:
+To use dev mode instead of preview (faster, no build step, but uses Turbopack):
 
 ```bash
-pnpm visual-qa --base-url <BASE_URL> --route /dashboard
+pnpm visual-qa --serve dev
 ```
 
-For capture only (without analysis prompt generation):
+For quick QA on a single route:
 
 ```bash
-pnpm visual-qa:capture --base-url <BASE_URL>
+pnpm visual-qa --route /dashboard
 ```
 
 3. Verify the pipeline output exists:
@@ -277,13 +279,14 @@ The final report structure matches the scaffold exactly. Do NOT restructure the 
 
 **Correct invocation:**
 ```
-task(category="deep", load_skills=["visual-qa-screenshots"], prompt="Run visual QA for all pages. Base URL: http://localhost:3000")
+task(category="deep", load_skills=["visual-qa-screenshots"], prompt="Run visual QA for all pages")
 ```
 
 **Correct orchestration flow:**
 ```python
-# Phase 0: Run full pipeline (discover, setup, auth, capture, prompts, scaffold)
-bash("pnpm visual-qa --base-url http://localhost:3000")
+# Phase 0: Run full pipeline (build, serve, discover, setup, auth, capture, prompts, scaffold)
+# CLI defaults to --serve preview — builds app and starts server automatically
+bash("pnpm visual-qa")
 # If exit code non-zero: inform user and stop
 
 # Verify pipeline output
@@ -312,14 +315,14 @@ skeleton = read("screenshots/CHANGES-NEEDED.md")
 write("screenshots/CHANGES-NEEDED.md", fill_in_findings(skeleton, all_analysis_outputs))
 ```
 
-Why good: The Playwright script handles all capture in one fast, reliable pass — no agent overhead, no browser contention. The orchestrator only needs to run a script, verify output, and schedule analysis. Analysis runs in controlled batches to prevent API overload while preserving parallel speedups. No hardcoded routes or prompts.
+Why good: The CLI handles everything — build, serve, capture — in one command. No need to have a dev server running or pass a base URL. Analysis runs in controlled batches to prevent API overload while preserving parallel speedups. No hardcoded routes or prompts.
 
 **Quick single-route QA during development:**
 ```bash
-pnpm visual-qa --base-url http://localhost:3000 --route /dashboard
+pnpm visual-qa --route /dashboard
 ```
 
-Why good: The `--route` flag filters capture to one route, making it fast for iterative development checks without running the full suite.
+Why good: The `--route` flag filters capture to one route, making it fast for iterative development checks without running the full suite. Still auto-builds and serves.
 
 </Good>
 
@@ -382,7 +385,7 @@ Why bad: Routes and viewports are discovered dynamically. Hardcoded prompts will
 <Escalation_And_Stop_Conditions>
 
 ## Stop and inform user:
-- Pipeline fails in Phase 0 (`pnpm visual-qa` exits non-zero) — could be app not running, auth failure, or missing env vars
+- Pipeline fails in Phase 0 (`pnpm visual-qa` exits non-zero) — could be build failure, auth failure, or missing env vars
 - Auth failure specifically: check that `ADMIN_EMAIL` is set in `.env.local` and the dev-login API endpoint exists
 - Capture script produces zero screenshots across all routes
 
