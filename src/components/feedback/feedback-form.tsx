@@ -75,12 +75,12 @@ export function FeedbackForm() {
               key={star}
               type="button"
               onClick={() => setRating(star)}
-              aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+              aria-label={`Rate ${star} out of 5 stars`}
               aria-pressed={star <= rating}
-              className="transition-colors"
+              className="h-11 w-11 flex items-center justify-center transition-colors"
             >
               <Star
-                className={`h-8 w-8 ${
+                className={`h-11 w-11 ${
                   star <= rating
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'text-muted-foreground'

@@ -80,7 +80,7 @@ export default function LoginPage() {
                   required
                   disabled={loading}
                   autoComplete="email"
-                  className="h-12 text-lg bg-background/50 border-white/10 focus:border-primary/50"
+                  className="h-12 text-lg bg-background/50 border border-border focus:border-primary/50"
                 />
               </div>
 

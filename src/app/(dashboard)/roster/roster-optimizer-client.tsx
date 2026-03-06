@@ -130,41 +130,42 @@ export function RosterOptimizerClient({
         </div>
       </div>
 
-      <Card className="p-6">
-        <div className="flex items-center justify-between">
+      <Card className="p-4">
+        <div className="flex flex-col gap-3">
           <h2 className="font-semibold">Select Week</h2>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              size="sm"
               onClick={() => handleWeekChange(selectedWeek - 1)}
               disabled={selectedWeek <= 1}
               aria-label="Previous week"
+              className="min-w-[44px] min-h-[44px] shrink-0 p-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            
-            <div className="flex gap-1">
-              {Array.from({ length: 18 }, (_, i) => i + 1).map((week) => (
-                <Button
-                  key={week}
-                  variant={selectedWeek === week ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleWeekChange(week)}
-                  className="w-10"
-                  aria-label={`Select Week ${week}`}
-                >
-                  {week}
-                </Button>
-              ))}
+
+            <div className="overflow-x-auto flex-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-1 w-max">
+                {Array.from({ length: 18 }, (_, i) => i + 1).map((week) => (
+                  <Button
+                    key={week}
+                    variant={selectedWeek === week ? 'default' : 'outline'}
+                    onClick={() => handleWeekChange(week)}
+                    className="min-w-[44px] min-h-[44px] snap-center"
+                    aria-label={`Select Week ${week}`}
+                  >
+                    {week}
+                  </Button>
+                ))}
+              </div>
             </div>
 
             <Button
               variant="outline"
-              size="sm"
               onClick={() => handleWeekChange(selectedWeek + 1)}
               disabled={selectedWeek >= 18}
               aria-label="Next week"
+              className="min-w-[44px] min-h-[44px] shrink-0 p-0"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

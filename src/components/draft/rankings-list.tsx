@@ -138,30 +138,30 @@ export function RankingsList({ players, simulationResults, simulationStatus = 'i
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 md:gap-6 text-sm">
-                  <div className="text-center">
-                    <div className="text-xs text-muted-foreground">VBD</div>
-                    <div className={cn('font-mono font-bold', vbdColor)}>
-                      {player.vbd.toFixed(1)}
-                    </div>
+                 <div className="flex items-center gap-2 md:gap-6 text-sm shrink-0">
+                   <div className="w-10 text-center">
+                     <div className="text-xs text-muted-foreground">VBD</div>
+                     <div className={cn('font-mono font-bold', vbdColor)}>
+                       {player.vbd.toFixed(1)}
+                     </div>
+                   </div>
+                   
+                   <div className="w-10 text-center">
+                     <div className="text-xs text-muted-foreground">Proj</div>
+                     <div className="font-mono">
+                       {player.projectedPoints.toFixed(1)}
+                     </div>
+                   </div>
+                   
+                   {player.adp !== null && (
+                     <div className="w-10 text-center hidden md:block">
+                       <div className="text-xs text-muted-foreground">ADP</div>
+                       <div className="font-mono">
+                         {player.adp.toFixed(0)}
+                       </div>
+                     </div>
+                   )}
                   </div>
-                  
-                  <div className="text-center">
-                    <div className="text-xs text-muted-foreground">Proj</div>
-                    <div className="font-mono">
-                      {player.projectedPoints.toFixed(1)}
-                    </div>
-                  </div>
-                  
-                  {player.adp !== null && (
-                    <div className="text-center">
-                      <div className="text-xs text-muted-foreground">ADP</div>
-                      <div className="font-mono">
-                        {player.adp.toFixed(0)}
-                      </div>
-                    </div>
-                  )}
-                 </div>
 
                  <SimulationOverlay 
                    status={simulationStatus}

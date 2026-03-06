@@ -24,6 +24,10 @@ export function LineupSlot({
   isOptimized = false,
   className,
 }: LineupSlotProps) {
+  const allowedPositionsLabel =
+    slot.allowedPositions.length > 0 ? slot.allowedPositions.join(', ') : 'Any'
+  const playerName = player?.fullName?.trim() || 'No player'
+
   return (
     <Card
       className={cn(
@@ -39,11 +43,14 @@ export function LineupSlot({
             {slot.slotType === 'starter' ? 'Starter' : 'Bench'}
           </div>
            <div className="text-sm text-muted-foreground">
-             {slot.allowedPositions.join(', ')}
-           </div>
+             {allowedPositionsLabel}
+            </div>
         </div>
         {isOptimized && (
-          <div className="text-xs font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">
+          <div
+            data-testid="optimized-badge"
+            className="text-xs font-semibold bg-primary text-primary-foreground px-2 py-1 rounded"
+          >
             Optimized
           </div>
         )}
@@ -51,7 +58,7 @@ export function LineupSlot({
 
       {player ? (
         <div className="space-y-1">
-          <div className="font-semibold text-sm">{player.fullName}</div>
+           <div className="font-semibold text-sm">{playerName}</div>
            <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>
               {player.position}
@@ -72,7 +79,8 @@ export function LineupSlot({
       ) : (
         <EmptyState
           variant="minimal"
-          title="Empty slot"
+          title="Empty"
+          description="No player"
           className="py-2"
         />
       )}

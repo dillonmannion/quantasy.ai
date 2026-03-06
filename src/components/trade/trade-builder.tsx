@@ -223,7 +223,7 @@ export function TradeBuilder({
                     setPickerMode('give')
                     setIsPickSelectorOpen(true)
                   }}
-                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors text-xs font-medium"
+                   className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-secondary text-foreground border border-border hover:bg-secondary/90 transition-colors text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                 >
                   + Pick
                 </button>
@@ -246,14 +246,15 @@ export function TradeBuilder({
                 <div className="flex items-center justify-center h-[200px] text-foreground" data-testid="zone-give-empty">
                    <div className="text-center">
                      <p className="text-sm font-medium text-foreground/80">No assets selected</p>
-                     <p className="text-sm text-muted-foreground mt-1">
-                       Tap or drag to add
-                     </p>
-                   </div>
-                 </div>
-               ) : (
-                 <SortableContext
-                   items={youGive.map(getItemId)}
+                      <p className="text-sm text-muted-foreground mt-1">
+                        <span className="md:hidden">Tap or drag to add</span>
+                        <span className="hidden md:inline">Click or drag to add</span>
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <SortableContext
+                    items={youGive.map(getItemId)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
@@ -299,7 +300,7 @@ export function TradeBuilder({
                     setPickerMode('receive')
                     setIsPickSelectorOpen(true)
                   }}
-                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors text-xs font-medium"
+                   className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-secondary text-foreground border border-border hover:bg-secondary/90 transition-colors text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                 >
                   + Pick
                 </button>
@@ -322,14 +323,15 @@ export function TradeBuilder({
                 <div className="flex items-center justify-center h-[200px] text-foreground" data-testid="zone-receive-empty">
                    <div className="text-center">
                      <p className="text-sm font-medium text-foreground/80">No assets selected</p>
-                     <p className="text-sm text-muted-foreground mt-1">
-                       Tap or drag to add
-                     </p>
-                   </div>
-                 </div>
-               ) : (
-                 <SortableContext
-                   items={youReceive.map(getItemId)}
+                      <p className="text-sm text-muted-foreground mt-1">
+                        <span className="md:hidden">Tap or drag to add</span>
+                        <span className="hidden md:inline">Click or drag to add</span>
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <SortableContext
+                    items={youReceive.map(getItemId)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">

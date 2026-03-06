@@ -126,7 +126,7 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommen
               max={18}
               value={state.week}
               onChange={handleWeekChange}
-              className="w-20"
+              className="w-20 min-h-[44px] border border-border"
             />
           </div>
           
@@ -137,7 +137,7 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommen
               type="number"
               value={state.faabTotal}
               onChange={(e) => setState(prev => ({ ...prev, faabTotal: e.target.value }))}
-              className="w-24"
+              className="w-24 min-h-[44px] border border-border"
               placeholder="100"
             />
           </div>
@@ -149,7 +149,7 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommen
               type="number"
               value={state.faabRemaining}
               onChange={(e) => setState(prev => ({ ...prev, faabRemaining: e.target.value }))}
-              className="w-24"
+              className="w-24 min-h-[44px] border border-border"
               placeholder="100"
             />
           </div>
@@ -159,7 +159,7 @@ export function WaiversClient({ leagueId, rosterId, defaultWeek, initialRecommen
           onClick={fetchRecommendations} 
           disabled={state.loading}
           variant="outline"
-          className="w-full md:w-auto"
+          className="w-full md:w-auto min-h-[44px]"
         >
           {state.loading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -20,7 +20,7 @@ export function MobileNavAnimated() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pb-[env(safe-area-inset-bottom)]">
       <div className="bg-card/80 backdrop-blur-md border-t border-border">
-        <div className="grid grid-cols-6 h-16">
+        <div className="grid grid-cols-6 h-20">
           {navItems.map((item) => {
             const isActive = pathname === item.href
             const Icon = item.icon
@@ -44,7 +44,7 @@ export function MobileNavAnimated() {
                   }`}
                 />
                 <span
-                  className={`text-[11px] relative z-10 ${
+                  className={`text-[10px] relative z-10 truncate px-1 max-w-full ${
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >

@@ -63,7 +63,7 @@ export function RankingsControls({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col md:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <Input
               type="text"
               placeholder="Search players..."
@@ -71,6 +71,7 @@ export function RankingsControls({
               onChange={(e) => setSearchInput(e.target.value)}
               className="pl-9"
               data-testid="search-input"
+              aria-label="Search players"
             />
           </div>
           
@@ -79,7 +80,7 @@ export function RankingsControls({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant={hideDrafted ? 'default' : 'outline'}
             size="sm"
@@ -117,18 +118,21 @@ export function RankingsControls({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {positions.map((position) => (
-          <Button
-            key={position}
-            variant={selectedPosition === position ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onPositionChange(position)}
-            data-testid={`filter-${position}`}
-          >
-            {position}
-          </Button>
-        ))}
+      <div className="overflow-x-auto -mx-1 px-1 pb-1" role="group" aria-label="Filter by position">
+        <div className="flex flex-nowrap gap-2">
+          {positions.map((position) => (
+            <Button
+              key={position}
+              variant={selectedPosition === position ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => onPositionChange(position)}
+              data-testid={`filter-${position}`}
+              className="shrink-0"
+            >
+              {position}
+            </Button>
+          ))}
+        </div>
       </div>
     </div>
   )

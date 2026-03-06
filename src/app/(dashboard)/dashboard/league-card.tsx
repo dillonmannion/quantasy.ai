@@ -28,9 +28,9 @@ function StatBox({
 }) {
   return (
     <div className="bg-muted/50 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-1">
-        {Icon && <Icon className={`w-4 h-4 ${color}`} />}
-        <span className="text-sm text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2 mb-1 min-w-0">
+        {Icon && <Icon className={`w-4 h-4 ${color} shrink-0`} />}
+        <span className="text-sm text-muted-foreground whitespace-nowrap text-ellipsis overflow-hidden" title={label}>{label}</span>
       </div>
       <div className={`text-2xl font-bold ${color}`}>
         {typeof value === 'number' ? (
@@ -78,9 +78,9 @@ export function LeagueCard({
   const ptsDiff = ptsFor - ptsAgainst
   const ptsDiffColor =
     ptsDiff > 0
-      ? 'text-green-400'
+      ? 'text-green-500'
       : ptsDiff < 0
-        ? 'text-red-400'
+        ? 'text-red-500'
         : 'text-muted-foreground'
 
   const record = ties > 0 ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`
@@ -109,9 +109,9 @@ export function LeagueCard({
             icon={Trophy}
             color={
               wins > losses
-                ? 'text-green-400'
+                ? 'text-green-500'
                 : wins < losses
-                  ? 'text-red-400'
+                  ? 'text-red-500'
                   : 'text-foreground'
             }
           />
@@ -121,21 +121,21 @@ export function LeagueCard({
             value={standing ? getOrdinal(standing) : '-'}
             subValue={standing ? `of ${totalTeams}` : undefined}
             icon={Users}
-            color={standing && standing <= 3 ? 'text-accent' : 'text-foreground'}
+            color={standing && standing <= 3 ? 'text-purple-400' : 'text-foreground'}
           />
 
           <StatBox
             label="Points For"
             value={ptsFor}
             icon={TrendingUp}
-            color="text-green-400"
+            color="text-green-500"
           />
 
           <StatBox
             label="Points Against"
             value={ptsAgainst}
             icon={TrendingDown}
-            color="text-red-400"
+            color="text-red-500"
           />
         </div>
       ) : (

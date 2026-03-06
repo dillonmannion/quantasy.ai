@@ -18,10 +18,19 @@ export function LineupComparison({
   className,
 }: LineupComparisonProps) {
   const pointsDelta = optimized.projectedPoints - current.projectedPoints
+  const hasImprovement = pointsDelta > 0
   const pointsDeltaPercent =
     current.projectedPoints > 0
       ? ((pointsDelta / current.projectedPoints) * 100).toFixed(1)
       : '0'
+  const currentStarterSlotCount = Math.max(
+    current.starters.length,
+    current.explanation.inputsSummary.starterSlots
+  )
+  const optimizedStarterSlotCount = Math.max(
+    optimized.starters.length,
+    optimized.explanation.inputsSummary.starterSlots
+  )
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -55,25 +64,25 @@ export function LineupComparison({
           <Card
             className={cn(
               'p-4 text-center',
-              pointsDelta > 0 && 'border-primary/50 bg-primary/5'
+              hasImprovement && 'border-primary/50 bg-primary/5'
             )}
           >
              <div className="text-xs text-muted-foreground uppercase font-medium mb-1">
                Improvement
              </div>
              <div
-               className={cn(
-                 'text-2xl font-bold',
-                 pointsDelta > 0 ? 'text-primary' : 'text-muted-foreground'
-               )}
-             >
-               {pointsDelta > 0 ? '+' : ''}
-               {pointsDelta.toFixed(1)}
+                className={cn(
+                  'text-2xl font-bold',
+                  hasImprovement ? 'text-primary' : 'text-muted-foreground'
+                )}
+              >
+                {hasImprovement ? '+' : ''}
+                {pointsDelta.toFixed(1)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+               {hasImprovement ? '+' : ''}
+               {pointsDeltaPercent}%
              </div>
-             <div className="text-xs text-muted-foreground">
-              {pointsDelta > 0 ? '+' : ''}
-              {pointsDeltaPercent}%
-            </div>
           </Card>
         </FadeIn>
       </div>
@@ -85,18 +94,21 @@ export function LineupComparison({
           <div className="space-y-3">
              <h3 className="font-semibold text-sm text-white">Current Lineup</h3>
             <div className="space-y-2">
-              {current.starters.map((player) => (
+              {Array.from({ length: currentStarterSlotCount }, (_, index) => {
+                const player = current.starters[index] ?? null
+                return (
                 <LineupSlot
-                  key={player.playerId}
+                  key={player?.playerId ?? `current-empty-${index}`}
                   slot={{
-                    slotId: `current-${player.playerId}`,
+                    slotId: player ? `current-${player.playerId}` : `current-empty-${index}`,
                     slotType: 'starter',
-                    allowedPositions: player.eligiblePositions,
+                    allowedPositions: player?.eligiblePositions ?? [],
                   }}
                   player={player}
-                  projectedPoints={player.projectedPoints}
+                  projectedPoints={player?.projectedPoints}
                 />
-              ))}
+                )
+              })}
             </div>
           </div>
         </FadeIn>
@@ -106,19 +118,22 @@ export function LineupComparison({
           <div className="space-y-3">
              <h3 className="font-semibold text-sm text-white">Optimized Lineup</h3>
             <div className="space-y-2">
-              {optimized.starters.map((player) => (
+              {Array.from({ length: optimizedStarterSlotCount }, (_, index) => {
+                const player = optimized.starters[index] ?? null
+                return (
                 <LineupSlot
-                  key={player.playerId}
+                  key={player?.playerId ?? `optimized-empty-${index}`}
                   slot={{
-                    slotId: `optimized-${player.playerId}`,
+                    slotId: player ? `optimized-${player.playerId}` : `optimized-empty-${index}`,
                     slotType: 'starter',
-                    allowedPositions: player.eligiblePositions,
+                    allowedPositions: player?.eligiblePositions ?? [],
                   }}
                   player={player}
-                  projectedPoints={player.projectedPoints}
-                  isOptimized={true}
+                  projectedPoints={player?.projectedPoints}
+                  isOptimized={hasImprovement && !!player}
                 />
-              ))}
+                )
+              })}
             </div>
           </div>
         </FadeIn>

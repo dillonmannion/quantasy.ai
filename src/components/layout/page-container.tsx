@@ -8,7 +8,7 @@ interface PageContainerProps {
 
 export function PageContainer({ children, className = '' }: PageContainerProps) {
   return (
-    <div className={`min-h-screen lg:pl-64 pb-16 lg:pb-0 ${className}`}>
+    <div className={`min-h-screen pb-24 lg:pb-0 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <Breadcrumbs />

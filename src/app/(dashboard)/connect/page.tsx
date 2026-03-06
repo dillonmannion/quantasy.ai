@@ -123,6 +123,11 @@ export default function ConnectLeaguePage() {
           {['username', 'select', 'complete'].map((s, i) => (
             <div
               key={s}
+              role="progressbar"
+              aria-label={`Step ${i + 1} of 3`}
+              aria-valuenow={i + 1}
+              aria-valuemin={1}
+              aria-valuemax={3}
               className={`h-2 rounded-full transition-all ${
                 step === s ||
                 (step === 'syncing' && s === 'select') ||
@@ -168,7 +173,7 @@ export default function ConnectLeaguePage() {
                 <Button
                   type="submit"
                   disabled={loading || !username.trim()}
-                  className="w-full h-12 text-lg"
+                  className="w-full h-12 text-lg focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   {loading ? 'Searching...' : 'Find My Leagues'}
                 </Button>
