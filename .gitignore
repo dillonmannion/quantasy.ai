@@ -50,9 +50,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-# OpenCode (ignore all except skills)
-.opencode/*
-!.opencode/skills/
+# OpenCode (handled by .opencode/.gitignore)
 # OpenCode/Sisyphus working files
 .sisyphus/
 
