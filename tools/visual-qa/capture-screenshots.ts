@@ -24,6 +24,9 @@ import {
   AUTH_STATE_FILE,
   CAPTURE_SETTLE_MS,
   CAPTURE_TIMEOUT_MS,
+  CAPTURE_NETWORK_IDLE_TIMEOUT_MS,
+  CAPTURE_SKELETON_TIMEOUT_MS,
+  SKELETON_SELECTOR,
 } from './config';
 import type { Route, Viewport, CaptureResult, Manifest } from './types';
 import { getArg } from './args';
@@ -56,7 +59,14 @@ async function captureRoute(
       waitUntil: 'domcontentloaded',
       timeout: CAPTURE_TIMEOUT_MS,
     });
-    await page.waitForLoadState('load', { timeout: 5_000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: CAPTURE_NETWORK_IDLE_TIMEOUT_MS }).catch(() => {});
+    await page
+      .waitForFunction(
+        (selector: string) => document.querySelectorAll(selector).length === 0,
+        SKELETON_SELECTOR,
+        { timeout: CAPTURE_SKELETON_TIMEOUT_MS },
+      )
+      .catch(() => {});
     await page.waitForTimeout(CAPTURE_SETTLE_MS);
 
     const finalUrl = page.url();

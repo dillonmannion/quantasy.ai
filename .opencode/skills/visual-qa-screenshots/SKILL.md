@@ -269,6 +269,14 @@ The orchestrator fills in:
 3. **Route findings** — replace `_Pending analysis..._` placeholders with analysis agent output
 4. **Notes section** — fill in any missing captures, script errors, or routes skipped
 
+### Loading State Classification
+
+The capture script waits for `networkidle` and skeleton elements to disappear before screenshotting. However, some pages with slow API responses may still show skeleton/loading placeholders. When synthesizing the report:
+
+- If an analysis agent flags a skeleton/loading state as CRITICAL or WARNING, **reclassify it as INFO** with a `⏳ LOADING STATE` tag. Skeleton states are transient capture-timing artifacts, not visual bugs.
+- Still report any **layout issues visible within the skeleton structure** (overflow, overlap, broken stacking) at their original severity — those are real structural problems regardless of content state.
+- Add a "Capture Timing" note in the report's Notes section listing which pages were affected.
+
 The final report structure matches the scaffold exactly. Do NOT restructure the skeleton — just fill in the placeholders.
 
 </Report_Format>

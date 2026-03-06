@@ -50,5 +50,10 @@ export const ANALYSIS_BATCH_SIZE = 4;
 export const ANALYSIS_CATEGORY = 'multi-modal';
 
 // Capture timing
-export const CAPTURE_SETTLE_MS = 500;
+export const CAPTURE_SETTLE_MS = 1_500;
 export const CAPTURE_TIMEOUT_MS = 30_000;
+export const CAPTURE_NETWORK_IDLE_TIMEOUT_MS = 10_000;
+export const CAPTURE_SKELETON_TIMEOUT_MS = 8_000;
+
+// Skeleton detection selector (matches shadcn Skeleton component's data-slot attribute)
+export const SKELETON_SELECTOR = '[data-slot="skeleton"]';

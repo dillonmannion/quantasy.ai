@@ -132,6 +132,7 @@ RULES:
 - Be SPECIFIC. "Layout looks off" is unacceptable. "The player card grid overflows horizontally by ~50px on mobile, causing a horizontal scrollbar" is acceptable.
 - CRITICAL = broken/unusable. WARNING = degraded but functional. INFO = minor polish.
 - If a screenshot shows a login page instead of the expected route, note it as "UNAUTHENTICATED — showing login redirect, not actual page content."
+- If a screenshot shows skeleton/shimmer loading placeholders instead of real content, classify it as "LOADING STATE — captured before data loaded" at INFO severity. Skeleton states are transient and NOT visual bugs. Still report any layout issues visible in the skeleton structure (overflow, overlap, broken stacking) at their appropriate severity.
 - Do NOT suggest fixes. Detection and reporting only.
 `;
 }
