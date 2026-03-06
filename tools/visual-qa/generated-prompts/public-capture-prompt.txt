@@ -1,0 +1,58 @@
+# Category: deep | Skills: agent-browser | Background: false
+
+TASK: Screenshot ALL public routes at all 3 viewports in a single browser session.
+BASE_URL: http://localhost:3000
+
+ROUTES (process in this order):
+  1. Landing Page     — path: /                  — output: screenshots/home/
+  2. Draft Sandbox    — path: /draft-sandbox     — output: screenshots/draft-sandbox/
+  3. Login            — path: /login             — output: screenshots/login/
+
+STEPS:
+1. Open the browser:
+   agent-browser open http://localhost:3000
+   agent-browser wait --load networkidle
+
+2. For EACH route listed above, do the following (keep the same browser session open):
+
+a) MOBILE (390x844):
+      agent-browser set viewport 390 844
+      agent-browser open http://localhost:3000{PATH}
+      agent-browser wait --load networkidle
+      agent-browser wait 500
+      agent-browser get url
+      agent-browser screenshot screenshots/{DIR_NAME}/mobile.png --full
+
+b) TABLET (768x1024):
+      agent-browser set viewport 768 1024
+      agent-browser reload
+      agent-browser wait --load networkidle
+      agent-browser wait 500
+      agent-browser screenshot screenshots/{DIR_NAME}/tablet.png --full
+
+c) DESKTOP (1440x900):
+      agent-browser set viewport 1440 900
+      agent-browser reload
+      agent-browser wait --load networkidle
+      agent-browser wait 500
+      agent-browser screenshot screenshots/{DIR_NAME}/desktop.png --full
+
+   Then move to the next route. Do NOT close the browser between routes.
+
+3. After ALL 3 routes are captured, close the browser:
+   agent-browser close
+
+READINESS CHECKS:
+- After networkidle, wait 500ms for animations/hydration to settle.
+- After each screenshot, verify the file was created.
+
+ERROR HANDLING:
+- If a page fails to load, screenshot whatever is shown (error state) and continue to the next route.
+- If a screenshot command fails, retry once. If it fails again, report the error and continue.
+- Do NOT stop on a single route failure — complete all 3 routes.
+
+OUTPUT: For each route, report:
+- Which screenshots were saved (file paths)
+- Final URL for each viewport
+- Any errors encountered
+Format as a per-route summary so the orchestrator can verify each route independently.

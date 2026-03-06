@@ -1,0 +1,51 @@
+{
+  "batchSize": 4,
+  "batches": [
+    {
+      "batch": 1,
+      "routes": [
+        "home",
+        "draft-sandbox",
+        "login",
+        "connect"
+      ],
+      "prompts": [
+        "home-analysis-prompt.txt",
+        "draft-sandbox-analysis-prompt.txt",
+        "login-analysis-prompt.txt",
+        "connect-analysis-prompt.txt"
+      ]
+    },
+    {
+      "batch": 2,
+      "routes": [
+        "dashboard",
+        "draft",
+        "feedback",
+        "roster"
+      ],
+      "prompts": [
+        "dashboard-analysis-prompt.txt",
+        "draft-analysis-prompt.txt",
+        "feedback-analysis-prompt.txt",
+        "roster-analysis-prompt.txt"
+      ]
+    },
+    {
+      "batch": 3,
+      "routes": [
+        "trade",
+        "waivers"
+      ],
+      "prompts": [
+        "trade-analysis-prompt.txt",
+        "waivers-analysis-prompt.txt"
+      ]
+    }
+  ],
+  "capturePrompts": {
+    "public": "public-capture-prompt.txt",
+    "protected": "protected-capture-prompt.txt"
+  },
+  "recommendedCategory": "multi-modal"
+}

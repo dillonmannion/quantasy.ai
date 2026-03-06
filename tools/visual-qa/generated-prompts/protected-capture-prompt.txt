@@ -1,0 +1,78 @@
+# Category: deep | Skills: agent-browser | Background: false
+
+TASK: Screenshot ALL protected routes at all 3 viewports in a single authenticated browser session.
+BASE_URL: http://localhost:3000
+AUTH_STATE_FILE: .visual-qa-auth.json
+
+ROUTES (process in this order):
+  1. Connect              — path: /connect       — output: screenshots/connect/
+  2. Dashboard            — path: /dashboard     — output: screenshots/dashboard/
+  3. Draft                — path: /draft         — output: screenshots/draft/
+  4. Feedback             — path: /feedback      — output: screenshots/feedback/
+  5. Roster               — path: /roster        — output: screenshots/roster/
+  6. Trade                — path: /trade         — output: screenshots/trade/
+  7. Waivers              — path: /waivers       — output: screenshots/waivers/
+
+IMPORTANT: `state load` MUST be called BEFORE any `open` command. It launches
+a new browser context with the auth cookies/localStorage injected. If the browser
+is already running, `state load` will error.
+
+STEPS:
+1. Load auth state (this launches the browser with auth cookies injected):
+   agent-browser state load .visual-qa-auth.json
+
+2. Verify auth by navigating to the first route:
+   agent-browser open http://localhost:3000/connect
+   agent-browser wait --load networkidle
+   agent-browser get url
+   → If URL contains "/login", report AUTH_INVALID. The auth state file is expired.
+     Continue capturing anyway (will screenshot login redirects for all routes).
+
+3. For EACH route listed above, do the following (keep the same browser session open):
+
+   a) MOBILE (390x844):
+      agent-browser set viewport 390 844
+      agent-browser open http://localhost:3000{PATH}
+      agent-browser wait --load networkidle
+      agent-browser wait 500
+      agent-browser get url
+      agent-browser screenshot screenshots/{DIR_NAME}/mobile.png --full
+
+   b) TABLET (768x1024):
+      agent-browser set viewport 768 1024
+      agent-browser open http://localhost:3000{PATH}
+      agent-browser wait --load networkidle
+      agent-browser wait 500
+      agent-browser get url
+      agent-browser screenshot screenshots/{DIR_NAME}/tablet.png --full
+
+   c) DESKTOP (1440x900):
+      agent-browser set viewport 1440 900
+      agent-browser open http://localhost:3000{PATH}
+      agent-browser wait --load networkidle
+      agent-browser wait 500
+      agent-browser get url
+      agent-browser screenshot screenshots/{DIR_NAME}/desktop.png --full
+
+   Then move to the next route. Do NOT close the browser between routes.
+
+4. After ALL 7 routes are captured, close the browser:
+   agent-browser close
+
+AUTH VERIFICATION:
+- After navigating to each route, check the URL is NOT "/login".
+- If auth drops mid-run, note which route it dropped on but continue screenshotting.
+- If the FIRST route (connect) redirects to /login, report AUTH_INVALID prominently —
+  all subsequent routes will also fail auth.
+
+ERROR HANDLING:
+- If a page fails to load, screenshot whatever is shown and continue to the next route.
+- If a screenshot command fails, retry once then report the error.
+- Do NOT stop on a single route failure — complete all 7 routes.
+
+OUTPUT: For each route, report:
+- Which screenshots were saved (file paths)
+- Final URL for each viewport (to detect auth redirects)
+- Whether auth was maintained
+- Any errors encountered
+Format as a per-route summary. Flag AUTH_INVALID prominently if any route redirected to /login.
