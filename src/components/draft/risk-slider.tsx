@@ -9,7 +9,7 @@ interface RiskSliderProps {
 
 export function RiskSlider({ value, onChange }: RiskSliderProps) {
   return (
-    <div className="space-y-3 w-full max-w-[200px] md:max-w-xs">
+    <div className="space-y-3 w-full max-w-[260px] md:max-w-xs">
       <div className="flex justify-between items-center">
          <label className="text-sm font-medium">Risk Tolerance</label>
          <span className="text-xs text-muted-foreground font-mono">{value.toFixed(1)}</span>

@@ -39,7 +39,6 @@ export function SimulationOverlay({
   const { survivalRate } = recommendation
   
   const type: 'take_now' | 'wait' | 'consider' = survivalRate < 30 ? 'take_now' : survivalRate > 70 ? 'wait' : 'consider'
-  const expectedValue = 0
 
   const badgeConfig = {
     take_now: {
@@ -61,39 +60,28 @@ export function SimulationOverlay({
 
   const config = badgeConfig[type]
   const Icon = config.icon
-  const evSign = expectedValue > 0 ? '+' : ''
-  const evColor = expectedValue > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
 
   return (
     <div 
       className={cn(
-        "absolute inset-0 flex items-center justify-end px-4 gap-4 bg-background/90 backdrop-blur-[1px] md:bg-transparent md:backdrop-blur-none pointer-events-none",
+        "flex items-center gap-2 shrink-0 pl-3 border-l border-border/50",
         className
       )}
       data-testid="simulation-overlay"
     >
-      <div className="flex flex-col items-end justify-center">
-        <span className="text-[10px] uppercase text-muted-foreground font-semibold">Survival</span>
+      <div className="text-center">
+        <div className="text-[10px] uppercase text-muted-foreground font-semibold hidden md:block">Survival</div>
         <span className={cn(
-          "text-sm font-mono font-bold",
+          "text-xs md:text-sm font-mono font-bold",
           survivalRate < 30 ? "text-red-500" : survivalRate > 70 ? "text-green-500" : "text-yellow-500"
         )}>
           {survivalRate.toFixed(0)}%
         </span>
       </div>
 
-      <div className="hidden md:flex flex-col items-end justify-center min-w-[3rem]">
-        <span className="text-[10px] uppercase text-muted-foreground font-semibold">Exp. Val</span>
-        <div className="flex items-center gap-1">
-           <span className={cn("text-sm font-mono font-bold", evColor)}>
-            {evSign}{expectedValue.toFixed(1)}
-           </span>
-        </div>
-      </div>
-
       <Badge 
         variant="outline" 
-        className={cn("h-7 px-3 shadow-sm whitespace-nowrap", config.color)}
+        className={cn("h-7 px-2 md:px-3 shadow-sm whitespace-nowrap", config.color)}
       >
         <Icon className="w-3.5 h-3.5 md:mr-1.5" />
         <span className="hidden md:inline">{config.label}</span>

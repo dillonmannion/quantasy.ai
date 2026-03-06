@@ -19,7 +19,9 @@ interface LeagueFormProps {
 type ProjectionSource = 'bundled' | 'csv'
 
 export function LeagueForm({ onLeagueLoaded, onError }: LeagueFormProps) {
-  const [leagueId, setLeagueId] = useState('')
+  const [leagueId, setLeagueId] = useState(
+    process.env.NEXT_PUBLIC_SANDBOX_LEAGUE_ID ?? ''
+  )
   const [projectionSource, setProjectionSource] = useState<ProjectionSource>('bundled')
   const [csvContent, setCsvContent] = useState<string | null>(null)
   const [csvFileName, setCsvFileName] = useState<string | null>(null)

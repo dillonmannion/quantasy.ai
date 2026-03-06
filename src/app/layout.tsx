@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/auth-provider'
@@ -10,10 +10,15 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
+
 export const metadata: Metadata = {
   title: 'Quantasy - Fantasy Football Tools',
   description: 'AI-powered fantasy football tools and analytics with algorithmic transparency',
-  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
 }
 
 export default function RootLayout({

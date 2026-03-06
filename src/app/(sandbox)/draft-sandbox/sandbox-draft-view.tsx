@@ -14,7 +14,7 @@ import type { VBDInput, Position, PlayerRanking } from '@/lib/algorithms/types'
 import type { SleeperLeague, SleeperPlayer } from '@/lib/sleeper/types'
 import { useDraftState } from '@/lib/draft'
 import { useMonteCarlo } from '@/hooks/use-monte-carlo'
-import { fetchADP } from '@/lib/adp/ffc-client'
+
 import type { MonteCarloInput } from '@/lib/algorithms/monte-carlo/types'
 
 interface SandboxDraftViewProps {
@@ -49,12 +49,14 @@ function SandboxContent({ vbdRankings, leagueInfo, onReset }: SandboxContentProp
     // Using 2024 as safe default for ADP data
     const year = 2024 
     
-    fetchADP(format, leagueInfo.teams, year)
-      .then(map => {
-        setAdpMap(map)
+    const params = new URLSearchParams({ format, teams: String(leagueInfo.teams), year: String(year) })
+    fetch(`/api/adp?${params}`)
+      .then(res => res.json())
+      .then((data: { adp?: Record<string, number> }) => {
+        setAdpMap(data.adp ?? {})
       })
-      .catch(err => {
-        console.warn('ADP fetch failed, continuing without external ADP:', err)
+      .catch(() => {
+        console.warn('[Sandbox] ADP fetch failed, continuing without external ADP')
       })
       .finally(() => {
         setAdpLoading(false)
@@ -123,7 +125,7 @@ function SandboxContent({ vbdRankings, leagueInfo, onReset }: SandboxContentProp
         </div>
 
         {/* Configuration Row */}
-        <div className="flex items-end gap-4 border p-4 rounded-lg bg-card">
+        <div className="flex items-center gap-4 border p-4 rounded-lg bg-card">
           <div className="space-y-2">
             <Label htmlFor="draft-pos">My Draft Position</Label>
             <Input 
@@ -137,7 +139,7 @@ function SandboxContent({ vbdRankings, leagueInfo, onReset }: SandboxContentProp
             />
           </div>
           
-          <div className="flex-1 pb-2">
+          <div className="flex-1">
             <div className="text-sm text-muted-foreground">
               {adpLoading ? (
                 <span className="animate-pulse">Fetching market data...</span>

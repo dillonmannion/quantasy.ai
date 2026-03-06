@@ -92,3 +92,8 @@ docs/wsl-dev-environment-guide.md
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Visual QA auth artifacts
+.visual-qa-auth.json
+.opencode/browser-profile/
+screenshots/
