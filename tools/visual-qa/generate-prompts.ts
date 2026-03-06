@@ -1,10 +1,9 @@
 /**
- * Hydrated prompt file generator with batching
+ * Analysis prompt generator with batching
  *
  * Reads a manifest (from --manifest or screenshots/.run-metadata.json),
  * then generates:
- *   - 2 capture prompts (public + protected)
- *   - 1 analysis prompt per route (10 total for default routes)
+ *   - 1 analysis prompt per route
  *   - batch-manifest.json with routing metadata
  *
  * Usage:
@@ -14,198 +13,16 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import type { Manifest, Route, Viewport, RunMetadata } from './types';
+import type { Route, Viewport } from './types';
 import {
   GENERATED_PROMPTS_DIR,
   VIEWPORTS,
-  BASE_URL,
   ANALYSIS_BATCH_SIZE,
   ANALYSIS_CATEGORY,
-  CAPTURE_CATEGORY,
   SCREENSHOTS_DIR,
   PREVIOUS_DIR,
-  METADATA_FILE,
-  AUTH_STATE_FILE,
 } from './config';
-
-// ---------------------------------------------------------------------------
-// CLI arg parsing
-// ---------------------------------------------------------------------------
-
-function parseArgs(): { manifestPath?: string } {
-  const args = process.argv.slice(2);
-  let manifestPath: string | undefined;
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--manifest' && args[i + 1]) {
-      manifestPath = args[i + 1];
-      i++;
-    }
-  }
-
-  return { manifestPath };
-}
-
-// ---------------------------------------------------------------------------
-// Manifest loading
-// ---------------------------------------------------------------------------
-
-function loadManifest(manifestPath?: string): Manifest {
-  if (manifestPath) {
-    const raw = fs.readFileSync(manifestPath, 'utf-8');
-    return JSON.parse(raw) as Manifest;
-  }
-
-  // Fall back to run-metadata written by setup.ts
-  if (!fs.existsSync(METADATA_FILE)) {
-    throw new Error(
-      `No manifest found at ${METADATA_FILE}. Run setup.ts first or provide --manifest <path>.`,
-    );
-  }
-
-  const raw = fs.readFileSync(METADATA_FILE, 'utf-8');
-  const metadata = JSON.parse(raw) as RunMetadata;
-  return metadata.manifest;
-}
-
-// ---------------------------------------------------------------------------
-// Template: Public capture prompt
-// ---------------------------------------------------------------------------
-
-function generatePublicCapturePrompt(routes: Route[], viewports: Viewport[]): string {
-  const routeList = routes
-    .map((r, i) => `  ${i + 1}. ${r.name.padEnd(16)} — path: ${r.path.padEnd(18)} — output: ${SCREENSHOTS_DIR}/${r.dirName}/`)
-    .join('\n');
-
-  const viewportSteps = viewports
-    .map((v, vi) => {
-      const label = vi === 0 ? 'a' : vi === 1 ? 'b' : 'c';
-      const upper = v.name.toUpperCase();
-      const nav = vi === 0 ? `agent-browser open {BASE_URL}{PATH}` : `agent-browser reload`;
-      const getUrl = vi === 0 ? `\n      agent-browser get url` : '';
-      return `   ${label}) ${upper} (${v.width}x${v.height}):
-      agent-browser set viewport ${v.width} ${v.height}
-      ${nav}
-      agent-browser wait --load networkidle
-      agent-browser wait 500${getUrl}
-      agent-browser screenshot ${SCREENSHOTS_DIR}/{DIR_NAME}/${v.fileName} --full`.trim();
-    })
-    .join('\n\n');
-
-  return `# Category: ${CAPTURE_CATEGORY} | Skills: agent-browser | Background: false
-
-TASK: Screenshot ALL public routes at all ${viewports.length} viewports in a single browser session.
-BASE_URL: ${BASE_URL}
-
-ROUTES (process in this order):
-${routeList}
-
-STEPS:
-1. Open the browser:
-   agent-browser open ${BASE_URL}
-   agent-browser wait --load networkidle
-
-2. For EACH route listed above, do the following (keep the same browser session open):
-
-${viewportSteps.replace(/\{BASE_URL\}/g, BASE_URL).replace(/\{PATH\}/g, '{PATH}').replace(/\{DIR_NAME\}/g, '{DIR_NAME}')}
-
-   Then move to the next route. Do NOT close the browser between routes.
-
-3. After ALL ${routes.length} routes are captured, close the browser:
-   agent-browser close
-
-READINESS CHECKS:
-- After networkidle, wait 500ms for animations/hydration to settle.
-- After each screenshot, verify the file was created.
-
-ERROR HANDLING:
-- If a page fails to load, screenshot whatever is shown (error state) and continue to the next route.
-- If a screenshot command fails, retry once. If it fails again, report the error and continue.
-- Do NOT stop on a single route failure — complete all ${routes.length} routes.
-
-OUTPUT: For each route, report:
-- Which screenshots were saved (file paths)
-- Final URL for each viewport
-- Any errors encountered
-Format as a per-route summary so the orchestrator can verify each route independently.
-`;
-}
-
-// ---------------------------------------------------------------------------
-// Template: Protected capture prompt
-// ---------------------------------------------------------------------------
-
-function generateProtectedCapturePrompt(routes: Route[], viewports: Viewport[]): string {
-  const routeList = routes
-    .map((r, i) => `  ${i + 1}. ${r.name.padEnd(20)} — path: ${r.path.padEnd(14)} — output: ${SCREENSHOTS_DIR}/${r.dirName}/`)
-    .join('\n');
-
-  const viewportSteps = viewports
-    .map((v, vi) => {
-      const label = vi === 0 ? 'a' : vi === 1 ? 'b' : 'c';
-      const upper = v.name.toUpperCase();
-      return `   ${label}) ${upper} (${v.width}x${v.height}):
-      agent-browser set viewport ${v.width} ${v.height}
-      agent-browser open ${BASE_URL}{PATH}
-      agent-browser wait --load networkidle
-      agent-browser wait 500
-      agent-browser get url
-      agent-browser screenshot ${SCREENSHOTS_DIR}/{DIR_NAME}/${v.fileName} --full`;
-    })
-    .join('\n\n');
-
-  return `# Category: ${CAPTURE_CATEGORY} | Skills: agent-browser | Background: false
-
-TASK: Screenshot ALL protected routes at all ${viewports.length} viewports in a single authenticated browser session.
-BASE_URL: ${BASE_URL}
-AUTH_STATE_FILE: ${AUTH_STATE_FILE}
-
-ROUTES (process in this order):
-${routeList}
-
-IMPORTANT: \`state load\` MUST be called BEFORE any \`open\` command. It launches
-a new browser context with the auth cookies/localStorage injected. If the browser
-is already running, \`state load\` will error.
-
-STEPS:
-1. Load auth state (this launches the browser with auth cookies injected):
-   agent-browser state load ${AUTH_STATE_FILE}
-
-2. Verify auth by navigating to the first route:
-   agent-browser open ${BASE_URL}${routes[0]?.path ?? '/dashboard'}
-   agent-browser wait --load networkidle
-   agent-browser get url
-   → If URL contains "/login", report AUTH_INVALID. The auth state file is expired.
-     Continue capturing anyway (will screenshot login redirects for all routes).
-
-3. For EACH route listed above, do the following (keep the same browser session open):
-
-${viewportSteps}
-
-   Then move to the next route. Do NOT close the browser between routes.
-
-4. After ALL ${routes.length} routes are captured, close the browser:
-   agent-browser close
-
-AUTH VERIFICATION:
-- After navigating to each route, check the URL is NOT "/login".
-- If auth drops mid-run, note which route it dropped on but continue screenshotting.
-- If the FIRST route (${routes[0]?.dirName ?? 'dashboard'}) redirects to /login, report AUTH_INVALID prominently —
-  all subsequent routes will also fail auth.
-
-ERROR HANDLING:
-- If a page fails to load, screenshot whatever is shown and continue to the next route.
-- If a screenshot command fails, retry once then report the error.
-- Do NOT stop on a single route failure — complete all ${routes.length} routes.
-
-OUTPUT: For each route, report:
-- Which screenshots were saved (file paths)
-- Final URL for each viewport (to detect auth redirects)
-- Whether auth was maintained
-- Any errors encountered
-Format as a per-route summary. Flag AUTH_INVALID prominently if any route redirected to /login.
-`;
-}
+import { getArg, loadRunMetadata } from './args';
 
 // ---------------------------------------------------------------------------
 // Template: Analysis prompt (per route)
@@ -335,14 +152,20 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 // Main
 // ---------------------------------------------------------------------------
 
-export async function main(): Promise<void> {
-  const { manifestPath } = parseArgs();
-
+export async function main(routeFilter?: string): Promise<void> {
   console.log('📝 Generate Prompts\n');
 
-  // Load manifest
-  const manifest = loadManifest(manifestPath);
-  const allRoutes = [...manifest.routes.public, ...manifest.routes.protected];
+  const { manifest } = loadRunMetadata(getArg('manifest'));
+  let allRoutes = [...manifest.routes.public, ...manifest.routes.protected];
+
+  if (routeFilter) {
+    const normalized = routeFilter.startsWith('/') ? routeFilter : `/${routeFilter}`;
+    allRoutes = allRoutes.filter((r) => r.path === normalized);
+    if (allRoutes.length === 0) {
+      throw new Error(`Route "${routeFilter}" not found in manifest.`);
+    }
+    console.log(`  Route filter: ${normalized}\n`);
+  }
   const viewports = manifest.viewports ?? VIEWPORTS;
 
   console.log(
@@ -353,20 +176,6 @@ export async function main(): Promise<void> {
   fs.mkdirSync(GENERATED_PROMPTS_DIR, { recursive: true });
 
   let fileCount = 0;
-
-  // --- Capture prompts ---
-
-  const publicPromptFile = 'public-capture-prompt.txt';
-  const publicPrompt = generatePublicCapturePrompt(manifest.routes.public, viewports);
-  fs.writeFileSync(path.join(GENERATED_PROMPTS_DIR, publicPromptFile), publicPrompt);
-  fileCount++;
-  console.log(`  ✓ ${publicPromptFile}`);
-
-  const protectedPromptFile = 'protected-capture-prompt.txt';
-  const protectedPrompt = generateProtectedCapturePrompt(manifest.routes.protected, viewports);
-  fs.writeFileSync(path.join(GENERATED_PROMPTS_DIR, protectedPromptFile), protectedPrompt);
-  fileCount++;
-  console.log(`  ✓ ${protectedPromptFile}`);
 
   // --- Analysis prompts (batched) ---
 
@@ -411,10 +220,6 @@ export async function main(): Promise<void> {
   const batchManifest = {
     batchSize: ANALYSIS_BATCH_SIZE,
     batches: batchEntries,
-    capturePrompts: {
-      public: publicPromptFile,
-      protected: protectedPromptFile,
-    },
     recommendedCategory: ANALYSIS_CATEGORY,
   };
 
@@ -428,7 +233,7 @@ export async function main(): Promise<void> {
 
   console.log(
     `\n✅ Generated ${fileCount} files in ${GENERATED_PROMPTS_DIR}/` +
-      ` (2 capture + ${allRoutes.length} analysis + 1 manifest)`,
+      ` (${allRoutes.length} analysis + 1 manifest)`,
   );
 }
 

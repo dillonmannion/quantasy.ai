@@ -17,32 +17,7 @@ import {
   METADATA_FILE,
   BASE_URL,
 } from './config';
-
-// ---------------------------------------------------------------------------
-// CLI arg parsing
-// ---------------------------------------------------------------------------
-
-function parseArgs(): { manifestPath?: string; baseUrl: string } {
-  const args = process.argv.slice(2);
-  let manifestPath: string | undefined;
-  let baseUrl = BASE_URL;
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--manifest' && args[i + 1]) {
-      manifestPath = args[i + 1];
-      i++;
-    } else if (args[i] === '--base-url' && args[i + 1]) {
-      baseUrl = args[i + 1];
-      i++;
-    }
-  }
-
-  return { manifestPath, baseUrl };
-}
-
-// ---------------------------------------------------------------------------
-// Manifest loading
-// ---------------------------------------------------------------------------
+import { getArg } from './args';
 
 async function loadManifest(manifestPath?: string): Promise<Manifest> {
   if (manifestPath) {
@@ -50,7 +25,6 @@ async function loadManifest(manifestPath?: string): Promise<Manifest> {
     return JSON.parse(raw) as Manifest;
   }
 
-  // Dynamic import so the module is only required when no manifest is provided
   const { main: discoverRoutes } = await import('./discover-routes');
   return discoverRoutes();
 }
@@ -119,9 +93,10 @@ function createDirectories(manifest: Manifest): number {
 // Step 3 — Write run metadata
 // ---------------------------------------------------------------------------
 
-function writeMetadata(manifest: Manifest): void {
+function writeMetadata(manifest: Manifest, baseUrl: string): void {
   const metadata: RunMetadata = {
     startedAt: new Date().toISOString(),
+    baseUrl,
     manifest,
   };
 
@@ -136,7 +111,7 @@ function writeMetadata(manifest: Manifest): void {
 async function healthCheck(baseUrl: string): Promise<boolean> {
   try {
     const response = await fetch(baseUrl, { signal: AbortSignal.timeout(5000) });
-    return response.status === 200;
+    return response.ok;
   } catch {
     return false;
   }
@@ -146,13 +121,14 @@ async function healthCheck(baseUrl: string): Promise<boolean> {
 // Main
 // ---------------------------------------------------------------------------
 
-export async function main(): Promise<void> {
-  const { manifestPath, baseUrl } = parseArgs();
+export async function main(
+  options?: { manifest?: Manifest; baseUrl?: string },
+): Promise<Manifest> {
+  const baseUrl = options?.baseUrl ?? getArg('base-url') ?? BASE_URL;
 
   console.log('🔧 Visual QA Setup\n');
 
-  // Load manifest
-  const manifest = await loadManifest(manifestPath);
+  const manifest = options?.manifest ?? (await loadManifest(getArg('manifest')));
   const totalRoutes =
     manifest.routes.public.length + manifest.routes.protected.length;
   console.log(
@@ -170,7 +146,7 @@ export async function main(): Promise<void> {
   console.log(`  Directories: ${dirCount} created`);
 
   // Write metadata
-  writeMetadata(manifest);
+  writeMetadata(manifest, baseUrl);
   console.log(`  Metadata:    ${METADATA_FILE}`);
 
   // Health check
@@ -185,6 +161,8 @@ export async function main(): Promise<void> {
   }
 
   console.log(`\n✅ Ready — ${dirCount} directories, app healthy`);
+
+  return manifest;
 }
 
 // Run when invoked directly

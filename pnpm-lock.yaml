@@ -168,6 +168,9 @@ importers:
       msw:
         specifier: ^2.12.10
         version: 2.12.10(@types/node@25.2.3)(typescript@5.9.3)
+      playwright:
+        specifier: ^1.58.2
+        version: 1.58.2
       supabase:
         specifier: ^2.76.8
         version: 2.76.8

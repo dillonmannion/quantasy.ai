@@ -15,7 +15,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { Route, RunMetadata } from './types';
-import { METADATA_FILE, SCREENSHOTS_DIR } from './config';
+import { SCREENSHOTS_DIR } from './config';
+import { getArg, loadRunMetadata } from './args';
 
 export interface VerifyResult {
   total: number;
@@ -24,14 +25,6 @@ export interface VerifyResult {
   missing: number;
   staleFiles: string[];
   missingFiles: string[];
-}
-
-function parseArgs(argv: string[]): string {
-  const idx = argv.indexOf('--manifest');
-  if (idx !== -1 && idx + 1 < argv.length) {
-    return argv[idx + 1];
-  }
-  return METADATA_FILE;
 }
 
 function classify(
@@ -46,16 +39,7 @@ function classify(
 }
 
 export async function main(): Promise<VerifyResult> {
-  const metadataPath = parseArgs(process.argv);
-
-  if (!fs.existsSync(metadataPath)) {
-    console.error(`ERROR: Metadata file not found: ${metadataPath}`);
-    console.error('Run the capture pipeline first to generate run metadata.');
-    process.exit(1);
-  }
-
-  const raw = fs.readFileSync(metadataPath, 'utf-8');
-  const metadata: RunMetadata = JSON.parse(raw);
+  const metadata = loadRunMetadata(getArg('manifest'));
   const startedAtMs = new Date(metadata.startedAt).getTime();
   const { manifest } = metadata;
 
@@ -131,8 +115,9 @@ export async function main(): Promise<VerifyResult> {
   return result;
 }
 
-// Run when executed directly
-const result = await main();
-if (result.stale > 0 || result.missing > 0) {
-  process.exit(1);
+if (import.meta.main) {
+  const result = await main();
+  if (result.stale > 0 || result.missing > 0) {
+    process.exit(1);
+  }
 }

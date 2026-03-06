@@ -1,6 +1,6 @@
 ---
 name: visual-qa-screenshots
-description: "Orchestrates visual QA across all app routes. Spawns sequential capture agents (1 public, 1 protected) and parallel analysis agents (1 per route), then synthesizes a CHANGES-NEEDED.md report. Triggers: 'visual qa', 'screenshot all pages', 'visual audit', 'responsive screenshots', 'check all pages', 'visual regression'."
+description: "Orchestrates visual QA across all app routes. Runs Playwright capture script and parallel analysis agents (1 per route), then synthesizes a CHANGES-NEEDED.md report. Triggers: 'visual qa', 'screenshot all pages', 'visual audit', 'responsive screenshots', 'check all pages', 'visual regression'."
 license: MIT
 compatibility: opencode
 metadata:
@@ -9,22 +9,21 @@ metadata:
 
 # Visual QA Screenshots — Orchestration Skill
 
-You are the **orchestrator**. You do NOT capture screenshots or analyze them yourself. You delegate to specialized child agents via `task()` and synthesize their outputs into a final report.
+You are the **orchestrator**. You do NOT capture screenshots or analyze them yourself. You run the capture script directly via bash, then delegate analysis to specialized child agents via `task()`, and synthesize their outputs into a final report.
 
 <Purpose>
 
 Systematically screenshot every page in the application at three viewport sizes (mobile, tablet, desktop), analyze each screenshot for visual QA issues, and produce a structured CHANGES-NEEDED.md report.
 
-This skill coordinates work across child agents and direct orchestrator actions:
-- **Public capture agent** — 1 agent captures ALL discovered public routes using `agent-browser`
-- **Protected capture agent** — 1 agent captures ALL discovered protected routes using `agent-browser` with loaded auth state
-- **Analysis agents** — one per route, each analyzes 3 screenshots (one per viewport) using `look_at`
-- **You (orchestrator)** — run setup pipeline, verification between phases, final report synthesis
+This skill coordinates work across direct orchestrator actions and child agents:
+- **You (orchestrator)** — run the Playwright capture script, verify output, read the batch manifest, spawn analysis agents, synthesize the final report
+- **Analysis agents** — one per route, each analyzes 3 screenshots (one per viewport) using `look_at`. Spawned via `subagent_type="multimodal-looker"`.
 
-Total agents spawned: 2 capture + 1 per discovered route for analysis (count varies with routes discovered).
-Max concurrent: configurable batch size (default 4, set in `tools/visual-qa/config.ts`).
+Total agents spawned: 1 per discovered route for analysis (count varies with routes discovered). No capture agents — capture is done by the Playwright script you run directly.
 
-Auth is handled automatically by the setup pipeline (`pnpm visual-qa`) before capture begins — fully automated via the dev-login API, no manual login needed.
+Max concurrent analysis agents: configurable batch size (default 4, set in `tools/visual-qa/config.ts`).
+
+Auth is handled automatically by the capture script via the dev-login API and a Playwright browser context. No manual login, no agent-browser needed for capture.
 
 </Purpose>
 
@@ -39,8 +38,8 @@ Auth is handled automatically by the setup pipeline (`pnpm visual-qa`) before ca
 
 <Do_Not_Use_When>
 
-- User wants to screenshot a single specific page (just use agent-browser directly)
-- User wants functional/E2E testing (use Playwright)
+- User wants to screenshot a single specific page (use `pnpm visual-qa --route /path` for quick single-route QA)
+- User wants functional/E2E testing (use Playwright directly)
 - User wants to fix visual issues (this skill detects only, does not fix)
 - User wants accessibility auditing beyond visual signals (use dedicated a11y tools)
 
@@ -48,7 +47,7 @@ Auth is handled automatically by the setup pipeline (`pnpm visual-qa`) before ca
 
 <Why_This_Exists>
 
-The fully sequential monolithic approach (one agent, all routes, then analyze) takes 15-20 minutes. This skill uses sequential capture (1 agent per phase for reliability) with batched parallel analysis. Capture agents handle multiple routes in a single browser session to avoid resource contention observed with parallel browser instances. Analysis agents parallelize safely since they only read screenshot files.
+The fully sequential monolithic approach (one agent, all routes, then analyze) takes 15-20 minutes. This skill uses a fast Playwright script for capture (no agent overhead, no browser resource contention) with batched parallel analysis agents. The capture script handles multiple routes in a single browser session, which is faster and more reliable than spawning separate agents per route. Analysis agents parallelize safely since they only read screenshot files.
 
 Helper scripts in `tools/visual-qa/` make the pipeline fully dynamic — routes are discovered from the filesystem, prompts are generated with proper context, auth is automated, and previous-run comparison is built in. The skill never needs manual updates when routes are added or removed.
 
@@ -58,17 +57,18 @@ Helper scripts in `tools/visual-qa/` make the pipeline fully dynamic — routes 
 
 ## Helper Scripts (`tools/visual-qa/`)
 
-The orchestration is driven by scripts that run before capture begins. These scripts discover routes, set up directories, authenticate, and generate all prompts dynamically.
+The orchestration is driven by scripts that run before analysis begins. These scripts discover routes, set up directories, authenticate, capture screenshots, and generate all prompts dynamically.
 
 | Script | Purpose | Invocation |
 |--------|---------|------------|
-| `cli.ts` | Chains the full pipeline (discover → setup → auth → prompts → scaffold) | `pnpm visual-qa` |
+| `cli.ts` | Chains capture + analysis prompt generation (full pipeline) | `pnpm visual-qa` |
+| `capture-screenshots.ts` | Playwright-based capture of all routes at all viewports | Auto-run by CLI, or `pnpm visual-qa:capture` |
 | `discover-routes.ts` | Scans `src/app/**/page.tsx`, classifies routes as public/protected | Auto-run by CLI |
 | `setup.ts` | Archives previous screenshots to `.previous/`, creates dirs, health check | Auto-run by CLI |
-| `authenticate.ts` | Automated auth via dev-login API + agent-browser state save | Auto-run by CLI |
+| `authenticate.ts` | Playwright-based auth via dev-login API | Auto-run by capture script |
 | `generate-prompts.ts` | Creates hydrated prompt files + `batch-manifest.json` | Auto-run by CLI |
 | `scaffold-report.ts` | Generates `CHANGES-NEEDED.md` skeleton with TBD placeholders | Auto-run by CLI |
-| `verify-captures.ts` | Validates all screenshots exist and are fresh (mtime > run start) | Run manually between phases |
+| `verify-captures.ts` | Validates all screenshots exist and are fresh (mtime > run start) | Run by orchestrator between phases |
 | `config.ts` | Static config: viewports, batch size, categories, directory paths | Imported by other scripts |
 
 ### Generated Files (in `tools/visual-qa/generated-prompts/`)
@@ -77,15 +77,8 @@ After running `pnpm visual-qa`, these files are created:
 
 | File | Purpose |
 |------|---------|
-| `public-capture-prompt.txt` | Full prompt for the public route capture agent |
-| `protected-capture-prompt.txt` | Full prompt for the protected route capture agent |
 | `{route-dir}-analysis-prompt.txt` | Analysis prompt per route (includes previous-run comparison when `.previous/` exists) |
 | `batch-manifest.json` | Scheduling manifest: batch groups, prompt file names, recommended category |
-
-Each prompt file starts with a metadata header the orchestrator can parse:
-```
-# Category: deep | Skills: agent-browser | Background: false
-```
 
 The `batch-manifest.json` structure:
 ```json
@@ -95,10 +88,11 @@ The `batch-manifest.json` structure:
     { "batch": 1, "routes": ["..."], "prompts": ["...-analysis-prompt.txt", ...] },
     ...
   ],
-  "capturePrompts": { "public": "public-capture-prompt.txt", "protected": "protected-capture-prompt.txt" },
   "recommendedCategory": "multi-modal"
 }
 ```
+
+Note: there is no `capturePrompts` key. Capture is handled by the script, not by agents.
 
 </Pipeline_Scripts>
 
@@ -135,120 +129,79 @@ screenshots/
 
 ## Execution Model
 
-Capture agents run **one at a time, foreground** (not parallelized). This avoids browser resource contention and state-sharing issues observed with parallel capture agents.
+Capture runs as a single Playwright script (no agents). This avoids agent overhead and browser resource contention entirely. Analysis agents run in controlled batches after capture completes.
 
-- **Phase 0**: Orchestrator runs `pnpm visual-qa` — discovers routes, sets up dirs, authenticates, generates all prompts, scaffolds report.
-- **Phase 1**: 1 public capture agent (foreground). Captures ALL discovered public routes sequentially.
-- **Phase 2**: 1 protected capture agent (foreground). Captures ALL discovered protected routes sequentially using loaded auth state.
-- **Phase 3**: Analysis agents (background) scheduled in batches per `batch-manifest.json`. They only read screenshot files with `look_at`.
+- **Phase 0**: Orchestrator runs `pnpm visual-qa` — discovers routes, sets up dirs, authenticates via Playwright, captures ALL routes at ALL viewports, generates analysis prompts, scaffolds report.
+- **Phase 1**: Orchestrator runs `bun tools/visual-qa/verify-captures.ts` — validates all expected screenshots exist and are fresh.
+- **Phase 2**: Analysis agents (background) scheduled in batches per `batch-manifest.json`. They only read screenshot files with `look_at`.
+- **Phase 3**: Orchestrator reads the report skeleton and fills in findings from all analysis agents.
 
 ## Agent Categories and Skills
 
-| Agent Type | `category` | `load_skills` | `run_in_background` | Count |
-|-----------|-----------|--------------|---------------------|-------|
-| Public route capture | `"deep"` | `["agent-browser"]` | `false` | 1 |
-| Protected route capture | `"deep"` | `["agent-browser"]` | `false` | 1 |
-| Route analysis | from `batch-manifest.json` `recommendedCategory` | `[]` | `true` | 1 per route, batched |
+| Agent Type | `subagent_type` | `load_skills` | `run_in_background` | Count |
+|-----------|----------------|--------------|---------------------|-------|
+| Route analysis | `"multimodal-looker"` | `[]` | `true` | 1 per route, batched |
+
+There are no capture agents. Capture is done by the Playwright script the orchestrator runs directly.
 
 ## Concurrency Limits
 
-- Capture phases: 1 agent at a time (sequential).
+- Capture phase: 1 Playwright script run (no agents, no concurrency concerns).
 - Analysis phase: Batched background agents (default batch size 4, configurable in `tools/visual-qa/config.ts`).
 
 </Execution_Policy>
 
 <Steps>
 
-## Phase 0: Setup Pipeline (orchestrator — you do this directly)
+## Phase 0: Capture (orchestrator — you do this directly)
 
 1. Determine the base URL. Default: `http://localhost:3000`. Use whatever the user provides.
-2. Run the full setup pipeline:
+2. Run the full pipeline:
 
 ```bash
 pnpm visual-qa --base-url <BASE_URL>
 ```
 
-This single command chains all preparation steps:
+This single command does everything:
 - **Discover routes** — scans `src/app/**/page.tsx`, classifies public vs protected
 - **Setup directories** — archives previous screenshots to `.previous/`, creates fresh dirs, writes `.run-metadata.json`
 - **Health check** — verifies the dev server is responding
-- **Authenticate** — calls dev-login API, opens agent-browser to callback URL, saves auth state to `.visual-qa-auth.json`
-- **Generate prompts** — creates hydrated capture + analysis prompt files and `batch-manifest.json`
+- **Authenticate** — calls dev-login API, creates a Playwright browser context with auth cookies
+- **Capture screenshots** — navigates every route at mobile, tablet, and desktop viewports, saves PNGs
+- **Generate prompts** — creates hydrated analysis prompt files and `batch-manifest.json`
 - **Scaffold report** — creates `screenshots/CHANGES-NEEDED.md` skeleton
 
-If the pipeline fails (app not running, auth failure, etc.), it exits non-zero with an error message. Inform the user and **stop**. Do NOT proceed.
+If the pipeline fails (app not running, auth failure, etc.), it exits non-zero with an error message. Inform the user and **stop**. Do NOT proceed to analysis.
+
+For quick QA on a single route during development:
+
+```bash
+pnpm visual-qa --base-url <BASE_URL> --route /dashboard
+```
+
+For capture only (without analysis prompt generation):
+
+```bash
+pnpm visual-qa:capture --base-url <BASE_URL>
+```
 
 3. Verify the pipeline output exists:
 
 ```bash
 ls tools/visual-qa/generated-prompts/batch-manifest.json
-ls .visual-qa-auth.json
 ```
 
-## Phase 1: Capture Public Routes (1 agent, foreground)
+## Phase 1: Verify Captures (orchestrator — you do this directly)
 
-Read the generated prompt file:
-
-```bash
-cat tools/visual-qa/generated-prompts/public-capture-prompt.txt
-```
-
-Use the file content (after the metadata header line) as the prompt for the capture agent. The metadata header tells you the category and skills:
-
-```
-# Category: deep | Skills: agent-browser | Background: false
-```
-
-Spawn the agent:
-
-```
-task(category="deep", load_skills=["agent-browser"], run_in_background=false,
-     description="Capture screenshots: all public routes",
-     prompt=<content of public-capture-prompt.txt>)
-```
-
-This blocks until the agent completes. **Do NOT spawn any other agents during this phase.**
-
-## Verify: Public Captures
-
-After the agent returns, check its output for success/failure per route. Optionally run:
+Run the verification script to confirm all expected screenshots exist and are fresh:
 
 ```bash
 bun tools/visual-qa/verify-captures.ts
 ```
 
-It reports fresh/stale/missing counts with exit code `0` (all fresh) or `1` (issues).
-If screenshots are missing or stale, note it for the report but continue.
+It reports fresh/stale/missing counts with exit code `0` (all fresh) or `1` (issues). If screenshots are missing or stale, note it for the report but continue to analysis with what was captured.
 
-## Phase 2: Capture Protected Routes (1 agent, foreground)
-
-Read the generated prompt file:
-
-```bash
-cat tools/visual-qa/generated-prompts/protected-capture-prompt.txt
-```
-
-Spawn the agent using the same metadata-header pattern:
-
-```
-task(category="deep", load_skills=["agent-browser"], run_in_background=false,
-     description="Capture screenshots: all protected routes",
-     prompt=<content of protected-capture-prompt.txt>)
-```
-
-This blocks until the agent completes.
-
-## Verify: All Captures
-
-After the agent returns, run the verification script to check ALL screenshots (public + protected):
-
-```bash
-bun tools/visual-qa/verify-captures.ts
-```
-
-If the agent reported AUTH_INVALID on any route, note it for the report. If ALL routes show AUTH_INVALID, the auth state was expired — note prominently in report.
-
-## Phase 3: Analyze Screenshots (batched, parallel background)
+## Phase 2: Analyze Screenshots (batched, parallel background)
 
 Read the batch manifest for analysis agent scheduling:
 
@@ -260,8 +213,8 @@ Spawn analysis agents in BATCHES (not all at once) using the batch manifest:
 - Read `batchSize` and `batches` from `batch-manifest.json`
 - For each batch: read each prompt file listed in `batch.prompts`, spawn as a background task
 - Wait for ALL agents in the current batch to complete before starting the next batch
-- Use the `recommendedCategory` from the manifest (e.g., `"multi-modal"`)
-- Each analysis agent gets `load_skills=[]` — they use `look_at`, not `agent-browser`
+- Spawn each analysis agent with `subagent_type="multimodal-looker"` (do NOT use a category — use subagent_type directly)
+- Each analysis agent gets `load_skills=[]` — they use `look_at`, not agent-browser
 
 This prevents API overload from too many simultaneous agents.
 
@@ -269,7 +222,7 @@ This prevents API overload from too many simultaneous agents.
 
 Wait for ALL analysis agents to complete across all batches. Collect each agent's output — it will contain structured findings per viewport.
 
-## Phase 4: Report Synthesis (orchestrator — you do this directly)
+## Phase 3: Report Synthesis (orchestrator — you do this directly)
 
 The report skeleton already exists at `screenshots/CHANGES-NEEDED.md` (generated by the pipeline in Phase 0).
 
@@ -280,37 +233,23 @@ The report skeleton already exists at `screenshots/CHANGES-NEEDED.md` (generated
 5. **Write** the final report to `screenshots/CHANGES-NEEDED.md`.
 6. **Report** to the user: summary of findings, link to the report file.
 
-No browser cleanup needed — each capture agent closes its own browser.
-
 </Steps>
 
 <Tool_Usage>
 
 ## Delegation Prompt Templates
 
-Prompts are generated dynamically by the pipeline scripts. Do NOT use hardcoded templates.
-
-### Public Capture Agent Prompt
-
-Read from: `tools/visual-qa/generated-prompts/public-capture-prompt.txt`
-
-### Protected Capture Agent Prompt
-
-Read from: `tools/visual-qa/generated-prompts/protected-capture-prompt.txt`
+Analysis prompts are generated dynamically by the pipeline scripts. Do NOT use hardcoded templates.
 
 ### Analysis Agent Prompts
 
 One per route. Read from: `tools/visual-qa/generated-prompts/{dirName}-analysis-prompt.txt`
+
 See `tools/visual-qa/generated-prompts/batch-manifest.json` for batch scheduling and prompt file names.
 
-### Metadata Header Convention
+### Analysis Agent Configuration
 
-Every generated prompt file starts with a metadata line:
-```
-# Category: <category> | Skills: <skills> | Background: <true|false>
-```
-
-Parse this to configure `task()` calls. For analysis prompts, an additional `Batch: N of M` field is included.
+Always use `subagent_type="multimodal-looker"` for analysis agents. Do NOT use a `category` parameter. Do NOT load `agent-browser` — analysis agents use `look_at` to read screenshot files directly.
 
 </Tool_Usage>
 
@@ -326,7 +265,7 @@ The orchestrator fills in:
 1. **Summary counts** — replace `_TBD_` placeholders with actual CRITICAL/WARNING/INFO counts
 2. **Issues by Page table** — replace `_TBD_` cells with per-route per-viewport issue counts
 3. **Route findings** — replace `_Pending analysis..._` placeholders with analysis agent output
-4. **Notes section** — fill in auth state, missing captures, agent errors
+4. **Notes section** — fill in any missing captures, script errors, or routes skipped
 
 The final report structure matches the scaffold exactly. Do NOT restructure the skeleton — just fill in the placeholders.
 
@@ -343,95 +282,98 @@ task(category="deep", load_skills=["visual-qa-screenshots"], prompt="Run visual 
 
 **Correct orchestration flow:**
 ```python
-# Phase 0: Run full setup pipeline (discover, setup, auth, prompts, scaffold)
+# Phase 0: Run full pipeline (discover, setup, auth, capture, prompts, scaffold)
 bash("pnpm visual-qa --base-url http://localhost:3000")
+# If exit code non-zero: inform user and stop
+
 # Verify pipeline output
-bash("ls tools/visual-qa/generated-prompts/batch-manifest.json .visual-qa-auth.json")
+bash("ls tools/visual-qa/generated-prompts/batch-manifest.json")
 
-# Phase 1: ONE agent captures ALL public routes (foreground — blocks until done)
-public_prompt = read("tools/visual-qa/generated-prompts/public-capture-prompt.txt")
-public_result = task(category="deep", load_skills=["agent-browser"], run_in_background=false,
-    prompt=public_prompt)
-
-# Verify: script checks fresh/stale/missing captures
+# Phase 1: Verify all screenshots exist and are fresh
 bash("bun tools/visual-qa/verify-captures.ts")
+# Note any missing/stale files for the report, but continue
 
-# Phase 2: ONE agent captures ALL protected routes (foreground — blocks until done)
-# Auth was already handled by the pipeline in Phase 0 — no separate auth step needed
-protected_prompt = read("tools/visual-qa/generated-prompts/protected-capture-prompt.txt")
-protected_result = task(category="deep", load_skills=["agent-browser"], run_in_background=false,
-    prompt=protected_prompt)
-
-# Verify all captures (public + protected)
-bash("bun tools/visual-qa/verify-captures.ts")
-
-# Phase 3: Analysis — batched background agents (from manifest)
+# Phase 2: Analysis — batched background agents (from manifest)
 manifest = json.parse(read("tools/visual-qa/generated-prompts/batch-manifest.json"))
 for batch in manifest["batches"]:
     batch_tasks = []
     for prompt_file in batch["prompts"]:
         prompt = read(f"tools/visual-qa/generated-prompts/{prompt_file}")
         batch_tasks.append(task(
-            category=manifest["recommendedCategory"],
+            subagent_type="multimodal-looker",
             load_skills=[],
             run_in_background=true,
             prompt=prompt,
         ))
     collect(batch_tasks)  # wait for this batch before starting next
 
-# Phase 4: Fill in the report skeleton with analysis agent findings
+# Phase 3: Fill in the report skeleton with analysis agent findings
 skeleton = read("screenshots/CHANGES-NEEDED.md")
 write("screenshots/CHANGES-NEEDED.md", fill_in_findings(skeleton, all_analysis_outputs))
 ```
 
-Why good: The entire setup pipeline runs as a single command — route discovery, directory management, auth, prompt generation, and report scaffolding are all handled automatically. Capture remains sequential for browser stability. Analysis runs in controlled batches to prevent API overload while preserving parallel speedups. No hardcoded routes or prompts.
+Why good: The Playwright script handles all capture in one fast, reliable pass — no agent overhead, no browser contention. The orchestrator only needs to run a script, verify output, and schedule analysis. Analysis runs in controlled batches to prevent API overload while preserving parallel speedups. No hardcoded routes or prompts.
+
+**Quick single-route QA during development:**
+```bash
+pnpm visual-qa --base-url http://localhost:3000 --route /dashboard
+```
+
+Why good: The `--route` flag filters capture to one route, making it fast for iterative development checks without running the full suite.
 
 </Good>
 
 <Bad>
 
-**Spawning multiple capture agents in parallel:**
+**Spawning agent-browser agents for capture:**
 ```python
-# DON'T DO THIS — parallel browser agents cause resource contention and state issues
-task(run_in_background=true, prompt="capture /home")
-task(run_in_background=true, prompt="capture /login")
-task(run_in_background=true, prompt="capture /draft-sandbox")
+# DON'T DO THIS — capture is done by the Playwright script, not agents
+task(category="deep", load_skills=["agent-browser"], run_in_background=false,
+     prompt="Navigate to http://localhost:3000 and take screenshots...")
 ```
-Why bad: Multiple agent-browser instances competing for resources causes oddities. Use 1 agent per phase.
+Why bad: The Playwright capture script already handles all routes at all viewports. Spawning agent-browser for capture is redundant, slower, and bypasses the automated auth and directory setup.
+
+**Skipping the capture script and going straight to analysis:**
+```python
+# Skipping Phase 0 entirely!
+manifest = json.parse(read("tools/visual-qa/generated-prompts/batch-manifest.json"))
+for batch in manifest["batches"]:
+    ...
+```
+Why bad: Without running `pnpm visual-qa`, there are no screenshots, no fresh prompt files, and the manifest may be stale or missing. Analysis agents will fail because the files they need don't exist.
 
 **Running authenticate.ts separately when the CLI already ran it:**
 ```python
-bash("pnpm visual-qa")         # Pipeline already authenticated
-bash("bun tools/visual-qa/authenticate.ts")  # Redundant — wastes time, may conflict
+bash("pnpm visual-qa")                           # Pipeline already authenticated
+bash("bun tools/visual-qa/authenticate.ts")      # Redundant — wastes time, may conflict
 ```
-Why bad: The CLI pipeline chains authenticate.ts automatically. Running it again is redundant and could interfere with the saved auth state.
-
-**Spawning protected capture without running the pipeline first:**
-```python
-# Skipping Phase 0 entirely!
-protected_prompt = read("tools/visual-qa/generated-prompts/protected-capture-prompt.txt")
-task(category="deep", load_skills=["agent-browser"], prompt=protected_prompt)
-```
-Why bad: Without `pnpm visual-qa`, there's no auth state, no directories, and the prompt files may be stale or missing.
+Why bad: The CLI pipeline chains authentication automatically as part of capture. Running it again is redundant and could interfere with the in-progress browser context.
 
 **Loading agent-browser on analysis agents:**
 ```python
-task(category="multi-modal", load_skills=["agent-browser"], prompt="analyze...")
+task(subagent_type="multimodal-looker", load_skills=["agent-browser"], prompt="analyze...")
 ```
-Why bad: Analysis agents use `look_at`, not `agent-browser`. Loading unnecessary skills wastes context.
+Why bad: Analysis agents use `look_at` to read screenshot files. They don't need a browser. Loading agent-browser wastes context and may confuse the agent.
 
-**Spawning analysis before captures complete:**
+**Using a category instead of subagent_type for analysis agents:**
 ```python
-task(run_in_background=false, prompt="capture protected routes")
-task(run_in_background=true, prompt="analyze route X")  # capture still running!
+task(category="some-category", load_skills=[], prompt="analyze screenshots...")
 ```
-Why bad: Analysis agents will fail because screenshot files haven't been written yet.
+Why bad: Analysis agents MUST use `subagent_type="multimodal-looker"`, not a category. The multimodal-looker agent is purpose-built for screenshot analysis with `look_at`.
+
+**Spawning analysis before the capture script completes:**
+```python
+bash("pnpm visual-qa &")  # running in background
+task(subagent_type="multimodal-looker", prompt="analyze route X")  # capture still running!
+```
+Why bad: Analysis agents will fail because screenshot files haven't been written yet. Always wait for the capture script to exit before proceeding.
 
 **Using hardcoded routes or prompts instead of generated files:**
 ```python
-task(prompt="Screenshot /dashboard at 390x844, 768x1024, 1440x900...")
+task(subagent_type="multimodal-looker",
+     prompt="Look at screenshots/dashboard/mobile.png and check for issues...")
 ```
-Why bad: Routes and viewports are discovered dynamically. Hardcoded prompts will drift when routes are added/removed. Always read from `tools/visual-qa/generated-prompts/`.
+Why bad: Routes and viewports are discovered dynamically. Hardcoded prompts will drift when routes are added or removed. Always read from `tools/visual-qa/generated-prompts/`.
 
 </Bad>
 
@@ -442,23 +384,21 @@ Why bad: Routes and viewports are discovered dynamically. Hardcoded prompts will
 ## Stop and inform user:
 - Pipeline fails in Phase 0 (`pnpm visual-qa` exits non-zero) — could be app not running, auth failure, or missing env vars
 - Auth failure specifically: check that `ADMIN_EMAIL` is set in `.env.local` and the dev-login API endpoint exists
-- Both capture agents fail completely (zero screenshots captured)
+- Capture script produces zero screenshots across all routes
 
 ## Continue despite errors:
-- Public capture agent fails on one route but succeeds on others — note in report, analyze what was captured
-- Protected capture agent reports AUTH_INVALID on some routes but not all — note in report
+- Capture script fails on one route but succeeds on others — note in report, analyze what was captured
+- verify-captures.ts reports stale or missing files for some routes — note in report, continue with available screenshots
 - A single analysis agent fails — note in report, include findings from other agents
 - Some screenshots missing — report partial results, clearly note gaps
-- verify-captures.ts reports stale files — note in report, stale screenshots may be from a previous run
 
 ## Never do:
 - Fix visual issues — this skill is detection only
-- Skip routes — every discovered route must be attempted
-- Leave browsers open — every agent must close its browser
+- Skip routes — every discovered route must be attempted by the capture script
 - Write the report before all analyses complete — wait for all agents
-- Spawn the protected capture agent before the pipeline has authenticated
+- Spawn agent-browser for capture — the Playwright script handles this
 - Hardcode routes or prompts — always read from generated files
-- Delegate auth to a child agent — the pipeline handles auth via orchestrator-run scripts
+- Delegate auth to a child agent — the capture script handles auth automatically
 
 </Escalation_And_Stop_Conditions>
 
@@ -466,16 +406,13 @@ Why bad: Routes and viewports are discovered dynamically. Hardcoded prompts will
 
 Before reporting completion, verify ALL of these:
 
-- [ ] Pipeline (`pnpm visual-qa`) completed successfully in Phase 0
-- [ ] `batch-manifest.json` and `.visual-qa-auth.json` exist
-- [ ] Public capture agent completed and screenshots verified via `verify-captures.ts`
-- [ ] Protected capture agent completed and screenshots verified via `verify-captures.ts`
-- [ ] Protected capture agent output checked for AUTH_INVALID indicators
+- [ ] Capture script (`pnpm visual-qa`) completed successfully (exit code 0)
+- [ ] `batch-manifest.json` exists in `tools/visual-qa/generated-prompts/`
+- [ ] `verify-captures.ts` ran and output reviewed (fresh/stale/missing counts noted)
 - [ ] All analysis agent outputs collected (one per discovered route, across all batches)
 - [ ] `screenshots/CHANGES-NEEDED.md` filled in with complete findings (no `_TBD_` or `_Pending analysis..._` placeholders remaining)
 - [ ] Report includes accurate issue counts (CRITICAL/WARNING/INFO)
-- [ ] Report notes auth state status and any routes where auth failed
-- [ ] No browser sessions left open (capture agents closed their browsers)
+- [ ] Report notes any routes where capture failed or screenshots were missing
 - [ ] User informed of summary findings
 
 </Final_Checklist>

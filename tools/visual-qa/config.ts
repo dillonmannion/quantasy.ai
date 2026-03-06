@@ -48,4 +48,7 @@ export const GENERATED_PROMPTS_DIR = 'tools/visual-qa/generated-prompts';
 // Analysis configuration
 export const ANALYSIS_BATCH_SIZE = 4;
 export const ANALYSIS_CATEGORY = 'multi-modal';
-export const CAPTURE_CATEGORY = 'deep';
+
+// Capture timing
+export const CAPTURE_SETTLE_MS = 500;
+export const CAPTURE_TIMEOUT_MS = 30_000;

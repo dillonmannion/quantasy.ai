@@ -33,5 +33,16 @@ export interface Manifest {
 
 export interface RunMetadata {
   startedAt: string;
+  baseUrl: string;
   manifest: Manifest;
+}
+
+export interface CaptureResult {
+  route: Route;
+  viewport: Viewport;
+  success: boolean;
+  filePath: string;
+  finalUrl: string;
+  error?: string;
+  authFailed?: boolean;
 }

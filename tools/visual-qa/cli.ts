@@ -1,30 +1,10 @@
-/**
- * Visual QA CLI — sequential pipeline runner
- *
- * Chains all visual QA scripts in order, stopping on first failure:
- *   1. discover-routes → build route manifest
- *   2. setup → archive previous + create directories + health check
- *   3. authenticate → dev-login + browser auth flow
- *   4. generate-prompts → hydrated prompt files + batch manifest
- *   5. scaffold-report → CHANGES-NEEDED.md skeleton
- *
- * Usage:
- *   bun tools/visual-qa/cli.ts [--base-url <url>]
- *
- * The --base-url arg is passed through to setup and authenticate
- * via process.argv (those scripts parse it themselves).
- */
-
-import { main as discoverRoutes } from './discover-routes';
-import { main as setup } from './setup';
-import { main as authenticate } from './authenticate';
+import { captureScreenshots } from './capture-screenshots';
 import { main as generatePrompts } from './generate-prompts';
-import { main as scaffoldReport } from './scaffold-report';
+import { spawnServer, type ServerHandle } from './serve';
 import { BASE_URL } from './config';
+import { getArg } from './args';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+const DEFAULT_SERVE_PORT = 6969;
 
 function timestamp(): string {
   return new Date().toISOString().slice(11, 19);
@@ -34,67 +14,58 @@ function log(msg: string): void {
   console.log(`[visual-qa] ${msg}`);
 }
 
-function parseBaseUrl(): string {
-  const args = process.argv.slice(2);
-  const idx = args.indexOf('--base-url');
-  return idx !== -1 && args[idx + 1] ? args[idx + 1] : BASE_URL;
+function parseServeMode(): 'dev' | 'preview' | undefined {
+  const mode = getArg('serve');
+  if (!mode) return undefined;
+  if (mode !== 'dev' && mode !== 'preview') {
+    throw new Error(`--serve must be "dev" or "preview", got "${mode}"`);
+  }
+  return mode;
 }
 
-// ---------------------------------------------------------------------------
-// Pipeline
-// ---------------------------------------------------------------------------
+function parsePort(): number {
+  const raw = getArg('port');
+  if (!raw) return DEFAULT_SERVE_PORT;
+  const port = parseInt(raw, 10);
+  if (isNaN(port)) throw new Error(`--port must be a number, got "${raw}"`);
+  return port;
+}
 
 export async function main(): Promise<void> {
-  const baseUrl = parseBaseUrl();
+  const baseUrl = getArg('base-url') ?? BASE_URL;
+  const routeFilter = getArg('route');
+  const serve = parseServeMode();
+  const port = parsePort();
 
-  log(`Pipeline started at ${timestamp()}`);
-  log(`Base URL: ${baseUrl}`);
-  console.log();
+  let server: ServerHandle | undefined;
+  let effectiveBaseUrl = baseUrl;
 
-  // Step 1: Discover routes
-  log(`Step 1/5: Discovering routes... (${timestamp()})`);
-  const manifest = await discoverRoutes();
-  const publicCount = manifest.routes.public.length;
-  const protectedCount = manifest.routes.protected.length;
-  const totalRoutes = publicCount + protectedCount;
-  log(`  Found ${totalRoutes} routes (${publicCount} public, ${protectedCount} protected)`);
-  console.log();
+  if (serve) {
+    server = await spawnServer(serve, port);
+    effectiveBaseUrl = server.baseUrl;
+  }
 
-  // Step 2: Setup directories + health check
-  log(`Step 2/5: Setting up directories... (${timestamp()})`);
-  await setup();
-  log(`  Archived previous run, created ${totalRoutes} directories`);
-  console.log();
+  try {
+    log(`Pipeline started at ${timestamp()}`);
+    log(`Base URL: ${effectiveBaseUrl}`);
+    if (routeFilter) log(`Route filter: ${routeFilter}`);
+    if (serve) log(`Server mode: ${serve} (port ${port})`);
+    console.log();
 
-  // Step 3: Authenticate
-  log(`Step 3/5: Authenticating... (${timestamp()})`);
-  await authenticate();
-  log(`  Auth state saved to .visual-qa-auth.json`);
-  console.log();
+    log(`Phase 1/2: Capture screenshots (${timestamp()})`);
+    await captureScreenshots(effectiveBaseUrl, routeFilter);
+    console.log();
 
-  log('Capture phase ready. The orchestrator should now run capture agents using the generated prompts.');
-  console.log();
+    log(`Phase 2/2: Generating analysis prompts... (${timestamp()})`);
+    await generatePrompts(routeFilter);
+    console.log();
 
-  // Step 4: Generate prompts
-  log(`Step 4/5: Generating prompts... (${timestamp()})`);
-  await generatePrompts();
-  console.log();
-
-  log('Prompts generated. After captures complete, run: bun tools/visual-qa/verify-captures.ts');
-  console.log();
-
-  // Step 5: Scaffold report
-  log(`Step 5/5: Scaffolding report... (${timestamp()})`);
-  await scaffoldReport();
-  log(`  Report skeleton at screenshots/CHANGES-NEEDED.md`);
-  console.log();
-
-  log(`Done! Ready for capture phase. (${timestamp()})`);
+    log('Ready for analysis phase. Run: bun tools/visual-qa/verify-captures.ts');
+    log(`Done! (${timestamp()})`);
+  } finally {
+    if (server) await server.cleanup();
+  }
 }
-
-// ---------------------------------------------------------------------------
-// CLI entry point
-// ---------------------------------------------------------------------------
 
 if (import.meta.main) {
   main().catch((err) => {

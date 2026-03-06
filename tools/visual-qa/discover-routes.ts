@@ -21,7 +21,7 @@ import {
 
 const APP_DIR = path.resolve('src', 'app');
 const PAGE_FILE = 'page.tsx';
-const ROUTE_GROUP_RE = /\([^)]+\)/g;
+const ROUTE_GROUP_RE = /^\([^)]+\)$/;
 
 /**
  * Recursively walk a directory and return all file paths.
@@ -62,29 +62,33 @@ function toDisplayName(dirName: string): string {
     .join(' ');
 }
 
-/**
- * Given an absolute page.tsx path, derive the Route object.
- */
-function deriveRoute(pagePath: string): Route {
-  // Get the relative path from app dir to the page's directory
+const DYNAMIC_SEGMENT_RE = /\[/;
+const INTERCEPT_SEGMENT_RE = /^\(\.{1,3}\)/;
+
+function deriveRoute(pagePath: string): Route | null {
   const pageDir = path.dirname(pagePath);
   const relDir = path.relative(APP_DIR, pageDir);
 
-  // Split into segments and extract groups
   const segments = relDir === '' ? [] : relDir.split(path.sep);
+
+  const hasUncapturable = segments.some(
+    (s) =>
+      s.startsWith('@') ||
+      DYNAMIC_SEGMENT_RE.test(s) ||
+      INTERCEPT_SEGMENT_RE.test(s),
+  );
+  if (hasUncapturable) return null;
+
   const groups = segments.map(extractGroup).filter(Boolean) as string[];
 
   // Strip route groups to derive URL path
   const urlSegments = segments.filter((s) => !ROUTE_GROUP_RE.test(s));
-  // Reset the regex lastIndex since it's global
-  ROUTE_GROUP_RE.lastIndex = 0;
   const urlPath = '/' + urlSegments.join('/');
 
-  // Derive dirName
   const dirName =
     urlPath === '/'
       ? (ROOT_DIR_NAME_MAP['/'] ?? 'home')
-      : urlSegments[urlSegments.length - 1];
+      : urlSegments.join('--');
 
   // Derive display name
   const name = urlPath === '/' ? 'Landing Page' : toDisplayName(dirName);
@@ -103,10 +107,13 @@ export async function main(): Promise<Manifest> {
   const allFiles = walkDir(APP_DIR);
   const pageFiles = allFiles.filter((f) => path.basename(f) === PAGE_FILE);
 
-  // Derive routes
-  const routes = pageFiles.map(deriveRoute);
+  const derived = pageFiles.map(deriveRoute);
+  const routes = derived.filter((r): r is Route => r !== null);
+  const skipped = derived.length - routes.length;
+  if (skipped > 0) {
+    console.error(`  Skipped ${skipped} uncapturable route(s) (dynamic, parallel, or intercepting)`);
+  }
 
-  // Classify into public/protected
   const publicRoutes: Route[] = [];
   const protectedRoutes: Route[] = [];
 

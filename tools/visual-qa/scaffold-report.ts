@@ -8,38 +8,11 @@
  *   bun tools/visual-qa/scaffold-report.ts [--manifest <path>]
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import type { Manifest, Route, RunMetadata } from './types';
-import { SCREENSHOTS_DIR, PREVIOUS_DIR, METADATA_FILE, BASE_URL, VIEWPORTS } from './config';
-
-function parseArgs(args: string[]): { manifestPath: string } {
-  let manifestPath = METADATA_FILE;
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--manifest' && args[i + 1]) {
-      manifestPath = args[i + 1];
-    }
-  }
-
-  return { manifestPath };
-}
-
-function loadManifest(manifestPath: string): Manifest {
-  const resolved = resolve(manifestPath);
-  if (!existsSync(resolved)) {
-    throw new Error(`Manifest not found: ${resolved}`);
-  }
-
-  const raw = readFileSync(resolved, 'utf-8');
-  const parsed = JSON.parse(raw) as RunMetadata | Manifest;
-
-  // Support both RunMetadata wrapper and raw Manifest
-  if ('manifest' in parsed) {
-    return parsed.manifest;
-  }
-  return parsed as Manifest;
-}
+import type { Manifest, Route } from './types';
+import { SCREENSHOTS_DIR, PREVIOUS_DIR } from './config';
+import { getArg, loadRunMetadata } from './args';
 
 function getAllRoutes(manifest: Manifest): Route[] {
   return [...manifest.routes.public, ...manifest.routes.protected];
@@ -54,15 +27,15 @@ function hasPreviousRun(): boolean {
   return existsSync(resolve(PREVIOUS_DIR));
 }
 
-function buildHeader(routes: Route[]): string {
-  const viewportLabels = VIEWPORTS.map(viewportLabel).join(', ');
+function buildHeader(routes: Route[], baseUrl: string, viewports: { name: string; width: number; height: number }[]): string {
+  const viewportLabels = viewports.map(viewportLabel).join(', ');
   const now = new Date().toISOString();
 
   return [
     '# Visual QA Report',
     '',
     `**Generated:** ${now}`,
-    `**Base URL:** ${BASE_URL}`,
+    `**Base URL:** ${baseUrl}`,
     `**Viewports:** ${viewportLabels}`,
     '',
   ].join('\n');
@@ -72,7 +45,7 @@ function buildSummary(routes: Route[]): string {
   const lines: string[] = [
     '## Summary',
     '',
-    `- **Pages screenshotted:** ${routes.length}/10`,
+    `- **Pages screenshotted:** ${routes.length}`,
     '- **Total issues found:** _TBD_',
     '- **Critical:** _TBD_',
     '- **Warning:** _TBD_',
@@ -92,12 +65,12 @@ function buildSummary(routes: Route[]): string {
   return lines.join('\n');
 }
 
-function buildRouteSection(routes: Route[]): string {
+function buildRouteSection(routes: Route[], viewports: { name: string; width: number; height: number }[]): string {
   const lines: string[] = [];
 
   for (const route of routes) {
     lines.push(`### ${route.name} (${route.path})`);
-    for (const vp of VIEWPORTS) {
+    for (const vp of viewports) {
       lines.push(`#### ${viewportLabel(vp)}`);
       lines.push('_Pending analysis..._');
     }
@@ -107,7 +80,7 @@ function buildRouteSection(routes: Route[]): string {
   return lines.join('\n');
 }
 
-function buildFirstRunBody(routes: Route[]): string {
+function buildFirstRunBody(routes: Route[], viewports: { name: string; width: number; height: number }[]): string {
   const lines: string[] = [
     '---',
     '',
@@ -117,7 +90,7 @@ function buildFirstRunBody(routes: Route[]): string {
     '',
   ];
 
-  lines.push(buildRouteSection(routes));
+  lines.push(buildRouteSection(routes, viewports));
 
   lines.push('---');
   lines.push('');
@@ -125,7 +98,7 @@ function buildFirstRunBody(routes: Route[]): string {
   return lines.join('\n');
 }
 
-function buildSubsequentRunBody(routes: Route[]): string {
+function buildSubsequentRunBody(routes: Route[], viewports: { name: string; width: number; height: number }[]): string {
   const sections = [
     {
       title: 'New Issues (regressions since previous run)',
@@ -150,7 +123,7 @@ function buildSubsequentRunBody(routes: Route[]): string {
     lines.push('');
     lines.push(section.description);
     lines.push('');
-    lines.push(buildRouteSection(routes));
+    lines.push(buildRouteSection(routes, viewports));
   }
 
   lines.push('---');
@@ -170,19 +143,20 @@ function buildNotes(): string {
   ].join('\n');
 }
 
-function generateReport(manifest: Manifest): string {
+function generateReport(manifest: Manifest, baseUrl: string): string {
   const routes = getAllRoutes(manifest);
+  const viewports = manifest.viewports;
   const isPreviousRun = hasPreviousRun();
 
   const parts: string[] = [
-    buildHeader(routes),
+    buildHeader(routes, baseUrl, viewports),
     buildSummary(routes),
   ];
 
   if (isPreviousRun) {
-    parts.push(buildSubsequentRunBody(routes));
+    parts.push(buildSubsequentRunBody(routes, viewports));
   } else {
-    parts.push(buildFirstRunBody(routes));
+    parts.push(buildFirstRunBody(routes, viewports));
   }
 
   parts.push(buildNotes());
@@ -191,11 +165,8 @@ function generateReport(manifest: Manifest): string {
 }
 
 export async function main(): Promise<void> {
-  const args = process.argv.slice(2);
-  const { manifestPath } = parseArgs(args);
-
-  const manifest = loadManifest(manifestPath);
-  const report = generateReport(manifest);
+  const metadata = loadRunMetadata(getArg('manifest'));
+  const report = generateReport(metadata.manifest, metadata.baseUrl);
 
   const outputPath = resolve(SCREENSHOTS_DIR, 'CHANGES-NEEDED.md');
   const outputDir = dirname(outputPath);
