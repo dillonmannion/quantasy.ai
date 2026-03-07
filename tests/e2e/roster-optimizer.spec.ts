@@ -194,4 +194,100 @@ test.describe('Roster Optimizer', () => {
       await expect(page.locator('text=Apply Lineup Optimization').first()).toBeVisible({ timeout: 5000 })
     }
   })
+
+  test('optimized badge is hidden when improvement is 0.0', async ({ page }) => {
+    await page.route('**/api/algorithms/lineup', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          starters: [
+            {
+              playerId: '4046',
+              fullName: 'Patrick Mahomes',
+              team: 'KC',
+              position: 'QB',
+              eligiblePositions: ['QB'],
+              projectedPoints: 25.0,
+              injuryStatus: null,
+              status: 'Active',
+              byeWeek: null,
+            },
+          ],
+          bench: [],
+          projectedPoints: 25.0,
+          explanation: {
+            algorithm: 'lineup_optimizer_v1',
+            timestamp: new Date().toISOString(),
+            inputsSummary: {
+              rosterCount: 1,
+              slotCount: 1,
+              starterSlots: 1,
+              benchSlots: 0,
+              week: 1,
+            },
+            excludedPlayers: [],
+            decisions: [],
+            caveats: [],
+          },
+        }),
+      })
+    })
+
+    await page.goto('/roster')
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    const week1Button = page.locator('button:has-text("1")').first()
+    await week1Button.click()
+    await expect(page.locator('text=Improvement')).toBeVisible()
+    await expect(page.locator('text=0.0').first()).toBeVisible()
+    await expect(page.locator('[data-testid="optimized-badge"]')).toHaveCount(0)
+  })
+
+  test('shows empty slot text when starters are missing', async ({ page }) => {
+    await page.route('**/api/algorithms/lineup', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          starters: [
+            {
+              playerId: '4046',
+              fullName: '',
+              team: 'KC',
+              position: 'QB',
+              eligiblePositions: ['QB'],
+              projectedPoints: 25.0,
+              injuryStatus: null,
+              status: 'Active',
+              byeWeek: null,
+            },
+          ],
+          bench: [],
+          projectedPoints: 25.0,
+          explanation: {
+            algorithm: 'lineup_optimizer_v1',
+            timestamp: new Date().toISOString(),
+            inputsSummary: {
+              rosterCount: 1,
+              slotCount: 2,
+              starterSlots: 2,
+              benchSlots: 0,
+              week: 1,
+            },
+            excludedPlayers: [],
+            decisions: [],
+            caveats: [],
+          },
+        }),
+      })
+    })
+
+    await page.goto('/roster')
+    await expect(page.getByRole('heading', { name: 'Roster Optimizer' })).toBeVisible({ timeout: 15000 })
+    const week1Button = page.locator('button:has-text("1")').first()
+    await week1Button.click()
+    await expect(page.locator('h3:has-text("Current Lineup")').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=No player').first()).toBeVisible()
+    await expect(page.locator('text=Empty').first()).toBeVisible()
+  })
 })

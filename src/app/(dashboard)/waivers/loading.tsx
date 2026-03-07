@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 export default function Loading() {
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div className="space-y-6" aria-live="polite" aria-busy="true">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-end justify-between">
           <div className="flex gap-4 items-end">
             <div className="space-y-2">
@@ -24,7 +24,7 @@ export default function Loading() {
           <Skeleton className="h-10 w-full md:w-48" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Skeleton className="h-8 w-48 mb-4" />
             <Card className="card-balatro">

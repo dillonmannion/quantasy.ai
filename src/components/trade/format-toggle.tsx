@@ -14,12 +14,12 @@ export function FormatToggle({ value, onChange, className }: FormatToggleProps) 
   const isDynasty = value === 'dynasty'
 
   return (
-    <div className={cn('flex items-center space-x-2', className)}>
+    <div className={cn('flex items-center min-h-[44px] space-x-2', className)}>
       <Label
         htmlFor="format-toggle"
         className={cn(
-          'cursor-pointer transition-colors text-sm',
-          isDynasty ? 'text-[#a1a1aa]' : 'text-foreground font-medium'
+          'cursor-pointer transition-colors text-sm py-2.5 px-1 select-none',
+           isDynasty ? 'text-muted-foreground' : 'text-foreground font-medium'
         )}
         onClick={() => onChange('redraft')}
       >
@@ -30,13 +30,13 @@ export function FormatToggle({ value, onChange, className }: FormatToggleProps) 
         checked={isDynasty}
         onCheckedChange={(checked) => onChange(checked ? 'dynasty' : 'redraft')}
         data-testid="dynasty-redraft-toggle"
-        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-primary/50"
+        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-primary/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       />
       <Label
         htmlFor="format-toggle"
         className={cn(
-          'cursor-pointer transition-colors text-sm',
-          !isDynasty ? 'text-[#a1a1aa]' : 'text-foreground font-medium'
+          'cursor-pointer transition-colors text-sm py-2.5 px-1 select-none',
+           !isDynasty ? 'text-muted-foreground' : 'text-foreground font-medium'
         )}
         onClick={() => onChange('dynasty')}
       >

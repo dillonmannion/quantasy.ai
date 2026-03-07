@@ -24,26 +24,33 @@ export function LineupSlot({
   isOptimized = false,
   className,
 }: LineupSlotProps) {
+  const allowedPositionsLabel =
+    slot.allowedPositions.length > 0 ? slot.allowedPositions.join(', ') : 'Any'
+  const playerName = player?.fullName?.trim() || 'No player'
+
   return (
     <Card
       className={cn(
         'p-4 flex flex-col gap-2',
         isOptimized && 'border-primary/50 bg-primary/5',
-        !player && 'border-dashed opacity-50',
+        !player && 'border-dashed border-muted-foreground/30',
         className
       )}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
-          <div className="text-xs font-medium text-[#ffffff] uppercase">
+           <div className="text-xs font-medium text-white uppercase">
             {slot.slotType === 'starter' ? 'Starter' : 'Bench'}
           </div>
-          <div className="text-xs text-[#a1a1aa]">
-            {slot.allowedPositions.join(', ')}
-          </div>
+           <div className="text-sm text-muted-foreground">
+             {allowedPositionsLabel}
+            </div>
         </div>
         {isOptimized && (
-          <div className="text-xs font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">
+          <div
+            data-testid="optimized-badge"
+            className="text-xs font-semibold bg-primary text-primary-foreground px-2 py-1 rounded"
+          >
             Optimized
           </div>
         )}
@@ -51,8 +58,8 @@ export function LineupSlot({
 
       {player ? (
         <div className="space-y-1">
-          <div className="font-semibold text-sm">{player.fullName}</div>
-          <div className="flex items-center justify-between text-xs text-[#a1a1aa]">
+           <div className="font-semibold text-sm">{playerName}</div>
+           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>
               {player.position}
               {player.team && ` • ${player.team}`}
@@ -64,7 +71,7 @@ export function LineupSlot({
             )}
           </div>
           {player.injuryStatus && (
-            <div className="text-xs text-destructive font-medium">
+            <div className="text-sm text-destructive font-medium">
               {player.injuryStatus}
             </div>
           )}
@@ -72,7 +79,8 @@ export function LineupSlot({
       ) : (
         <EmptyState
           variant="minimal"
-          title="Empty slot"
+          title="Empty"
+          description="No player"
           className="py-2"
         />
       )}

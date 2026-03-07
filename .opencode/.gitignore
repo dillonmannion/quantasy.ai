@@ -1,0 +1,5 @@
+# Ignore everything except skills and this file
+*
+!.gitignore
+!skills/
+!skills/**

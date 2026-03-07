@@ -26,7 +26,7 @@ export function RecommendationList({ recommendations }: Props) {
               <div>
                 <h3 className="text-xl font-bold">{rec.player.fullName}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {rec.player.position} - {rec.player.team}
+                   {rec.player.position}{rec.player.team ? ` - ${rec.player.team}` : ''}
                 </p>
                 <div className="mt-2 space-y-1">
                   <p>
@@ -45,7 +45,7 @@ export function RecommendationList({ recommendations }: Props) {
             
             {/* Show Your Work */}
             <details className="mt-4 group">
-              <summary className="cursor-pointer text-sm font-semibold hover:text-primary transition-colors">Show Your Work</summary>
+              <summary className="cursor-pointer text-sm font-semibold hover:text-primary transition-colors py-2 px-3 -mx-3 rounded hover:bg-accent/50">Show Your Work</summary>
               <ul className="mt-2 space-y-1 text-sm text-muted-foreground pl-4 border-l-2 border-border ml-1">
                 {rec.reasons.map((reason, i) => (
                   <li key={i}>• {reason}</li>

@@ -123,6 +123,11 @@ export default function ConnectLeaguePage() {
           {['username', 'select', 'complete'].map((s, i) => (
             <div
               key={s}
+              role="progressbar"
+              aria-label={`Step ${i + 1} of 3`}
+              aria-valuenow={i + 1}
+              aria-valuemin={1}
+              aria-valuemax={3}
               className={`h-2 rounded-full transition-all ${
                 step === s ||
                 (step === 'syncing' && s === 'select') ||
@@ -150,6 +155,7 @@ export default function ConnectLeaguePage() {
                   </Label>
                   <Input
                     id="username"
+                    type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter your Sleeper username"
@@ -157,7 +163,7 @@ export default function ConnectLeaguePage() {
                     disabled={loading}
                     className="h-12 text-lg"
                     autoFocus
-                    autoComplete="off"
+                    autoComplete="username"
                   />
                   <p className="text-sm text-muted-foreground">
                     This is your username on the Sleeper app, not your email
@@ -167,7 +173,7 @@ export default function ConnectLeaguePage() {
                 <Button
                   type="submit"
                   disabled={loading || !username.trim()}
-                  className="w-full h-12 text-lg"
+                  className="w-full h-12 text-lg focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   {loading ? 'Searching...' : 'Find My Leagues'}
                 </Button>
@@ -231,8 +237,17 @@ export default function ConnectLeaguePage() {
                 {searchResult.leagues.map((league) => (
                   <StaggerItem key={league.league_id}>
                     <Card
-                      className="card-balatro p-5 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Connect ${league.name}`}
+                      className="card-balatro p-5 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       onClick={() => handleSelectLeague(league)}
+                      onKeyDown={(e: React.KeyboardEvent) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleSelectLeague(league)
+                        }
+                      }}
                     >
                       <div className="flex items-start justify-between">
                         <div>

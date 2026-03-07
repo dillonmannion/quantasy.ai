@@ -66,7 +66,7 @@ export function UserMenu() {
             <span className="font-medium truncate w-full text-foreground/90 group-hover:text-foreground transition-colors">
               Account
             </span>
-            <span className="text-xs text-muted-foreground truncate w-full group-hover:text-muted-foreground/80 transition-colors">
+            <span className="text-sm text-muted-foreground truncate w-full group-hover:text-muted-foreground/80 transition-colors">
               {user.email}
             </span>
           </div>
@@ -75,7 +75,7 @@ export function UserMenu() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">Account</p>
-              <p className="text-xs leading-none text-muted-foreground truncate">
+              <p className="text-sm leading-none text-muted-foreground truncate">
                 {user.email}
               </p>
             </div>

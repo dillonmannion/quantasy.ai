@@ -86,7 +86,7 @@ export function PlayerPicker({
             <h2 className="text-lg font-bold" data-testid="player-picker-title">Add Player</h2>
             <button
               onClick={onClose}
-              className="text-[#a1a1aa] hover:text-foreground transition-colors rounded-sm focus:outline-none focus:ring-2 focus:ring-primary"
+               className="text-muted-foreground hover:text-foreground transition-colors rounded-sm focus:outline-none focus:ring-2 focus:ring-primary"
               aria-label="Close player picker"
               data-testid="player-picker-close"
             >
@@ -97,7 +97,7 @@ export function PlayerPicker({
           {/* Search */}
           <div className="p-4 border-b border-border space-y-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a1a1aa]" />
+               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search players..."
@@ -118,9 +118,9 @@ export function PlayerPicker({
                 data-testid="filter-All"
                 className={cn(
                   'px-3 py-1 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary',
-                  selectedPosition === null
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-[#a1a1aa] hover:bg-muted/80'
+                   selectedPosition === null
+                       ? 'bg-primary text-primary-foreground'
+                       : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   )}
                 >
                   All
@@ -133,9 +133,9 @@ export function PlayerPicker({
                     data-testid={`filter-${pos}`}
                     className={cn(
                       'px-3 py-1 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary',
-                      selectedPosition === pos
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-[#a1a1aa] hover:bg-muted/80'
+                       selectedPosition === pos
+                         ? 'bg-primary text-primary-foreground'
+                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     )}
                   >
                     {pos}
@@ -198,7 +198,7 @@ export function PlayerPicker({
 
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold">{player.full_name}</div>
-                        <div className="flex items-center gap-2 text-sm text-[#a1a1aa]">
+                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <span
                             className={cn(
                               'px-2 py-0.5 rounded text-xs font-semibold',
@@ -217,7 +217,7 @@ export function PlayerPicker({
                           <div className="font-bold text-accent">
                             {player.projected_points.toFixed(1)}
                           </div>
-                          <div className="text-xs text-[#a1a1aa]">pts</div>
+                           <div className="text-xs text-muted-foreground">pts</div>
                         </div>
                       )}
                     </motion.button>

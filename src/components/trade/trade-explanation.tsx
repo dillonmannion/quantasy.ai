@@ -65,7 +65,7 @@ const PlayerRowItem = ({
                 >
                   {breakdown.externalValues.consensus.toFixed(2)}
                 </span>
-                <span className="text-[10px] text-[#a1a1aa] uppercase tracking-wider font-medium">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
                   Z-Score
                 </span>
               </div>
@@ -75,7 +75,7 @@ const PlayerRowItem = ({
             <span className="text-accent font-semibold">
               {player.projected_points?.toFixed(1) ?? '0'}
             </span>
-            <span className="text-xs text-[#a1a1aa] font-medium">
+            <span className="text-xs text-muted-foreground font-medium">
               VBD
             </span>
           </div>
@@ -86,7 +86,7 @@ const PlayerRowItem = ({
         <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
           <CollapsibleTrigger asChild>
             <button
-              className="text-[10px] text-[#a1a1aa] hover:text-accent flex items-center gap-1 ml-auto"
+              className="text-[10px] text-muted-foreground hover:text-accent flex items-center gap-1 ml-auto"
               data-testid={`value-dropdown-${player.id}`}
             >
               What is this?
@@ -99,21 +99,21 @@ const PlayerRowItem = ({
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 p-3 bg-muted/30 rounded text-xs space-y-3">
-              <p className="text-[#a1a1aa] leading-relaxed">
+            <div className="mt-2 p-3 bg-muted/30 rounded text-sm space-y-3">
+              <p className="text-muted-foreground leading-relaxed">
                 We translate values from multiple sources to the same scale
                 using statistical normalization (Z-scores), then average them.
                 This consensus represents the market&apos;s collective opinion.
               </p>
 
               <div className="grid grid-cols-3 gap-2 border-t border-border/50 pt-2">
-                <div className="font-semibold text-[#a1a1aa]">
+                <div className="font-semibold text-muted-foreground">
                   Source
                 </div>
-                <div className="font-semibold text-[#a1a1aa] text-right">
+                <div className="font-semibold text-muted-foreground text-right">
                   Value
                 </div>
-                <div className="font-semibold text-[#a1a1aa] text-right">
+                <div className="font-semibold text-muted-foreground text-right">
                   Scale
                 </div>
 
@@ -128,7 +128,7 @@ const PlayerRowItem = ({
                     <div className="text-right font-mono">
                       {source.value.toFixed(1)}
                     </div>
-                    <div className="text-right text-[#a1a1aa] italic">
+                    <div className="text-right text-muted-foreground italic">
                       {source.originalScale || 'N/A'}
                     </div>
                   </div>
@@ -136,7 +136,7 @@ const PlayerRowItem = ({
 
                 {(!breakdown.externalValues.sources ||
                   breakdown.externalValues.sources.length === 0) && (
-                  <div className="col-span-3 text-center text-[#a1a1aa] py-1">
+                  <div className="col-span-3 text-center text-muted-foreground py-1">
                     No individual sources available
                   </div>
                 )}
@@ -280,9 +280,9 @@ export const TradeExplanation = memo(function TradeExplanation({
            </CollapsibleTrigger>
            <CollapsibleContent className="space-y-3 pt-2">
              <div className="bg-background/50 rounded p-3 space-y-2">
-               <p className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">
-                 VBD Methodology
-               </p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  VBD Methodology
+                </p>
                <p className="text-sm text-foreground/80 leading-relaxed">
                  Value Based Drafting (VBD) measures a player&apos;s value relative to a baseline replacement player at their position. This accounts for position scarcity and helps identify true value in trades.
                </p>
@@ -291,9 +291,9 @@ export const TradeExplanation = memo(function TradeExplanation({
                    VBD = Projected Points - Position Baseline
                  </p>
                </div>
-               <p className="text-xs text-[#a1a1aa]">
-                 Higher VBD = More valuable player relative to replacement level
-               </p>
+                <p className="text-sm text-muted-foreground">
+                  Higher VBD = More valuable player relative to replacement level
+                </p>
              </div>
            </CollapsibleContent>
          </Collapsible>

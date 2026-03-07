@@ -82,7 +82,7 @@ export function TradePartnerFinder({
   if (partners.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center min-h-[300px] border rounded-lg bg-card text-card-foreground">
-        <Users className="h-12 w-12 text-[#a1a1aa] mb-4" />
+         <Users className="h-12 w-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold">No Partners Found</h3>
         <p className="text-foreground/80 max-w-sm mt-2">
           We couldn&apos;t find any compatible trade partners based on your current roster strengths and weaknesses.
@@ -115,7 +115,7 @@ export function TradePartnerFinder({
                     <CardTitle className="text-lg line-clamp-1" title={match.ownerName}>
                       {match.ownerName}
                     </CardTitle>
-                    <CardDescription className="text-xs">
+                    <CardDescription className="text-sm">
                       Roster ID: {match.rosterId}
                     </CardDescription>
                   </div>
@@ -133,10 +133,10 @@ export function TradePartnerFinder({
               
               <CardContent className="flex-1 space-y-4 text-sm">
                 <div className="space-y-2">
-                  <div className="flex items-center text-xs font-semibold text-[#a1a1aa]">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    THEY NEED
-                  </div>
+                   <div className="flex items-center text-xs font-semibold text-muted-foreground">
+                     <TrendingUp className="w-3 h-3 mr-1" />
+                     THEY NEED
+                   </div>
                   <div className="flex flex-wrap gap-1">
                     {match.theirStrength.needs.length > 0 ? (
                       match.theirStrength.needs.map((pos) => (
@@ -145,13 +145,13 @@ export function TradePartnerFinder({
                         </Badge>
                       ))
                     ) : (
-                      <span className="text-[#a1a1aa] text-xs italic">Balanced roster</span>
-                    )}
-                  </div>
-                </div>
+                        <span className="text-muted-foreground text-sm italic">Balanced roster</span>
+                     )}
+                   </div>
+                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center text-xs font-semibold text-[#a1a1aa]">
+                 <div className="space-y-2">
+                   <div className="flex items-center text-xs font-semibold text-muted-foreground">
                     <TrendingUp className="w-3 h-3 mr-1 rotate-180" />
                     YOU NEED
                   </div>
@@ -163,15 +163,15 @@ export function TradePartnerFinder({
                         </Badge>
                       ))
                     ) : (
-                      <span className="text-[#a1a1aa] text-xs italic">Balanced roster</span>
-                    )}
-                  </div>
-                </div>
-                
-                {match.suggestedPositions.length > 0 && (
-                  <div className="pt-2 border-t mt-2">
-                     <span className="text-xs text-[#a1a1aa]">Suggested targets: </span>
-                     <span className="font-medium text-xs text-foreground">
+                        <span className="text-muted-foreground text-sm italic">Balanced roster</span>
+                     )}
+                   </div>
+                 </div>
+                 
+                 {match.suggestedPositions.length > 0 && (
+                   <div className="pt-2 border-t mt-2">
+                       <span className="text-sm text-muted-foreground">Suggested targets: </span>
+                      <span className="font-medium text-sm text-foreground">
                         {match.suggestedPositions.join(', ')}
                      </span>
                   </div>

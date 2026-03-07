@@ -19,7 +19,9 @@ interface LeagueFormProps {
 type ProjectionSource = 'bundled' | 'csv'
 
 export function LeagueForm({ onLeagueLoaded, onError }: LeagueFormProps) {
-  const [leagueId, setLeagueId] = useState('')
+  const [leagueId, setLeagueId] = useState(
+    process.env.NEXT_PUBLIC_SANDBOX_LEAGUE_ID ?? ''
+  )
   const [projectionSource, setProjectionSource] = useState<ProjectionSource>('bundled')
   const [csvContent, setCsvContent] = useState<string | null>(null)
   const [csvFileName, setCsvFileName] = useState<string | null>(null)
@@ -105,7 +107,7 @@ export function LeagueForm({ onLeagueLoaded, onError }: LeagueFormProps) {
             onChange={(e) => setLeagueId(e.target.value)}
             disabled={isLoading}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Find this in your Sleeper league URL: sleeper.com/leagues/<strong>[LEAGUE_ID]</strong>
           </p>
         </div>
@@ -158,7 +160,7 @@ export function LeagueForm({ onLeagueLoaded, onError }: LeagueFormProps) {
             >
               {csvFileName || 'Choose CSV file'}
             </Button>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Required columns: <code>player_id</code>, <code>projected_points</code>
             </p>
           </div>

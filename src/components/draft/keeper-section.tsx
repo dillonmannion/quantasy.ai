@@ -69,7 +69,7 @@ export function KeeperSection({ keepers, leagueType }: KeeperSectionProps) {
                     className="p-2 bg-muted rounded text-sm"
                   >
                     <div className="font-medium">{keeper.playerName}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                       {keeper.position} - {keeper.team || 'FA'}
                     </div>
                   </div>

@@ -200,18 +200,19 @@ async function writeSharedCache<T>(
   const serviceClient = createServiceClient()
   const expiresAt = new Date(Date.now() + ttlMs).toISOString()
 
-  await serviceClient.from('algorithm_outputs').delete().eq('cache_key', cacheKey)
-
-  const { error } = await serviceClient.from('algorithm_outputs').insert({
-    algorithm_type: algorithmType,
-    cache_key: cacheKey,
-    league_id: leagueId,
-    user_id: null,
-    input_params: inputParams as never,
-    output_data: outputData as never,
-    explanation: {} as never,
-    expires_at: expiresAt,
-  } as never)
+  const { error } = await serviceClient.from('algorithm_outputs').upsert(
+    {
+      algorithm_type: algorithmType,
+      cache_key: cacheKey,
+      league_id: leagueId,
+      user_id: null,
+      input_params: inputParams as never,
+      output_data: outputData as never,
+      explanation: {} as never,
+      expires_at: expiresAt,
+    } as never,
+    { onConflict: 'cache_key' }
+  )
 
    if (error) {
      logger.error('AlgorithmCache', `Error writing shared cache for ${algorithmType}`, { error })
@@ -230,18 +231,19 @@ async function writeUserCache<T>(
   const supabase = await createClient()
   const expiresAt = new Date(Date.now() + ttlMs).toISOString()
 
-  await supabase.from('algorithm_outputs').delete().eq('cache_key', cacheKey)
-
-  const { error } = await supabase.from('algorithm_outputs').insert({
-    algorithm_type: algorithmType,
-    cache_key: cacheKey,
-    league_id: leagueId,
-    user_id: userId,
-    input_params: inputParams as never,
-    output_data: outputData as never,
-    explanation: {} as never,
-    expires_at: expiresAt,
-  } as never)
+  const { error } = await supabase.from('algorithm_outputs').upsert(
+    {
+      algorithm_type: algorithmType,
+      cache_key: cacheKey,
+      league_id: leagueId,
+      user_id: userId,
+      input_params: inputParams as never,
+      output_data: outputData as never,
+      explanation: {} as never,
+      expires_at: expiresAt,
+    } as never,
+    { onConflict: 'cache_key' }
+  )
 
    if (error) {
      logger.error('AlgorithmCache', `Error writing user cache for ${algorithmType}`, { error })

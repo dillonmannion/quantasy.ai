@@ -277,7 +277,9 @@ export async function getLeagueTransactions(
 }
 
 export async function getAllPlayers(): Promise<Record<string, SleeperPlayer>> {
-  return sleeperFetch<Record<string, SleeperPlayer>>('/players/nfl')
+  // Use no-cache to bypass Next.js data cache — response is ~18MB which exceeds
+  // the 2MB cache limit. Player caching is handled by Supabase (24h TTL via syncAllPlayers).
+  return sleeperFetchNoCache<Record<string, SleeperPlayer>>('/players/nfl')
 }
 
 export async function getCurrentSeason(): Promise<string> {

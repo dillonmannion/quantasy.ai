@@ -20,6 +20,22 @@ export default function LoginPage() {
     setLoading(true)
     setMessage(null)
 
+    try {
+      const res = await fetch('/api/auth/dev-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      if (res.ok) {
+        const { hashed_token, verification_type } = await res.json()
+        window.location.href = `/auth/callback?token_hash=${hashed_token}&type=${verification_type}`
+        return
+      }
+    } catch {
+      // Dev login unavailable — fall through to normal flow
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -63,7 +79,8 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  className="h-12 text-lg bg-background/50 border-white/10 focus:border-primary/50"
+                  autoComplete="email"
+                  className="h-12 text-lg bg-background/50 border border-border focus:border-primary/50"
                 />
               </div>
 

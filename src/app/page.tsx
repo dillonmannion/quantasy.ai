@@ -41,7 +41,7 @@ export default function LandingPage() {
     <div className="min-h-screen">
       <div className="fixed top-4 right-4 z-50">
         <Link href="/draft-sandbox">
-          <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm">
+          <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm min-h-[44px] min-w-[44px]">
             Sandbox
           </Button>
         </Link>

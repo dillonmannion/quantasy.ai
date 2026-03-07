@@ -102,7 +102,7 @@ export function TransactionDetails({ transaction }: TransactionDetailsProps) {
                   {pick.season} Round {pick.round}
                 </span>
                 <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                <span className="text-muted-foreground text-xs">
+                <span className="text-muted-foreground text-sm">
                   From: Team {pick.previous_owner_id}
                 </span>
               </motion.div>
@@ -127,7 +127,7 @@ export function TransactionDetails({ transaction }: TransactionDetailsProps) {
                 <span className="font-bold text-yellow-200">
                   ${budget.amount}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   Team {budget.sender} → Team {budget.receiver}
                 </span>
               </motion.div>

@@ -51,9 +51,9 @@ export function FeedbackForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Feature Dropdown */}
       <div>
-        <label className="block text-sm font-medium mb-2">Feature</label>
+        <label htmlFor="feedback-feature" className="block text-sm font-medium mb-2">Feature</label>
         <Select value={feature} onValueChange={setFeature}>
-          <SelectTrigger>
+          <SelectTrigger id="feedback-feature">
             <SelectValue placeholder="Select a feature" />
           </SelectTrigger>
           <SelectContent>
@@ -68,17 +68,19 @@ export function FeedbackForm() {
 
       {/* Star Rating */}
       <div>
-        <label className="block text-sm font-medium mb-2">Rating</label>
-        <div className="flex gap-2">
+        <label id="feedback-rating-label" className="block text-sm font-medium mb-2">Rating</label>
+        <div className="flex gap-2" role="group" aria-labelledby="feedback-rating-label">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
               type="button"
               onClick={() => setRating(star)}
-              className="transition-colors"
+              aria-label={`Rate ${star} out of 5 stars`}
+              aria-pressed={star <= rating}
+              className="h-11 w-11 flex items-center justify-center transition-colors"
             >
               <Star
-                className={`h-8 w-8 ${
+                className={`h-11 w-11 ${
                   star <= rating
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'text-muted-foreground'
@@ -91,10 +93,11 @@ export function FeedbackForm() {
 
       {/* Text Area */}
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label htmlFor="feedback-comments" className="block text-sm font-medium mb-2">
           Additional Comments (Optional)
         </label>
         <Textarea
+          id="feedback-comments"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Tell us more about your experience..."

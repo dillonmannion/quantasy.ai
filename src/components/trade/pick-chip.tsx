@@ -63,7 +63,7 @@ export function PickChip({
         <div
           {...attributes}
           {...listeners}
-          className="shrink-0 text-[#a1a1aa] opacity-0 group-hover:opacity-100 transition-opacity"
+           className="shrink-0 text-muted-foreground opacity-60 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
         >
           <GripVertical className="w-4 h-4" />
         </div>
@@ -75,7 +75,7 @@ export function PickChip({
 
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-sm truncate">{label}</div>
-        <div className="flex items-center gap-1 text-xs text-[#a1a1aa]">
+         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <span>{subLabel}</span>
         </div>
       </div>
@@ -85,13 +85,13 @@ export function PickChip({
           <div className="text-xs font-bold">
             {value.toFixed(1)}
           </div>
-          <div className="text-xs text-[#a1a1aa]">val</div>
+           <div className="text-xs text-muted-foreground">val</div>
         </div>
       )}
 
       <button
         onClick={() => onRemove(pick.pickId)}
-        className="shrink-0 text-[#a1a1aa] hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+         className="shrink-0 text-muted-foreground hover:text-destructive transition-colors opacity-60 group-hover:opacity-100 focus-visible:opacity-100"
         aria-label={`Remove ${label}`}
         data-testid="pick-chip-remove"
       >
